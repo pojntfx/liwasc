@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	models "github.com/pojntfx/wascan/pkg/sql/generated"
+	models "github.com/pojntfx/liwasc/pkg/sql/generated"
 )
 
 type MAC2VendorDatabase struct {

@@ -1,2 +1,2 @@
 [sqlite3]
-dbname = "/etc/wascan/oui-database.sqlite"
+dbname = "/etc/liwasc/oui-database.sqlite"

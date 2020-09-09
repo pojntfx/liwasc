@@ -1,4 +1,4 @@
-module github.com/pojntfx/wascan
+module github.com/pojntfx/liwasc
 
 go 1.15
 

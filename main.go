@@ -6,14 +6,14 @@ import (
 	"math"
 	"time"
 
-	"github.com/pojntfx/wascan/pkg/databases"
-	"github.com/pojntfx/wascan/pkg/scanners"
+	"github.com/pojntfx/liwasc/pkg/databases"
+	"github.com/pojntfx/liwasc/pkg/scanners"
 )
 
 func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
-	macDatabasePath := flag.String("macDatabasePath", "/etc/wascan/oui-database.sqlite", "Path to the MAC database (mac2vendor flavour). Download from https://mac2vendor.com/articles/download")
+	macDatabasePath := flag.String("macDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the MAC database (mac2vendor flavour). Download from https://mac2vendor.com/articles/download")
 	portScanningTimeout := flag.Int("portScanningTimeout", 15000, "Port scanning timeout (in milliseconds)")
 
 	flag.Parse()
