@@ -17,9 +17,12 @@ func main() {
 	networkScanner := scanners.NewNetworkScanner(*deviceName)
 
 	// Open instances
-	if err := networkScanner.Open(); err != nil {
+	err, subnets := networkScanner.Open()
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Printf("Scanning nodes on subnets %v via %v\n", subnets, *deviceName)
 
 	// Receive packets
 	go func() {
