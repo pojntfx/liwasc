@@ -48,11 +48,13 @@ func main() {
 	for {
 		node := networkScanner.Read()
 
-		vendor, err := mac2VendorDatabase.GetVendor(node.MACAddress.String())
-		if err != nil {
-			log.Println(node, "could not find vendor")
-		}
+		go func() {
+			vendor, err := mac2VendorDatabase.GetVendor(node.MACAddress.String())
+			if err != nil {
+				log.Println(node, "could not find vendor")
+			}
 
-		log.Println(node, vendor)
+			log.Println(node, vendor)
+		}()
 	}
 }
