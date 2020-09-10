@@ -96,20 +96,27 @@ func main() {
 					return
 				}
 
-				// future NODE_PORT_UPDATE message
-				log.Println(node, port)
+				// Only send status info for open ports right now, but in the future closed port info should also be send to the frontend for status info ("how many ports have been scanned?")
+				if port.Open {
+					// future NODE_PORT_UPDATE message
+					log.Println(node, port)
+				}
 
-				go func() {
-					// future NODE_PORT_SERVICE_INFO message
-					service, err := serviceNamesPortNumbersDatabase.GetService(port.Port)
-					if err != nil {
-						log.Println(node, err)
+				// Note above does not apply here, there is no point in transmitting this info if the ports are closed
+				if port.Open {
+					go func() {
+						service, err := serviceNamesPortNumbersDatabase.GetService(port.Port, port.Protocol)
+						if err != nil {
+							// future NODE_PORT_SERVICE_INFO message
+							log.Println(node, err)
 
-						return
-					}
+							return
+						}
 
-					log.Println(port, service)
-				}()
+						// future NODE_PORT_SERVICE_INFO message
+						log.Println(port, service)
+					}()
+				}
 			}
 		}()
 	}

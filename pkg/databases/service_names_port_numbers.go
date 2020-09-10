@@ -1,12 +1,11 @@
 package databases
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 
-	"github.com/friendsofgo/errors"
 	"github.com/jszwec/csvutil"
 )
 
@@ -27,11 +26,11 @@ type Service struct {
 
 type ServiceNamesPortNumbersDatabase struct {
 	dbPath   string
-	services map[int]*Service
+	services map[int][]Service
 }
 
 func NewServiceNamesPortNumbersDatabase(dbPath string) *ServiceNamesPortNumbersDatabase {
-	return &ServiceNamesPortNumbersDatabase{dbPath, make(map[int]*Service)}
+	return &ServiceNamesPortNumbersDatabase{dbPath, make(map[int][]Service)}
 }
 
 func (d *ServiceNamesPortNumbersDatabase) Open() error {
@@ -46,33 +45,33 @@ func (d *ServiceNamesPortNumbersDatabase) Open() error {
 		return err
 	}
 
-	// Take into account port ranges
-	// TODO: Make the value an array for the different protocols
 	for _, service := range rawServices {
-		// Ignore empty port numbers
-		if service.PortNumber == "" {
+		rangePoints := strings.Split(service.PortNumber, "-")
+
+		// Skip services with empty ports
+		rawStartPort := rangePoints[0]
+		if rawStartPort == "" {
 			continue
 		}
 
-		rangeEnd := strings.Split(service.PortNumber, "-")
-
-		startPort, err := strconv.Atoi(rangeEnd[0])
+		startPort, err := strconv.Atoi(rawStartPort)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		d.services[startPort] = &service
+		d.services[startPort] = append(d.services[startPort], service)
 
-		if len(rangeEnd) > 1 {
-			endPort, err := strconv.Atoi(rangeEnd[1])
+		// Port range
+		if len(rangePoints) > 1 {
+			rawEndPort := rangePoints[1]
+
+			endPort, err := strconv.Atoi(rawEndPort)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
-			delta := endPort - startPort
-
-			for i := 1; i <= delta; i++ {
-				d.services[startPort+i] = &service
+			for currentPort := startPort + 1; currentPort <= endPort; currentPort++ {
+				d.services[currentPort] = append(d.services[currentPort], service)
 			}
 		}
 	}
@@ -80,12 +79,24 @@ func (d *ServiceNamesPortNumbersDatabase) Open() error {
 	return nil
 }
 
-func (d *ServiceNamesPortNumbersDatabase) GetService(port int) (*Service, error) {
-	service := d.services[port]
-
-	if service == nil {
-		return nil, errors.Errorf("could not find service for port %v", port)
+// GetService returns the services that match the port and protocol given
+// Use "*" as the protocol to find all services on the port independent of protocol
+func (d *ServiceNamesPortNumbersDatabase) GetService(port int, protocol string) (*[]Service, error) {
+	allServicesForProtocol := d.services[port]
+	if allServicesForProtocol == nil {
+		return nil, fmt.Errorf("could not find service(s) for port %v", port)
 	}
 
-	return service, nil
+	outServices := make([]Service, 0)
+	for _, service := range allServicesForProtocol {
+		if service.TransportProtocol == protocol || protocol == "*" {
+			outServices = append(outServices, service)
+		}
+	}
+
+	if len(outServices) < 1 {
+		return nil, fmt.Errorf("could find service(s) for port %v, but not for protocol %v on that port", port, protocol)
+	}
+
+	return &outServices, nil
 }
