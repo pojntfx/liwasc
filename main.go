@@ -14,6 +14,7 @@ func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
 	macDatabasePath := flag.String("macDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the MAC database (mac2vendor flavour). Download from https://mac2vendor.com/articles/download")
+	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
 	portScanningTimeout := flag.Int("portScanningTimeout", 15000, "Port scanning timeout (in milliseconds)")
 
 	flag.Parse()
@@ -21,6 +22,7 @@ func main() {
 	// Create instances
 	networkScanner := scanners.NewNetworkScanner(*deviceName)
 	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*macDatabasePath)
+	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
 
 	// Open instances
 	err, subnets := networkScanner.Open()
@@ -30,6 +32,10 @@ func main() {
 	log.Printf("Scanning nodes on subnets %v via %v\n", subnets, *deviceName)
 
 	if err := mac2VendorDatabase.Open(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := serviceNamesPortNumbersDatabase.Open(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -92,6 +98,18 @@ func main() {
 
 				// future NODE_PORT_UPDATE message
 				log.Println(node, port)
+
+				go func() {
+					// future NODE_PORT_SERVICE_INFO message
+					service, err := serviceNamesPortNumbersDatabase.GetService(port.Port)
+					if err != nil {
+						log.Println(node, err)
+
+						return
+					}
+
+					log.Println(port, service)
+				}()
 			}
 		}()
 	}
