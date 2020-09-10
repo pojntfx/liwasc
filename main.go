@@ -13,9 +13,11 @@ import (
 func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
+	portScanningTimeout := flag.Int("portScanningTimeout", 15000, "Port scanning timeout (in milliseconds)")
+
 	macDatabasePath := flag.String("macDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the MAC database (mac2vendor flavour). Download from https://mac2vendor.com/articles/download")
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
-	portScanningTimeout := flag.Int("portScanningTimeout", 15000, "Port scanning timeout (in milliseconds)")
+	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
 
 	flag.Parse()
 
@@ -23,6 +25,7 @@ func main() {
 	networkScanner := scanners.NewNetworkScanner(*deviceName)
 	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*macDatabasePath)
 	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
+	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath)
 
 	// Open instances
 	err, subnets := networkScanner.Open()
@@ -36,6 +39,10 @@ func main() {
 	}
 
 	if err := serviceNamesPortNumbersDatabase.Open(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := ports2PacketsDatabase.Open(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -75,7 +82,15 @@ func main() {
 		}()
 
 		// Scan for open ports for node
-		portScanner := scanners.NewPortScanner(node.IPAddress.String(), 0, math.MaxUint16, time.Millisecond*time.Duration(*portScanningTimeout), []string{"tcp", "udp"})
+		portScanner := scanners.NewPortScanner(node.IPAddress.String(), 0, math.MaxUint16, time.Millisecond*time.Duration(*portScanningTimeout), []string{"tcp", "udp"}, func(port int) ([]byte, error) {
+			packet, err := ports2PacketsDatabase.GetPacket(port)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return packet.Packet, err
+		})
 
 		// Dial and/or transmit packets ("start a scan")
 		go func() {

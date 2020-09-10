@@ -1,9 +1,9 @@
 package scanners
 
 import (
-	"encoding/base64"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -22,10 +22,11 @@ type PortScanner struct {
 	timeout         time.Duration
 	protocols       []string
 	scannedPortChan chan *ScannedPort
+	packetGetter    func(port int) ([]byte, error)
 }
 
-func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string) *PortScanner {
-	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort)}
+func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string, packetGetter func(port int) ([]byte, error)) *PortScanner {
+	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort), packetGetter}
 }
 
 func (s *PortScanner) Transmit() error {
@@ -50,13 +51,16 @@ func (s *PortScanner) Transmit() error {
 							fatalErrorChan <- err
 						}
 
-						// TODO: Don't use this packet which is DNS-specific, use the matching one from https://pojntfx.github.io/ports2packets/
-						statusPacket, err := base64.StdEncoding.DecodeString("AAAQAAAAAAAAAAAA")
+						packet, err := s.packetGetter(innerPort)
 						if err != nil {
-							fatalErrorChan <- err
+							if strings.Contains(err.Error(), "could not find packet for port") {
+								packet = []byte{} // Unknown packet for port, use empty []byte{}
+							} else {
+								fatalErrorChan <- err
+							}
 						}
 
-						if _, err := conn.Write(statusPacket); err != nil {
+						if _, err := conn.Write(packet); err != nil {
 							fatalErrorChan <- err
 						}
 
