@@ -21,6 +21,16 @@ func (c *FilterComponent) Render() app.UI {
 					&LabelCollectionComponent{Icon: "fas fa-microchip", Title: "Device", Labels: []string{c.Device}},
 				),
 				app.Div().Class("pf-c-toolbar__item pf-m-pagination").Body(
+					app.Div().Class("pf-c-search-input").Body(
+						app.Span().Class("pf-c-search-input__text").Body(
+							app.Span().Class("pf-c-search-input__icon").Body(
+								app.I().Class("fas fa-search fa-fw"),
+							),
+							app.Input().Class("pf-c-search-input__text-input").Placeholder("Find by MAC, IP, ..."),
+						),
+					),
+				),
+				app.Div().Class("pf-c-toolbar__item").Body(
 					app.Button().Class("pf-c-button pf-m-primary").Body(
 						app.Span().Class("pf-c-button__icon pf-m-start").Body(
 							app.I().Class("fas fa-sync"),
