@@ -8,6 +8,6 @@ type AppComponent struct {
 
 func (c *AppComponent) Render() app.UI {
 	return app.Div().Body(
-		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}},
+		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
 	)
 }
