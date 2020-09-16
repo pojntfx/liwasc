@@ -16,7 +16,10 @@ func main() {
 	h := app.Handler{
 		Title:  "liwasc",
 		Author: "Felix Pojtinger",
-		Styles: []string{"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly.css"},
+		Styles: []string{
+			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly.css",
+			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly-addons.css",
+		},
 	}
 
 	log.Println("Listening on", *listenAddress)

@@ -6,9 +6,7 @@ import (
 )
 
 func main() {
-	appComponent := components.NewAppComponent()
-
-	app.Route("/", appComponent)
+	app.Route("/", &components.AppComponent{})
 
 	app.Run()
 }
