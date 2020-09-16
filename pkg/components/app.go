@@ -1,6 +1,10 @@
 package components
 
-import "github.com/maxence-charriere/go-app/v7/pkg/app"
+import (
+	"log"
+
+	"github.com/maxence-charriere/go-app/v7/pkg/app"
+)
 
 type AppComponent struct {
 	app.Compo
@@ -10,6 +14,9 @@ func (c *AppComponent) Render() app.UI {
 	return app.Div().Body(
 		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
 		&ListingComponent{
+			OnRowClick: func(i int) {
+				log.Printf("Toggling node details for node %v\n", i)
+			},
 			Nodes: []ListingNode{
 				{
 					PoweredOn:  false,
