@@ -1,10 +1,13 @@
 package components
 
-import "github.com/maxence-charriere/go-app/v7/pkg/app"
+import (
+	"github.com/maxence-charriere/go-app/v7/pkg/app"
+)
 
 type ListingComponent struct {
 	app.Compo
-	Nodes []ListingNode
+	Nodes      []ListingNode
+	OnRowClick func(int)
 }
 
 func (c *ListingComponent) Render() app.UI {
@@ -31,10 +34,10 @@ func (c *ListingComponent) Render() app.UI {
 							),
 						),
 					),
-					app.Td().Body(app.Text(c.Nodes[i].MACAddress)),
-					app.Td().Body(app.Text(c.Nodes[i].IPAddress)),
-					app.Td().Body(app.Text(c.Nodes[i].Vendor)),
-					app.Td().Body(
+					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
+					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
+					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
+					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
 						app.Div().Class("pf-c-label-group").Body(
 							app.Ul().Class("pf-c-label-group__list").Body(
 								app.Range(c.Nodes[i].ServicesAndPorts).Slice(func(i2 int) app.UI {
