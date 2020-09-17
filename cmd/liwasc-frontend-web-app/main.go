@@ -6,7 +6,10 @@ import (
 )
 
 func main() {
-	app.Route("/", &components.AppComponent{})
+	app.Route("/", &components.AppComponent{
+		DetailsOpen:  false,
+		SelectedNode: -1,
+	})
 
 	app.Run()
 }
