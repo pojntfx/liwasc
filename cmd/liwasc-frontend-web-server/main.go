@@ -19,6 +19,7 @@ func main() {
 		Styles: []string{
 			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly.css",
 			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly-addons.css",
+			"/web/index.css",
 		},
 	}
 

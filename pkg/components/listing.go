@@ -34,10 +34,10 @@ func (c *ListingComponent) Render() app.UI {
 							),
 						),
 					),
-					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
-					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
-					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
-					app.Td().OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
+					app.Td().Class("x--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
+					app.Td().Class("x--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
+					app.Td().Class("x--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
+					app.Td().Class("x--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
 						app.Div().Class("pf-c-label-group").Body(
 							app.Ul().Class("pf-c-label-group__list").Body(
 								app.Range(c.Nodes[i].ServicesAndPorts).Slice(func(i2 int) app.UI {
