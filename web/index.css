@@ -1,3 +1,27 @@
-.x--selectable {
+/* Polyfill until https://github.com/patternfly/patternfly/issues/2371 is implemented */
+
+.x__table__col--selectable {
+  transition-delay: 0s;
+  transition-duration: 0.25s;
+  transition-property: all;
+  transition-timing-function: ease-in-out;
+}
+
+.x__table__col--selectable--selected {
+  box-shadow: rgba(3, 3, 3, 0.16) 0px -2px 4px -1px,
+    rgba(3, 3, 3, 0.16) 0px 2px 4px -1px; /* TODO: Add transitions */
+}
+
+.x__table__col--selectable {
   cursor: pointer;
+}
+
+.x__table__col--selectable--selected--first:before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  content: "";
+  background-color: #2a66cc;
 }
