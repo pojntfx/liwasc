@@ -14,7 +14,7 @@ type LabelCollectionComponent struct {
 }
 
 func (c *LabelCollectionComponent) Render() app.UI {
-	return app.Div().Class("pf-c-label-group pf-m-category").Body(
+	return app.Div().Class("pf-c-label-group pf-m-category pf-u-w-100").Body(
 		app.Span().Class("pf-c-label-group__label").Body(
 			app.I().Class(fmt.Sprintf("%v pf-u-mr-xs", c.Icon)),
 			app.Text(c.Title),
