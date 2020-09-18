@@ -10,34 +10,10 @@ type AppComponent struct {
 	app.Compo
 	DetailsOpen  bool
 	SelectedNode int
+	Nodes        []ListingNode
 }
 
 func (c *AppComponent) Render() app.UI {
-	nodes := []ListingNode{
-		{
-			PoweredOn:  false,
-			MACAddress: "ff:ff:ff:ff",
-			IPAddress:  "10.0.0.1",
-			Vendor:     "TP-Link",
-			ServicesAndPorts: []string{
-				"22/tcp (ssh)",
-				"53/udp (dns)",
-				"80/tcp (http)",
-			},
-		},
-		{
-			PoweredOn:  true,
-			MACAddress: "00:1B:44:11:3A:B7",
-			IPAddress:  "10.0.0.2",
-			Vendor:     "Realtek",
-			ServicesAndPorts: []string{
-				"7/tcp (echo)",
-				"7/tcp (echo)",
-				"80/tcp (http)",
-			},
-		},
-	}
-
 	return app.Div().Body(
 		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
 		&DetailsComponent{
@@ -48,19 +24,20 @@ func (c *AppComponent) Render() app.UI {
 					return ""
 				}
 
-				return nodes[c.SelectedNode].MACAddress
+				return c.Nodes[c.SelectedNode].MACAddress
 			}()),
 			Main: &ListingComponent{
-				OnRowClick:   c.handleDetailsOpen,
-				SelectedNode: c.SelectedNode,
-				Nodes:        nodes,
+				OnRowClick:        c.handleDetailsOpen,
+				SelectedNode:      c.SelectedNode,
+				Nodes:             c.Nodes,
+				OnNodePowerToggle: c.handleNodePowerToggle,
 			},
 			Details: app.Div().Body(app.Text(fmt.Sprintf("%v", func() ListingNode {
 				if c.SelectedNode == -1 {
 					return ListingNode{}
 				}
 
-				return nodes[c.SelectedNode]
+				return c.Nodes[c.SelectedNode]
 			}()))),
 		},
 	)
@@ -86,6 +63,41 @@ func (c *AppComponent) handleDetailsOpen(i int) {
 func (c *AppComponent) handleDetailsClose() {
 	c.DetailsOpen = false
 	c.SelectedNode = -1
+
+	c.Update()
+}
+
+func (c *AppComponent) handleNodePowerToggle(i int) {
+	c.Nodes[i].PoweredOn = !c.Nodes[i].PoweredOn
+
+	c.Update()
+}
+
+func (c *AppComponent) OnMount(ctx app.Context) {
+	c.Nodes = []ListingNode{
+		{
+			PoweredOn:  false,
+			MACAddress: "ff:ff:ff:ff",
+			IPAddress:  "10.0.0.1",
+			Vendor:     "TP-Link",
+			ServicesAndPorts: []string{
+				"22/tcp (ssh)",
+				"53/udp (dns)",
+				"80/tcp (http)",
+			},
+		},
+		{
+			PoweredOn:  true,
+			MACAddress: "00:1B:44:11:3A:B7",
+			IPAddress:  "10.0.0.2",
+			Vendor:     "Realtek",
+			ServicesAndPorts: []string{
+				"7/tcp (echo)",
+				"7/tcp (echo)",
+				"80/tcp (http)",
+			},
+		},
+	}
 
 	c.Update()
 }
