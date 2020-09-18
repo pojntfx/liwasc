@@ -9,10 +9,10 @@ import (
 type DetailsComponent struct {
 	app.Compo
 	Open    bool
-	OnClose func(ctx app.Context, e app.Event)
 	Title   string
 	Main    app.UI
 	Details app.UI
+	Actions []app.UI
 }
 
 func (c *DetailsComponent) Render() app.UI {
@@ -32,9 +32,7 @@ func (c *DetailsComponent) Render() app.UI {
 					app.Span().Body(app.Text(c.Title)),
 					app.Div().Class("pf-c-drawer__actions").Body(
 						app.Div().Class("pf-c-drawer__close").Body(
-							app.Button().Class("pf-c-button pf-m-plain").Body( // TODO: Make this configurable; the should be the on/off toggle component here in the future as well
-								app.I().Class("fas fa-times"),
-							).OnClick(c.OnClose),
+							c.Actions...,
 						),
 					),
 				),

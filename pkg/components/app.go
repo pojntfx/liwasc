@@ -17,8 +17,7 @@ func (c *AppComponent) Render() app.UI {
 	return app.Div().Body(
 		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
 		&DetailsComponent{
-			Open:    c.DetailsOpen,
-			OnClose: func(ctx app.Context, e app.Event) { c.handleDetailsClose() },
+			Open: c.DetailsOpen,
 			Title: fmt.Sprintf("Node %v", func() string {
 				if c.SelectedNode == -1 {
 					return ""
@@ -39,6 +38,21 @@ func (c *AppComponent) Render() app.UI {
 
 				return c.Nodes[c.SelectedNode]
 			}()))),
+			Actions: []app.UI{
+				&OnOffSwitchComponent{
+					On: func() bool {
+						if c.SelectedNode == -1 {
+							return false
+						}
+
+						return c.Nodes[c.SelectedNode].PoweredOn
+					}(),
+					OnToggle: func(ctx app.Context, e app.Event) { c.handleNodePowerToggle(c.SelectedNode) },
+				},
+				app.Button().Class("pf-u-ml-md pf-c-button pf-m-plain").Body(
+					app.I().Class("fas fa-times"),
+				).OnClick(func(ctx app.Context, e app.Event) { c.handleDetailsClose() }),
+			},
 		},
 	)
 }
