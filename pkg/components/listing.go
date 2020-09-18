@@ -8,9 +8,10 @@ import (
 
 type ListingComponent struct {
 	app.Compo
-	Nodes        []ListingNode
-	OnRowClick   func(int)
-	SelectedNode int
+	Nodes             []ListingNode
+	OnRowClick        func(int)
+	SelectedNode      int
+	OnNodePowerToggle func(int)
 }
 
 func (c *ListingComponent) Render() app.UI {
@@ -42,16 +43,7 @@ func (c *ListingComponent) Render() app.UI {
 
 						return ""
 					}())).Body(
-						app.Label().Class("pf-c-switch").Body(
-							app.Input().Class("pf-c-switch__input").Type("checkbox").Checked(c.Nodes[i].PoweredOn),
-							app.Span().Class("pf-c-switch__toggle").Body(
-								app.Span().Class("pf-c-switch__toggle-icon").Body(
-									app.I().Class("fas fa-lightbulb"),
-								),
-							),
-							app.Span().Class("pf-c-switch__label pf-m-on").Body(app.Text("On")),
-							app.Span().Class("pf-c-switch__label pf-m-off").Body(app.Text("Off")),
-						),
+						&OnOffSwitchComponent{On: c.Nodes[i].PoweredOn, OnToggle: func(ctx app.Context, e app.Event) { c.OnNodePowerToggle(i) }},
 					),
 					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
 					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
