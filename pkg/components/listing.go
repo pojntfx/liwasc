@@ -46,9 +46,9 @@ func (c *ListingComponent) Render() app.UI {
 						&OnOffSwitchComponent{On: c.Nodes[i].PoweredOn, OnToggle: func(ctx app.Context, e app.Event) { c.OnNodePowerToggle(i) }},
 					),
 					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
-					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
-					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
-					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
+					app.Td().DataSet("label", headers[2]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
+					app.Td().DataSet("label", headers[3]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
+					app.Td().DataSet("label", headers[4]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
 						app.Div().Class("pf-c-label-group").Body(
 							app.Ul().Class("pf-c-label-group__list").Body(
 								app.Range(c.Nodes[i].ServicesAndPorts).Slice(func(i2 int) app.UI {
