@@ -17,8 +17,8 @@ func main() {
 		Title:  "liwasc",
 		Author: "Felix Pojtinger",
 		Styles: []string{
-			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly.css",
-			"https://unpkg.com/@patternfly/patternfly@4.35.2/patternfly-addons.css",
+			"https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly.css",
+			"https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly-addons.css",
 			"/web/index.css",
 		},
 	}
