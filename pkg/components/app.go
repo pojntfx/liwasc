@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 )
 
 type AppComponent struct {
 	app.Compo
 	DetailsOpen  bool
 	SelectedNode int
-	Nodes        []ListingNode
+	Nodes        []models.Node
 }
 
 func (c *AppComponent) Render() app.UI {
@@ -31,13 +32,16 @@ func (c *AppComponent) Render() app.UI {
 				Nodes:             c.Nodes,
 				OnNodePowerToggle: c.handleNodePowerToggle,
 			},
-			Details: app.Div().Body(app.Text(fmt.Sprintf("%v", func() ListingNode {
-				if c.SelectedNode == -1 {
-					return ListingNode{}
-				}
+			Details: app.Div().Body(
+				&NodeComponent{
+					Node: func() models.Node {
+						if c.SelectedNode == -1 {
+							return models.Node{}
+						}
 
-				return c.Nodes[c.SelectedNode]
-			}()))),
+						return c.Nodes[c.SelectedNode]
+					}()},
+			),
 			Actions: []app.UI{
 				&OnOffSwitchComponent{
 					On: func() bool {
@@ -88,7 +92,7 @@ func (c *AppComponent) handleNodePowerToggle(i int) {
 }
 
 func (c *AppComponent) OnMount(ctx app.Context) {
-	c.Nodes = []ListingNode{
+	c.Nodes = []models.Node{
 		{
 			PoweredOn:  false,
 			MACAddress: "ff:ff:ff:ff",
