@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 )
 
 type ListingComponent struct {
 	app.Compo
-	Nodes             []ListingNode
+	Nodes             []models.Node
 	OnRowClick        func(int)
 	SelectedNode      int
 	OnNodePowerToggle func(int)
@@ -67,12 +68,4 @@ func (c *ListingComponent) Render() app.UI {
 			}),
 		),
 	)
-}
-
-type ListingNode struct {
-	PoweredOn        bool
-	MACAddress       string
-	IPAddress        string
-	Vendor           string
-	ServicesAndPorts []string
 }
