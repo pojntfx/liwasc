@@ -10,11 +10,14 @@ import (
 type NodeComponent struct {
 	app.Compo
 	Node models.Node
+
+	servicesAndPortsOpen bool
+	detailsOpen          bool
 }
 
 func (c *NodeComponent) Render() app.UI {
 	return app.Div().Body(
-		app.Dl().Class("pf-c-description-list pf-m-2-col").Body(
+		app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
 			&DefinitionComponent{
 				Title:   "IP Address",
 				Icon:    "fas fa-globe",
@@ -32,5 +35,36 @@ func (c *NodeComponent) Render() app.UI {
 					),
 			},
 		),
+		&ExpandableSectionComponent{
+			Open:     c.servicesAndPortsOpen,
+			OnToggle: c.handleServicesAndPortsOpen,
+			Title:    "Services and Ports",
+			Content:  app.Text("Example services and ports content"),
+		},
+		&ExpandableSectionComponent{
+			Open:     c.detailsOpen,
+			OnToggle: c.handleToggleDetailsOpen,
+			Title:    "Details",
+			Content:  app.Text("Example details content"),
+		},
 	)
+}
+
+func (c *NodeComponent) OnMount(ctx app.Context) {
+	c.servicesAndPortsOpen = true
+	c.detailsOpen = true
+
+	c.Update()
+}
+
+func (c *NodeComponent) handleServicesAndPortsOpen(ctx app.Context, e app.Event) {
+	c.servicesAndPortsOpen = !c.servicesAndPortsOpen
+
+	c.Update()
+}
+
+func (c *NodeComponent) handleToggleDetailsOpen(ctx app.Context, e app.Event) {
+	c.detailsOpen = !c.detailsOpen
+
+	c.Update()
 }
