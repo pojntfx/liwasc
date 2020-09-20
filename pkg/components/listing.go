@@ -17,7 +17,7 @@ type ListingComponent struct {
 }
 
 func (c *ListingComponent) Render() app.UI {
-	headers := []string{"Powered On", "MAC Address", "IP Address", "Vendor", "Servers and Ports"}
+	headers := []string{"Powered On", "MAC Address", "IP Address", "Vendor", "Services and Ports"}
 
 	return app.Table().Class("pf-c-table pf-m-grid-md").Body(
 		app.THead().Body(
@@ -53,11 +53,15 @@ func (c *ListingComponent) Render() app.UI {
 					app.Td().DataSet("label", headers[4]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
 						app.Div().Class("pf-c-label-group").Body(
 							app.Ul().Class("pf-c-label-group__list").Body(
-								app.Range(c.Nodes[i].ServicesAndPorts).Slice(func(i2 int) app.UI {
+								app.Range(c.Nodes[i].Services).Slice(func(i2 int) app.UI {
 									return app.Li().Class("pf-c-label-group__list-item").Body(
 										app.Span().Class("pf-c-label").Body(
 											app.Span().Class("pf-c-label__content").Body(
-												app.Text(c.Nodes[i].ServicesAndPorts[i2]),
+												app.Text(fmt.Sprintf("%v/%v (%v)",
+													c.Nodes[i].Services[i2].PortNumber,
+													c.Nodes[i].Services[i2].TransportProtocol,
+													c.Nodes[i].Services[i2].ServiceName,
+												)),
 											),
 										),
 									)
