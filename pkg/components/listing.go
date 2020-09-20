@@ -9,6 +9,7 @@ import (
 
 type ListingComponent struct {
 	app.Compo
+
 	Nodes             []models.Node
 	OnRowClick        func(int)
 	SelectedNode      int

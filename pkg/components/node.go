@@ -9,8 +9,8 @@ import (
 
 type NodeComponent struct {
 	app.Compo
-	Node models.Node
 
+	Node                 models.Node
 	servicesAndPortsOpen bool
 	detailsOpen          bool
 }
@@ -45,7 +45,7 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.detailsOpen,
 			OnToggle: c.handleToggleDetailsOpen,
 			Title:    "Details",
-			Content:  app.Text("Example details content"),
+			Content:  app.Text(c.Node.Vendor),
 		},
 	)
 }

@@ -8,6 +8,7 @@ import (
 
 type DefinitionComponent struct {
 	app.Compo
+
 	Icon    string
 	Title   string
 	Content app.UI

@@ -9,6 +9,7 @@ import (
 
 type AppComponent struct {
 	app.Compo
+
 	DetailsOpen  bool
 	SelectedNode int
 	Nodes        []models.Node
