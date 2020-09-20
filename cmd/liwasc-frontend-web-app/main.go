@@ -7,10 +7,11 @@ import (
 
 func main() {
 	app.Route("/", &components.AppComponent{
-		DetailsOpen:     false,
-		ServicesOpen:    false,
-		SelectedNode:    -1,
-		SelectedService: -1,
+		CurrentUserEmail: "felix@pojtinger.com",
+		DetailsOpen:      false,
+		ServicesOpen:     false,
+		SelectedNode:     -1,
+		SelectedService:  -1,
 	})
 
 	app.Run()
