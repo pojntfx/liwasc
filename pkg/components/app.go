@@ -10,98 +10,105 @@ import (
 type AppComponent struct {
 	app.Compo
 
-	DetailsOpen     bool
-	SelectedNode    int
-	SelectedService int
-	ServicesOpen    bool
-	Nodes           []models.Node
+	CurrentUserEmail string
+	DetailsOpen      bool
+	SelectedNode     int
+	SelectedService  int
+	ServicesOpen     bool
+	Nodes            []models.Node
 }
 
 func (c *AppComponent) Render() app.UI {
-	return app.Div().Body(
-		&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
-		&DetailsComponent{
-			Open: c.DetailsOpen,
-			Title: app.If(!c.ServicesOpen,
-				app.Text(fmt.Sprintf("Node %v", func() string {
-					if c.SelectedNode == -1 {
-						return ""
-					}
-
-					return c.Nodes[c.SelectedNode].MACAddress
-				}()))).Else(
-				app.Div().Body(
-					app.Button().Class("pf-u-mr-md pf-c-button pf-m-plain").Body(
-						app.I().Class("fas fa-arrow-left"),
-					).OnClick(func(ctx app.Context, e app.Event) { c.handleServicesClose() }),
-					app.Text(fmt.Sprintf("Service %v", func() string {
-						if c.SelectedService == -1 {
-							return ""
-						}
-
-						return c.Nodes[c.SelectedNode].Services[c.SelectedService].ServiceName
-					}())),
-				),
-			),
-			Main: &ListingComponent{
-				OnRowClick:        c.handleDetailsOpen,
-				SelectedNode:      c.SelectedNode,
-				Nodes:             c.Nodes,
-				OnNodePowerToggle: c.handleNodePowerToggle,
-			},
-			Details: app.If(!c.ServicesOpen, app.Div().Body(
-				&NodeComponent{
-					Node: func() models.Node {
-						if c.SelectedNode == -1 {
-							return models.Node{}
-						}
-
-						return c.Nodes[c.SelectedNode]
-					}(),
-					OnOpenService: c.handleServicesOpen}),
-			).
-				Else(
-					&ServiceComponent{
-						Service: func() models.Service {
-							if c.SelectedService == -1 {
-								return models.Service{}
-							}
-
-							return c.Nodes[c.SelectedNode].Services[c.SelectedService]
-						}(),
-					}),
-			Actions: []app.UI{
-				app.If(!c.ServicesOpen, &OnOffSwitchComponent{
-					On: func() bool {
-						if c.SelectedNode == -1 {
-							return false
-						}
-
-						return c.Nodes[c.SelectedNode].PoweredOn
-					}(),
-					OnToggle: func(ctx app.Context, e app.Event) { c.handleNodePowerToggle(c.SelectedNode) },
-				}).Else(
-					app.Text(fmt.Sprintf("%v/%v",
-						func() int {
-							if c.SelectedService == -1 {
-								return -1
-							}
-
-							return c.Nodes[c.SelectedNode].Services[c.SelectedService].PortNumber
-						}(),
-						func() string {
-							if c.SelectedService == -1 {
+	return app.Div().Class("pf-c-page").Body(
+		&NavbarComponent{CurrentUserEmail: c.CurrentUserEmail},
+		app.Main().Class("pf-c-page__main").Body(
+			app.Section().Class("pf-c-page__main-section pf-m-no-padding").Body(
+				&DetailsComponent{
+					Open: c.DetailsOpen,
+					Title: app.If(!c.ServicesOpen,
+						app.Text(fmt.Sprintf("Node %v", func() string {
+							if c.SelectedNode == -1 {
 								return ""
 							}
 
-							return c.Nodes[c.SelectedNode].Services[c.SelectedService].TransportProtocol
-						}())),
-				),
-				app.Button().Class("pf-u-ml-md pf-c-button pf-m-plain").Body(
-					app.I().Class("fas fa-times"),
-				).OnClick(func(ctx app.Context, e app.Event) { c.handleDetailsClose() }),
-			},
-		},
+							return c.Nodes[c.SelectedNode].MACAddress
+						}()))).Else(
+						app.Div().Body(
+							app.Button().Class("pf-u-mr-md pf-c-button pf-m-plain").Body(
+								app.I().Class("fas fa-arrow-left"),
+							).OnClick(func(ctx app.Context, e app.Event) { c.handleServicesClose() }),
+							app.Text(fmt.Sprintf("Service %v", func() string {
+								if c.SelectedService == -1 {
+									return ""
+								}
+
+								return c.Nodes[c.SelectedNode].Services[c.SelectedService].ServiceName
+							}())),
+						),
+					),
+					Main: app.Div().Body(
+						&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
+						&ListingComponent{
+							OnRowClick:        c.handleDetailsOpen,
+							SelectedNode:      c.SelectedNode,
+							Nodes:             c.Nodes,
+							OnNodePowerToggle: c.handleNodePowerToggle,
+						}),
+					Details: app.If(!c.ServicesOpen, app.Div().Body(
+						&NodeComponent{
+							Node: func() models.Node {
+								if c.SelectedNode == -1 {
+									return models.Node{}
+								}
+
+								return c.Nodes[c.SelectedNode]
+							}(),
+							OnOpenService: c.handleServicesOpen}),
+					).
+						Else(
+							&ServiceComponent{
+								Service: func() models.Service {
+									if c.SelectedService == -1 {
+										return models.Service{}
+									}
+
+									return c.Nodes[c.SelectedNode].Services[c.SelectedService]
+								}(),
+							}),
+					Actions: []app.UI{
+						app.If(!c.ServicesOpen, &OnOffSwitchComponent{
+							On: func() bool {
+								if c.SelectedNode == -1 {
+									return false
+								}
+
+								return c.Nodes[c.SelectedNode].PoweredOn
+							}(),
+							OnToggle: func(ctx app.Context, e app.Event) { c.handleNodePowerToggle(c.SelectedNode) },
+						}).Else(
+							app.Text(fmt.Sprintf("%v/%v",
+								func() int {
+									if c.SelectedService == -1 {
+										return -1
+									}
+
+									return c.Nodes[c.SelectedNode].Services[c.SelectedService].PortNumber
+								}(),
+								func() string {
+									if c.SelectedService == -1 {
+										return ""
+									}
+
+									return c.Nodes[c.SelectedNode].Services[c.SelectedService].TransportProtocol
+								}())),
+						),
+						app.Button().Class("pf-u-ml-md pf-c-button pf-m-plain").Body(
+							app.I().Class("fas fa-times"),
+						).OnClick(func(ctx app.Context, e app.Event) { c.handleDetailsClose() }),
+					},
+				},
+			),
+		),
 	)
 }
 

@@ -17,7 +17,7 @@ type DetailsComponent struct {
 }
 
 func (c *DetailsComponent) Render() app.UI {
-	return app.Div().Class(fmt.Sprintf("pf-c-drawer %v", func() string {
+	return app.Div().Class(fmt.Sprintf("pf-c-drawer pf-m-inline-on-2xl %v", func() string {
 		if c.Open {
 			return "pf-m-expanded"
 		}
