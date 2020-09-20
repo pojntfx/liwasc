@@ -99,10 +99,22 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 			MACAddress: "ff:ff:ff:ff",
 			IPAddress:  "10.0.0.1",
 			Vendor:     "TP-Link",
-			ServicesAndPorts: []string{
-				"22/tcp (ssh)",
-				"53/udp (dns)",
-				"80/tcp (http)",
+			Services: []models.Service{
+				{
+					ServiceName:       "SSH",
+					PortNumber:        22,
+					TransportProtocol: "TCP",
+				},
+				{
+					ServiceName:       "DNS",
+					PortNumber:        53,
+					TransportProtocol: "UDP",
+				},
+				{
+					ServiceName:       "HTTP",
+					PortNumber:        80,
+					TransportProtocol: "TCP",
+				},
 			},
 			Registry:     "MA-1",
 			Organization: "TP-Link",
@@ -114,10 +126,22 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 			MACAddress: "00:1B:44:11:3A:B7",
 			IPAddress:  "10.0.0.2",
 			Vendor:     "Realtek",
-			ServicesAndPorts: []string{
-				"7/tcp (echo)",
-				"7/tcp (echo)",
-				"80/tcp (http)",
+			Services: []models.Service{
+				{
+					ServiceName:       "Echo",
+					PortNumber:        7,
+					TransportProtocol: "TCP",
+				},
+				{
+					ServiceName:       "Echo",
+					PortNumber:        7,
+					TransportProtocol: "UDP",
+				},
+				{
+					ServiceName:       "HTTP",
+					PortNumber:        80,
+					TransportProtocol: "TCP",
+				},
 			},
 			Registry:     "MA-1",
 			Organization: "Realtek",
