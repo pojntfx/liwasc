@@ -23,20 +23,23 @@ func (c *FilterComponent) Render() app.UI {
 				),
 				app.Div().Class("pf-c-toolbar__group pf-m-filter-group pf-u-w-100 pf-u-w-initial-on-lg pf-u-ml-auto-on-lg pf-u-mb-sm pf-u-mb-0-on-lg").Body(
 					app.Div().Class("pf-c-toolbar__item pf-m-search-filter pf-u-w-100").Body(
-						app.Div().Class("pf-c-input-group").Body(
-							app.Input().Class("pf-c-form-control").Type("search").Placeholder("Find by MAC, IP, ..."),
-							app.Button().Class("pf-c-button pf-m-control").Body(
-								app.I().Class("fas fa-search"),
+						app.Div().Class("pf-c-search-input").Body(
+							app.Span().Class("pf-c-search-input__text").Body(
+								app.Span().Class("pf-c-search-input__icon").Body(
+									app.I().Class("fas fa-search fa-fw"),
+								),
 							),
+							app.Input().Class("pf-c-search-input__text-input").Type("search").Placeholder("Find by MAC, IP, ..."),
 						),
 					),
 				),
+				app.Div().Class("pf-c-divider pf-m-vertical pf-m-inset-md"),
 				app.Div().Class("pf-c-toolbar__item").Body(
 					app.Button().Class("pf-c-button pf-m-primary").Body(
 						app.Span().Class("pf-c-button__icon pf-m-start").Body(
-							app.I().Class("fas fa-sync"),
+							app.I().Class("fas fa-rocket"),
 						),
-						app.Text("Re-Scan"),
+						app.Text("Trigger Scan"),
 					),
 				),
 			),

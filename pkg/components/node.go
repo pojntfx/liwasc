@@ -35,14 +35,16 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.servicesAndPortsOpen,
 			OnToggle: c.handleServicesAndPortsOpen,
 			Title:    "Services and Ports",
-			Content: app.Div().Body(
-				app.Div().Class("pf-c-input-group pf-u-mb-md").Body(
-					app.Input().Class("pf-c-form-control").Type("search").Placeholder("Find by name, port or protocol ..."),
-					app.Button().Class("pf-c-button pf-m-control").Body(
-						app.I().Class("fas fa-search"),
+			Content: app.Div().Class("pf-u-text-align-center").Body(
+				app.Div().Class("pf-c-search-input pf-u-mb-md").Body(
+					app.Span().Class("pf-c-search-input__text").Body(
+						app.Span().Class("pf-c-search-input__icon").Body(
+							app.I().Class("fas fa-search fa-fw"),
+						),
 					),
+					app.Input().Class("pf-c-search-input__text-input").Type("search").Placeholder("Find by name, port or protocol"),
 				),
-				app.Ul().Class("pf-c-data-list").Body(
+				app.Ul().Class("pf-c-data-list pf-u-mb-md").Body(
 					app.Range(c.Node.Services).Slice(func(i int) app.UI {
 						return app.Li().Class("pf-c-data-list__item pf-m-selectable").Body(
 							app.Div().Class("pf-c-data-list__item-row").Body(
@@ -57,6 +59,12 @@ func (c *NodeComponent) Render() app.UI {
 							}),
 						)
 					}),
+				),
+				app.Button().Class("pf-c-button pf-m-secondary").Body(
+					app.Span().Class("pf-c-button__icon pf-m-start").Body(
+						app.I().Class("fas fa-sync"),
+					),
+					app.Text("Re-Scan For Ports"),
 				),
 			),
 		},
