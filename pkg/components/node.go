@@ -35,21 +35,29 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.servicesAndPortsOpen,
 			OnToggle: c.handleServicesAndPortsOpen,
 			Title:    "Services and Ports",
-			Content: app.Ul().Class("pf-c-data-list").Body(
-				app.Range(c.Node.Services).Slice(func(i int) app.UI {
-					return app.Li().Class("pf-c-data-list__item pf-m-selectable").Body(
-						app.Div().Class("pf-c-data-list__item-row").Body(
-							app.Div().Class("pf-c-data-list__item-content").Body(
-								app.Div().Class("pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between").Body(
-									app.Span().Text(c.Node.Services[i].ServiceName),
-									app.Span().Class("pf-u-ml-md").Text(fmt.Sprintf("%v/%v", c.Node.Services[i].PortNumber, c.Node.Services[i].TransportProtocol)),
+			Content: app.Div().Body(
+				app.Div().Class("pf-c-input-group pf-u-mb-md").Body(
+					app.Input().Class("pf-c-form-control").Type("search").Placeholder("Find by name, port or protocol ..."),
+					app.Button().Class("pf-c-button pf-m-control").Body(
+						app.I().Class("fas fa-search"),
+					),
+				),
+				app.Ul().Class("pf-c-data-list").Body(
+					app.Range(c.Node.Services).Slice(func(i int) app.UI {
+						return app.Li().Class("pf-c-data-list__item pf-m-selectable").Body(
+							app.Div().Class("pf-c-data-list__item-row").Body(
+								app.Div().Class("pf-c-data-list__item-content").Body(
+									app.Div().Class("pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between").Body(
+										app.Span().Text(c.Node.Services[i].ServiceName),
+										app.Span().Class("pf-u-ml-md").Text(fmt.Sprintf("%v/%v", c.Node.Services[i].PortNumber, c.Node.Services[i].TransportProtocol)),
+									),
 								),
-							),
-						).OnClick(func(ctx app.Context, e app.Event) {
-							c.OnOpenService(i)
-						}),
-					)
-				}),
+							).OnClick(func(ctx app.Context, e app.Event) {
+								c.OnOpenService(i)
+							}),
+						)
+					}),
+				),
 			),
 		},
 		&ExpandableSectionComponent{
