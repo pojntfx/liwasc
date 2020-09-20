@@ -104,6 +104,10 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 				"53/udp (dns)",
 				"80/tcp (http)",
 			},
+			Registry:     "MA-1",
+			Organization: "TP-Link",
+			Address:      "One Hacker Way",
+			Visible:      true,
 		},
 		{
 			PoweredOn:  true,
@@ -115,6 +119,10 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 				"7/tcp (echo)",
 				"80/tcp (http)",
 			},
+			Registry:     "MA-1",
+			Organization: "Realtek",
+			Address:      "Two Hacker Way",
+			Visible:      false,
 		},
 	}
 

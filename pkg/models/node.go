@@ -6,4 +6,8 @@ type Node struct {
 	IPAddress        string
 	Vendor           string
 	ServicesAndPorts []string
+	Registry         string
+	Organization     string
+	Address          string
+	Visible          bool
 }
