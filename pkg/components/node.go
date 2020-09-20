@@ -24,15 +24,9 @@ func (c *NodeComponent) Render() app.UI {
 				Content: app.Text(c.Node.IPAddress),
 			},
 			&DefinitionComponent{
-				Title: "Vendor",
-				Icon:  "fas fa-store-alt",
-				Content: app.A().
-					Href(fmt.Sprintf("https://duckduckgo.com/?q=%v", c.Node.Vendor)).
-					Target("_blank").
-					Body(
-						app.I().Class("fas fa-external-link-alt pf-u-mr-xs"),
-						app.Text(c.Node.Vendor),
-					),
+				Title:   "Vendor",
+				Icon:    "fas fa-store-alt",
+				Content: &SearchLinkComponent{Topic: c.Node.Vendor},
 			},
 		),
 		&ExpandableSectionComponent{
@@ -45,7 +39,43 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.detailsOpen,
 			OnToggle: c.handleToggleDetailsOpen,
 			Title:    "Details",
-			Content:  app.Text(c.Node.Vendor),
+			Content: app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
+				&DefinitionComponent{
+					Title:   "Registry",
+					Icon:    "fas fa-list",
+					Content: app.Text(c.Node.Registry),
+				},
+				&DefinitionComponent{
+					Title:   "Organization",
+					Icon:    "fas fa-university",
+					Content: &SearchLinkComponent{Topic: c.Node.Organization},
+				},
+				&DefinitionComponent{
+					Title:   "Registered Address",
+					Icon:    "fas fa-map-marker-alt",
+					Content: &SearchLinkComponent{Topic: c.Node.Address},
+				},
+				&DefinitionComponent{
+					Title: "Visible Address",
+					Icon:  "fas fa-binoculars",
+					Content: app.Div().Body(
+						app.I().Class(fmt.Sprintf("fas %v pf-u-mr-xs", func() string {
+							if c.Node.Visible {
+								return "fas fa-eye"
+							}
+
+							return "fas fa-eye-slash"
+						}())),
+						app.Text(func() string {
+							if c.Node.Visible {
+								return "Visible"
+							}
+
+							return "Hidden"
+						}()),
+					),
+				},
+			),
 		},
 	)
 }
