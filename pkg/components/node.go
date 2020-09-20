@@ -10,7 +10,9 @@ import (
 type NodeComponent struct {
 	app.Compo
 
-	Node                 models.Node
+	Node          models.Node
+	OnOpenService func(int)
+
 	servicesAndPortsOpen bool
 	detailsOpen          bool
 }
@@ -43,7 +45,9 @@ func (c *NodeComponent) Render() app.UI {
 									app.Span().Class("pf-u-ml-md").Text(fmt.Sprintf("%v/%v", c.Node.Services[i].PortNumber, c.Node.Services[i].TransportProtocol)),
 								),
 							),
-						),
+						).OnClick(func(ctx app.Context, e app.Event) {
+							c.OnOpenService(i)
+						}),
 					)
 				}),
 			),
