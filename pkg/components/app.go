@@ -101,19 +101,19 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 			Vendor:     "TP-Link",
 			Services: []models.Service{
 				{
-					ServiceName:       "SSH",
+					ServiceName:       "ssh",
 					PortNumber:        22,
-					TransportProtocol: "TCP",
+					TransportProtocol: "tcp",
 				},
 				{
-					ServiceName:       "DNS",
+					ServiceName:       "dns",
 					PortNumber:        53,
-					TransportProtocol: "UDP",
+					TransportProtocol: "udp",
 				},
 				{
-					ServiceName:       "HTTP",
+					ServiceName:       "http",
 					PortNumber:        80,
-					TransportProtocol: "TCP",
+					TransportProtocol: "tcp",
 				},
 			},
 			Registry:     "MA-1",
@@ -128,19 +128,19 @@ func (c *AppComponent) OnMount(ctx app.Context) {
 			Vendor:     "Realtek",
 			Services: []models.Service{
 				{
-					ServiceName:       "Echo",
+					ServiceName:       "echo",
 					PortNumber:        7,
-					TransportProtocol: "TCP",
+					TransportProtocol: "tcp",
 				},
 				{
-					ServiceName:       "Echo",
+					ServiceName:       "echo",
 					PortNumber:        7,
-					TransportProtocol: "UDP",
+					TransportProtocol: "udp",
 				},
 				{
-					ServiceName:       "HTTP",
+					ServiceName:       "http",
 					PortNumber:        80,
-					TransportProtocol: "TCP",
+					TransportProtocol: "tcp",
 				},
 			},
 			Registry:     "MA-1",

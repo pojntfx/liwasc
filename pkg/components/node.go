@@ -33,7 +33,29 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.servicesAndPortsOpen,
 			OnToggle: c.handleServicesAndPortsOpen,
 			Title:    "Services and Ports",
-			Content:  app.Text("Example services and ports content"),
+			Content: app.Raw(`<ul class="pf-c-data-list">
+  <li class="pf-c-data-list__item pf-m-selectable">
+    <div class="pf-c-data-list__item-row">
+      <div class="pf-c-data-list__item-content">
+		  <div class="pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between">
+	          <span>Service http</span>
+			  <span class="pf-u-ml-md">80/tcp</span>
+		  </div>
+	  </div>
+    </div>
+  </li>
+
+<li class="pf-c-data-list__item pf-m-selectable">
+    <div class="pf-c-data-list__item-row">
+      <div class="pf-c-data-list__item-content">
+        <div class="pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between">
+          <span>Service dns</span>
+		  <span class="pf-u-ml-md">53/udp</span>
+        </div>
+      </div>
+    </div>
+  </li>
+</ul>`),
 		},
 		&ExpandableSectionComponent{
 			Open:     c.detailsOpen,
@@ -82,7 +104,7 @@ func (c *NodeComponent) Render() app.UI {
 
 func (c *NodeComponent) OnMount(ctx app.Context) {
 	c.servicesAndPortsOpen = true
-	c.detailsOpen = true
+	c.detailsOpen = false
 
 	c.Update()
 }
