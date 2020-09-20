@@ -8,17 +8,14 @@ import (
 
 type ExpandableSectionComponent struct {
 	app.Compo
+
 	Open     bool
 	OnToggle func(ctx app.Context, e app.Event)
 	Title    string
 	Content  app.UI
-
-	ref app.HTMLDiv
 }
 
 func (c *ExpandableSectionComponent) Render() app.UI {
-	c.Sync()
-
 	return app.Div().Class(fmt.Sprintf("pf-c-expandable-section pf-u-mb-md %v", func() string {
 		if c.Open {
 			return "pf-m-expanded"
@@ -34,20 +31,23 @@ func (c *ExpandableSectionComponent) Render() app.UI {
 				app.Text(c.Title),
 			),
 		).OnClick(c.OnToggle),
-		c.ref,
+		&ExpandableSectionComponentContent{Content: c.Content, Open: c.Open},
 	)
 }
 
-func (c *ExpandableSectionComponent) OnMount(ctx app.Context) {
-	c.Sync()
+type ExpandableSectionComponentContent struct {
+	app.Compo
+
+	Content app.UI
+	Open    bool
 }
 
-func (c *ExpandableSectionComponent) Sync() {
-	if c.ref == nil {
-		c.ref = app.Div().Class("pf-c-expandable-section__content").Hidden(!c.Open).Body(
-			c.Content,
-		)
-	} else {
-		c.ref.JSValue().Set("hidden", !c.Open)
-	}
+func (c *ExpandableSectionComponentContent) Render() app.UI {
+	app.Dispatch(func() {
+		c.JSValue().Set("hidden", !c.Open)
+	})
+
+	return app.Div().Class("pf-c-expandable-section__content").Hidden(!c.Open).Body(
+		c.Content,
+	)
 }

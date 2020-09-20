@@ -6,6 +6,7 @@ import (
 
 type FilterComponent struct {
 	app.Compo
+
 	Subnets []string
 	Device  string
 }

@@ -8,6 +8,7 @@ import (
 
 type LabelCollectionComponent struct {
 	app.Compo
+
 	Icon   string
 	Title  string
 	Labels []string

@@ -8,6 +8,7 @@ import (
 
 type DetailsComponent struct {
 	app.Compo
+
 	Open    bool
 	Title   string
 	Main    app.UI
