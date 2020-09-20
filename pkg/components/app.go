@@ -10,23 +10,30 @@ import (
 type AppComponent struct {
 	app.Compo
 
-	CurrentUserEmail string
-	DetailsOpen      bool
-	SelectedNode     int
-	SelectedService  int
-	ServicesOpen     bool
-	Nodes            []models.Node
+	CurrentUserEmail       string
+	CurrentUserDisplayName string
+	DetailsOpen            bool
+	SelectedNode           int
+	SelectedService        int
+	ServicesOpen           bool
+	UserMenuOpen           bool
+	Nodes                  []models.Node
 }
 
 func (c *AppComponent) Render() app.UI {
 	return app.Div().Class("pf-c-page").Body(
-		&NavbarComponent{CurrentUserEmail: c.CurrentUserEmail},
+		&NavbarComponent{
+			CurrentUserEmail:       c.CurrentUserEmail,
+			CurrentUserDisplayName: c.CurrentUserDisplayName,
+			UserMenuOpen:           c.UserMenuOpen,
+			OnUserMenuToggle:       func(ctx app.Context, e app.Event) { c.handleUserMenuToggle() },
+		},
 		app.Main().Class("pf-c-page__main").Body(
 			app.Section().Class("pf-c-page__main-section pf-m-no-padding").Body(
 				&DetailsComponent{
 					Open: c.DetailsOpen,
 					Title: app.If(!c.ServicesOpen,
-						app.Text(fmt.Sprintf("Node %v", func() string {
+						app.B().Text(fmt.Sprintf("Node %v", func() string {
 							if c.SelectedNode == -1 {
 								return ""
 							}
@@ -37,7 +44,7 @@ func (c *AppComponent) Render() app.UI {
 							app.Button().Class("pf-u-mr-md pf-c-button pf-m-plain").Body(
 								app.I().Class("fas fa-arrow-left"),
 							).OnClick(func(ctx app.Context, e app.Event) { c.handleServicesClose() }),
-							app.Text(fmt.Sprintf("Service %v", func() string {
+							app.B().Text(fmt.Sprintf("Service %v", func() string {
 								if c.SelectedService == -1 {
 									return ""
 								}
@@ -155,6 +162,12 @@ func (c *AppComponent) handleServicesOpen(i int) {
 func (c *AppComponent) handleServicesClose() {
 	c.ServicesOpen = false
 	c.SelectedService = -1
+
+	c.Update()
+}
+
+func (c *AppComponent) handleUserMenuToggle() {
+	c.UserMenuOpen = !c.UserMenuOpen
 
 	c.Update()
 }
