@@ -33,29 +33,20 @@ func (c *NodeComponent) Render() app.UI {
 			Open:     c.servicesAndPortsOpen,
 			OnToggle: c.handleServicesAndPortsOpen,
 			Title:    "Services and Ports",
-			Content: app.Raw(`<ul class="pf-c-data-list">
-  <li class="pf-c-data-list__item pf-m-selectable">
-    <div class="pf-c-data-list__item-row">
-      <div class="pf-c-data-list__item-content">
-		  <div class="pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between">
-	          <span>Service http</span>
-			  <span class="pf-u-ml-md">80/tcp</span>
-		  </div>
-	  </div>
-    </div>
-  </li>
-
-<li class="pf-c-data-list__item pf-m-selectable">
-    <div class="pf-c-data-list__item-row">
-      <div class="pf-c-data-list__item-content">
-        <div class="pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between">
-          <span>Service dns</span>
-		  <span class="pf-u-ml-md">53/udp</span>
-        </div>
-      </div>
-    </div>
-  </li>
-</ul>`),
+			Content: app.Ul().Class("pf-c-data-list").Body(
+				app.Range(c.Node.Services).Slice(func(i int) app.UI {
+					return app.Li().Class("pf-c-data-list__item pf-m-selectable").Body(
+						app.Div().Class("pf-c-data-list__item-row").Body(
+							app.Div().Class("pf-c-data-list__item-content").Body(
+								app.Div().Class("pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between").Body(
+									app.Span().Text(c.Node.Services[i].ServiceName),
+									app.Span().Class("pf-u-ml-md").Text(fmt.Sprintf("%v/%v", c.Node.Services[i].PortNumber, c.Node.Services[i].TransportProtocol)),
+								),
+							),
+						),
+					)
+				}),
+			),
 		},
 		&ExpandableSectionComponent{
 			Open:     c.detailsOpen,
