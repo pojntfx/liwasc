@@ -21,7 +21,7 @@ func (c *NavbarComponent) Render() app.UI {
 	return app.Header().Class("pf-c-page__header").Body(
 		app.Div().Class("pf-c-page__header-brand").Body(
 			app.A().Href("#").Class("pf-c-page__header-brand-link").Body(
-				app.Img().Class("pf-c-brand").Src("https://www.patternfly.org/assets/images/PF-Masthead-Logo.svg").Alt("liwasc logo"),
+				app.Img().Class("pf-c-brand pf-u-py-sm x__brand--svg").Src("/web/logo.svg").Alt("liwasc logo"),
 			),
 		),
 		app.Div().Class("pf-c-page__header-tools").Body(
