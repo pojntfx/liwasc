@@ -23,3 +23,7 @@
   content: "";
   background-color: #2a66cc;
 }
+
+.x__brand--svg {
+  height: fit-content;
+}
