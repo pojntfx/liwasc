@@ -4,14 +4,14 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
-type FilterComponent struct {
+type ToolbarComponent struct {
 	app.Compo
 
 	Subnets []string
 	Device  string
 }
 
-func (c *FilterComponent) Render() app.UI {
+func (c *ToolbarComponent) Render() app.UI {
 	return app.Div().Class("pf-c-toolbar").Body(
 		app.Div().Class("pf-c-toolbar__content").Body(
 			app.Div().Class("pf-c-toolbar__content-section pf-u-flex-direction-column pf-u-flex-direction-row-on-lg").Body(

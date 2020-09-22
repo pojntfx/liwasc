@@ -30,7 +30,7 @@ func (c *AppComponent) Render() app.UI {
 		},
 		app.Main().Class("pf-c-page__main").Body(
 			app.Section().Class("pf-c-page__main-section pf-m-no-padding").Body(
-				&DetailsComponent{
+				&DrawerComponent{
 					Open: c.DetailsOpen,
 					Title: app.If(!c.ServicesOpen,
 						app.B().Text(fmt.Sprintf("Node %v", func() string {
@@ -54,15 +54,15 @@ func (c *AppComponent) Render() app.UI {
 						),
 					),
 					Main: app.Div().Body(
-						&FilterComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
-						&ListingComponent{
+						&ToolbarComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
+						&TableComponent{
 							OnRowClick:        c.handleDetailsOpen,
 							SelectedNode:      c.SelectedNode,
 							Nodes:             c.Nodes,
 							OnNodePowerToggle: c.handleNodePowerToggle,
 						}),
 					Details: app.If(!c.ServicesOpen, app.Div().Body(
-						&NodeComponent{
+						&NodeInspectorComponent{
 							Node: func() models.Node {
 								if c.SelectedNode == -1 {
 									return models.Node{}
@@ -73,7 +73,7 @@ func (c *AppComponent) Render() app.UI {
 							OnOpenService: c.handleServicesOpen}),
 					).
 						Else(
-							&ServiceComponent{
+							&ServiceInspectorComponent{
 								Service: func() models.Service {
 									if c.SelectedService == -1 {
 										return models.Service{}

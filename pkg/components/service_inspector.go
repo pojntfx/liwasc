@@ -7,13 +7,13 @@ import (
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 )
 
-type ServiceComponent struct {
+type ServiceInspectorComponent struct {
 	app.Compo
 
 	Service models.Service
 }
 
-func (c *ServiceComponent) Render() app.UI {
+func (c *ServiceInspectorComponent) Render() app.UI {
 	return app.Div().Body(
 		app.Div().Class("pf-u-mb-lg").Text(c.Service.Description),
 		app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(

@@ -7,7 +7,7 @@ import (
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 )
 
-type ListingComponent struct {
+type TableComponent struct {
 	app.Compo
 
 	Nodes             []models.Node
@@ -16,7 +16,7 @@ type ListingComponent struct {
 	OnNodePowerToggle func(int)
 }
 
-func (c *ListingComponent) Render() app.UI {
+func (c *TableComponent) Render() app.UI {
 	headers := []string{"Powered On", "MAC Address", "IP Address", "Vendor", "Services and Ports"}
 
 	return app.Table().Class("pf-c-table pf-m-grid-md").Body(
