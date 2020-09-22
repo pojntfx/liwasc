@@ -7,13 +7,13 @@ import (
 type OnOffSwitchComponent struct {
 	app.Compo
 
-	On       bool
-	OnToggle func(ctx app.Context, e app.Event)
+	On            bool
+	OnToggleClick func(ctx app.Context, e app.Event)
 }
 
 func (c *OnOffSwitchComponent) Render() app.UI {
 	return app.Label().Class("pf-c-switch").Body(
-		&OnOffSwitchCheckboxComponent{On: c.On, OnToggle: c.OnToggle},
+		&OnOffSwitchCheckboxComponent{On: c.On, OnToggle: c.OnToggleClick},
 		app.Span().Class("pf-c-switch__toggle").Body(
 			app.Span().Class("pf-c-switch__toggle-icon").Body(
 				app.I().Class("fas fa-lightbulb"),

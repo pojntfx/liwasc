@@ -37,9 +37,9 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			},
 		),
 		&ExpandableSectionComponent{
-			Open:     c.ServicesAndPortsOpen,
-			OnToggle: c.OnServicesAndPortsToggle,
-			Title:    "Services and Ports",
+			Open:          c.ServicesAndPortsOpen,
+			OnToggleClick: c.OnServicesAndPortsToggle,
+			Title:         "Services and Ports",
 			Content: app.Div().Class("pf-u-text-align-center").Body(
 				app.Div().Class("pf-c-search-input pf-u-mb-md").Body(
 					app.Span().Class("pf-c-search-input__text").Body(
@@ -77,9 +77,9 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			),
 		},
 		&ExpandableSectionComponent{
-			Open:     c.DetailsOpen,
-			OnToggle: c.OnDetailsToggle,
-			Title:    "Details",
+			Open:          c.DetailsOpen,
+			OnToggleClick: c.OnDetailsToggle,
+			Title:         "Details",
 			Content: app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
 				&DefinitionComponent{
 					Title:   "Registry",
