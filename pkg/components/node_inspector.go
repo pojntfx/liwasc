@@ -10,11 +10,16 @@ import (
 type NodeInspectorComponent struct {
 	app.Compo
 
-	Node          models.Node
-	OnOpenService func(int)
+	Node                 models.Node
+	ServicesAndPortsOpen bool
+	DetailsOpen          bool
+	SearchValue          string
 
-	servicesAndPortsOpen bool
-	detailsOpen          bool
+	OnServicesAndPortsToggle func(ctx app.Context, e app.Event)
+	OnDetailsToggle          func(ctx app.Context, e app.Event)
+	OnSearchChange           func(string)
+	OnReScanClick            func(ctx app.Context, e app.Event)
+	OnServiceClick           func(int)
 }
 
 func (c *NodeInspectorComponent) Render() app.UI {
@@ -32,8 +37,8 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			},
 		),
 		&ExpandableSectionComponent{
-			Open:     c.servicesAndPortsOpen,
-			OnToggle: c.handleServicesAndPortsOpen,
+			Open:     c.ServicesAndPortsOpen,
+			OnToggle: c.OnServicesAndPortsToggle,
 			Title:    "Services and Ports",
 			Content: app.Div().Class("pf-u-text-align-center").Body(
 				app.Div().Class("pf-c-search-input pf-u-mb-md").Body(
@@ -42,7 +47,10 @@ func (c *NodeInspectorComponent) Render() app.UI {
 							app.I().Class("fas fa-search fa-fw"),
 						),
 					),
-					app.Input().Class("pf-c-search-input__text-input").Type("search").Placeholder("Find by name, port or protocol"),
+					app.Input().Class("pf-c-search-input__text-input").Type("search").
+						Placeholder("Find by name, port or protocol").
+						Value(c.SearchValue).
+						OnInput(func(ctx app.Context, e app.Event) { c.OnSearchChange(e.Get("target").Get("value").String()) }),
 				),
 				app.Ul().Class("pf-c-data-list pf-u-mb-md").Body(
 					app.Range(c.Node.Services).Slice(func(i int) app.UI {
@@ -55,7 +63,7 @@ func (c *NodeInspectorComponent) Render() app.UI {
 									),
 								),
 							).OnClick(func(ctx app.Context, e app.Event) {
-								c.OnOpenService(i)
+								c.OnServiceClick(i)
 							}),
 						)
 					}),
@@ -69,8 +77,8 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			),
 		},
 		&ExpandableSectionComponent{
-			Open:     c.detailsOpen,
-			OnToggle: c.handleToggleDetailsOpen,
+			Open:     c.DetailsOpen,
+			OnToggle: c.OnDetailsToggle,
 			Title:    "Details",
 			Content: app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
 				&DefinitionComponent{
@@ -111,23 +119,4 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			),
 		},
 	)
-}
-
-func (c *NodeInspectorComponent) OnMount(ctx app.Context) {
-	c.servicesAndPortsOpen = true
-	c.detailsOpen = false
-
-	c.Update()
-}
-
-func (c *NodeInspectorComponent) handleServicesAndPortsOpen(ctx app.Context, e app.Event) {
-	c.servicesAndPortsOpen = !c.servicesAndPortsOpen
-
-	c.Update()
-}
-
-func (c *NodeInspectorComponent) handleToggleDetailsOpen(ctx app.Context, e app.Event) {
-	c.detailsOpen = !c.detailsOpen
-
-	c.Update()
 }
