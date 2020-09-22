@@ -46,7 +46,7 @@ func (c *TableComponent) Render() app.UI {
 
 						return ""
 					}())).Body(
-						&OnOffSwitchComponent{On: c.Nodes[i].PoweredOn, OnToggle: func(ctx app.Context, e app.Event) { c.OnPowerToggle(i) }},
+						&OnOffSwitchComponent{On: c.Nodes[i].PoweredOn, OnToggleClick: func(ctx app.Context, e app.Event) { c.OnPowerToggle(i) }},
 					),
 					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
 					app.Td().DataSet("label", headers[2]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),

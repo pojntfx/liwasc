@@ -9,10 +9,11 @@ import (
 type ExpandableSectionComponent struct {
 	app.Compo
 
-	Open     bool
-	OnToggle func(ctx app.Context, e app.Event)
-	Title    string
-	Content  app.UI
+	Open    bool
+	Title   string
+	Content app.UI
+
+	OnToggleClick func(ctx app.Context, e app.Event)
 }
 
 func (c *ExpandableSectionComponent) Render() app.UI {
@@ -30,7 +31,7 @@ func (c *ExpandableSectionComponent) Render() app.UI {
 			app.Span().Class("pf-c-expandable-section__toggle-text").Body(
 				app.Text(c.Title),
 			),
-		).OnClick(c.OnToggle),
+		).OnClick(c.OnToggleClick),
 		&ExpandableSectionComponentContent{Content: c.Content, Open: c.Open},
 	)
 }
