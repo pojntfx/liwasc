@@ -7,8 +7,12 @@ import (
 type ToolbarComponent struct {
 	app.Compo
 
-	Subnets []string
-	Device  string
+	Subnets     []string
+	Device      string
+	SearchValue string
+
+	OnSearchChange func(string)
+	OnTriggerClick func(ctx app.Context, e app.Event)
 }
 
 func (c *ToolbarComponent) Render() app.UI {
@@ -29,7 +33,10 @@ func (c *ToolbarComponent) Render() app.UI {
 									app.I().Class("fas fa-search fa-fw"),
 								),
 							),
-							app.Input().Class("pf-c-search-input__text-input").Type("search").Placeholder("Find by MAC, IP, ..."),
+							app.Input().Class("pf-c-search-input__text-input").Type("search").
+								Placeholder("Find by MAC, IP, ...").
+								Value(c.SearchValue).
+								OnInput(func(ctx app.Context, e app.Event) { c.OnSearchChange(e.Get("target").Get("value").String()) }),
 						),
 					),
 				),
@@ -40,7 +47,7 @@ func (c *ToolbarComponent) Render() app.UI {
 							app.I().Class("fas fa-rocket"),
 						),
 						app.Text("Trigger Scan"),
-					),
+					).OnClick(c.OnTriggerClick),
 				),
 			),
 		),

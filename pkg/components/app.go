@@ -1,6 +1,8 @@
 package components
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
@@ -12,6 +14,7 @@ type AppComponent struct {
 
 	CurrentUserEmail       string
 	CurrentUserDisplayName string
+	SearchValue            string
 	DetailsOpen            bool
 	SelectedNode           int
 	SelectedService        int
@@ -23,10 +26,20 @@ type AppComponent struct {
 func (c *AppComponent) Render() app.UI {
 	return app.Div().Class("pf-c-page").Body(
 		&NavbarComponent{
-			CurrentUserEmail:       c.CurrentUserEmail,
-			CurrentUserDisplayName: c.CurrentUserDisplayName,
-			UserMenuOpen:           c.UserMenuOpen,
-			OnUserMenuToggle:       func(ctx app.Context, e app.Event) { c.handleUserMenuToggle() },
+			UserMenuOpen: c.UserMenuOpen,
+			UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%v", func() string {
+				hasher := md5.New()
+
+				hasher.Write([]byte(c.CurrentUserEmail))
+
+				return hex.EncodeToString(hasher.Sum(nil))
+			}()),
+			UserName: c.CurrentUserDisplayName,
+
+			OnUserMenuToggle: func(ctx app.Context, e app.Event) {
+			},
+			OnSignOutClick: func(ctx app.Context, e app.Event) {
+			},
 		},
 		app.Main().Class("pf-c-page__main").Body(
 			app.Section().Class("pf-c-page__main-section pf-m-no-padding").Body(
@@ -54,7 +67,16 @@ func (c *AppComponent) Render() app.UI {
 						),
 					),
 					Main: app.Div().Body(
-						&ToolbarComponent{Subnets: []string{"10.0.0.0/9", "192.168.0.0/27"}, Device: "eth0"},
+						&ToolbarComponent{
+							Subnets:     []string{"10.0.0.0/9", "192.168.0.0/27"},
+							Device:      "eth0",
+							SearchValue: c.SearchValue,
+
+							OnSearchChange: func(newSearchValue string) {
+							},
+							OnTriggerClick: func(ctx app.Context, e app.Event) {
+							},
+						},
 						&TableComponent{
 							OnRowClick:        c.handleDetailsOpen,
 							SelectedNode:      c.SelectedNode,

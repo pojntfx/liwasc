@@ -14,6 +14,7 @@ func main() {
 		SelectedNode:           -1,
 		SelectedService:        -1,
 		UserMenuOpen:           false,
+		SearchValue:            "",
 	})
 
 	app.Run()

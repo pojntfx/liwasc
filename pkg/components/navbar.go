@@ -1,8 +1,6 @@
 package components
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
@@ -11,10 +9,12 @@ import (
 type NavbarComponent struct {
 	app.Compo
 
-	CurrentUserEmail       string
-	CurrentUserDisplayName string
-	UserMenuOpen           bool
-	OnUserMenuToggle       func(ctx app.Context, e app.Event)
+	UserMenuOpen bool
+	UserAvatar   string
+	UserName     string
+
+	OnUserMenuToggle func(ctx app.Context, e app.Event)
+	OnSignOutClick   func(ctx app.Context, e app.Event)
 }
 
 func (c *NavbarComponent) Render() app.UI {
@@ -34,15 +34,9 @@ func (c *NavbarComponent) Render() app.UI {
 			}())).Body(
 				app.Button().Class("pf-c-dropdown__toggle pf-m-plain").Body(
 					app.Span().Class("pf-c-dropdown__toggle-image pf-u-mr-0 pf-u-mr-sm-on-md").Body(
-						app.Img().Class("pf-c-avatar").Src(fmt.Sprintf("https://www.gravatar.com/avatar/%v", func() string {
-							hasher := md5.New()
-
-							hasher.Write([]byte(c.CurrentUserEmail))
-
-							return hex.EncodeToString(hasher.Sum(nil))
-						}())).Alt("User avatar"),
+						app.Img().Class("pf-c-avatar").Src(c.UserAvatar).Alt("User avatar"),
 					),
-					app.Span().Class("pf-c-dropdown__toggle-text pf-u-display-none pf-u-display-flex-on-md").Text(c.CurrentUserDisplayName),
+					app.Span().Class("pf-c-dropdown__toggle-text pf-u-display-none pf-u-display-flex-on-md").Text(c.UserName),
 					app.Span().Class("pf-c-dropdown__toggle-icon").Body(
 						app.I().Class("fas fa-caret-down"),
 					),
@@ -54,7 +48,7 @@ func (c *NavbarComponent) Render() app.UI {
 								app.I().Class("fas fa-sign-out-alt"),
 							),
 							app.Span().Text("Sign Out"),
-						),
+						).OnClick(c.OnSignOutClick),
 					),
 				),
 			),
