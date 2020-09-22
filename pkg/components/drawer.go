@@ -6,7 +6,7 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
-type DetailsComponent struct {
+type DrawerComponent struct {
 	app.Compo
 
 	Open    bool
@@ -16,7 +16,7 @@ type DetailsComponent struct {
 	Actions []app.UI
 }
 
-func (c *DetailsComponent) Render() app.UI {
+func (c *DrawerComponent) Render() app.UI {
 	return app.Div().Class(fmt.Sprintf("pf-c-drawer pf-m-inline-on-2xl %v", func() string {
 		if c.Open {
 			return "pf-m-expanded"

@@ -7,7 +7,7 @@ import (
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 )
 
-type NodeComponent struct {
+type NodeInspectorComponent struct {
 	app.Compo
 
 	Node          models.Node
@@ -17,7 +17,7 @@ type NodeComponent struct {
 	detailsOpen          bool
 }
 
-func (c *NodeComponent) Render() app.UI {
+func (c *NodeInspectorComponent) Render() app.UI {
 	return app.Div().Body(
 		app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
 			&DefinitionComponent{
@@ -113,20 +113,20 @@ func (c *NodeComponent) Render() app.UI {
 	)
 }
 
-func (c *NodeComponent) OnMount(ctx app.Context) {
+func (c *NodeInspectorComponent) OnMount(ctx app.Context) {
 	c.servicesAndPortsOpen = true
 	c.detailsOpen = false
 
 	c.Update()
 }
 
-func (c *NodeComponent) handleServicesAndPortsOpen(ctx app.Context, e app.Event) {
+func (c *NodeInspectorComponent) handleServicesAndPortsOpen(ctx app.Context, e app.Event) {
 	c.servicesAndPortsOpen = !c.servicesAndPortsOpen
 
 	c.Update()
 }
 
-func (c *NodeComponent) handleToggleDetailsOpen(ctx app.Context, e app.Event) {
+func (c *NodeInspectorComponent) handleToggleDetailsOpen(ctx app.Context, e app.Event) {
 	c.detailsOpen = !c.detailsOpen
 
 	c.Update()
