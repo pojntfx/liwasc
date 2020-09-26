@@ -92,10 +92,12 @@ func (s *PortScanner) Transmit() error {
 	select {
 	case <-doneChan:
 		s.scannedPortChan <- nil
+		close(s.scannedPortChan)
 
 		break
 	case err := <-fatalErrorChan:
 		s.scannedPortChan <- nil
+		close(s.scannedPortChan)
 
 		return err
 	}

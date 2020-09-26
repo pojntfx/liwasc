@@ -4,6 +4,7 @@ package scanners
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"net"
 
@@ -67,26 +68,32 @@ func (s *NetworkScanner) Open() (error, []*net.IPNet) {
 	return nil, s.ipv4addresses
 }
 
-func (s *NetworkScanner) Receive() *DiscoveredNode {
+func (s *NetworkScanner) Receive(ctx context.Context) error {
 	in := gopacket.NewPacketSource(s.handle, layers.LayerTypeEthernet).Packets()
 
 	for {
-		packet := <-in
+		select {
+		case <-ctx.Done():
+			s.discoveredNodeChan <- nil
+			close(s.discoveredNodeChan)
 
-		layer := packet.Layer(layers.LayerTypeARP)
+			return nil
+		case packet := <-in:
+			layer := packet.Layer(layers.LayerTypeARP)
 
-		// Not an arp packet
-		if layer == nil {
-			continue
+			// Not an arp packet
+			if layer == nil {
+				continue
+			}
+
+			// Sent by us
+			arp := layer.(*layers.ARP)
+			if arp.Operation != layers.ARPReply || bytes.Equal([]byte(s.iface.HardwareAddr), arp.SourceHwAddress) {
+				continue
+			}
+
+			s.discoveredNodeChan <- &DiscoveredNode{net.IP(arp.SourceProtAddress), net.HardwareAddr(arp.SourceHwAddress)}
 		}
-
-		// Sent by us
-		arp := layer.(*layers.ARP)
-		if arp.Operation != layers.ARPReply || bytes.Equal([]byte(s.iface.HardwareAddr), arp.SourceHwAddress) {
-			continue
-		}
-
-		s.discoveredNodeChan <- &DiscoveredNode{net.IP(arp.SourceProtAddress), net.HardwareAddr(arp.SourceHwAddress)}
 	}
 }
 
