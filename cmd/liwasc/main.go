@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"math"
@@ -13,6 +14,7 @@ import (
 func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
+	networkScanningTimeout := flag.Int("networkScanningTimeout", 15000, "Network scanning timeout (in milliseconds)")
 	portScanningTimeout := flag.Int("portScanningTimeout", 15000, "Port scanning timeout (in milliseconds)")
 
 	macDatabasePath := flag.String("macDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the MAC database (mac2vendor flavour). Download from https://mac2vendor.com/articles/download")
@@ -48,7 +50,10 @@ func main() {
 
 	// Receive packets
 	go func() {
-		if err := networkScanner.Receive(); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(*networkScanningTimeout))
+		defer cancel()
+
+		if err := networkScanner.Receive(ctx); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -63,6 +68,13 @@ func main() {
 	// Connect instances
 	for {
 		node := networkScanner.Read()
+		if node == nil {
+			// All ports have been scanned
+			// future NETWORK_SCAN_DONE message
+			log.Println("network scan done")
+
+			return
+		}
 
 		// future NODE_UPDATE message
 		log.Println(node, "starting node scan")
