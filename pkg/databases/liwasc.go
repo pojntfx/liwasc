@@ -39,19 +39,29 @@ func (d *LiwascDatabase) CreateScan(scan *liwascModels.Scan) (int64, error) {
 }
 
 func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (string, error) {
+	// Insert node if it doesn't exist, otherwise update (the latter is required in case i.e. IP changes for MAC address)
 	exists, err := liwascModels.NodeExists(context.Background(), d.db, node.MacAddress)
 	if err != nil {
 		return "", err
 	}
+
 	if exists {
 		if _, err := node.Update(context.Background(), d.db, boil.Infer()); err != nil {
 			return "", err
 		}
-
-		return node.MacAddress, nil
+	} else {
+		if err := node.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+			return "", err
+		}
 	}
 
-	if err := node.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	// Create the relationship between the scan and the node so that the active nodes of a scan can be fetched later
+	scansNode := &liwascModels.ScansNode{
+		NodeID: node.MacAddress,
+		ScanID: scanID,
+	}
+
+	if err := scansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
 		return "", err
 	}
 

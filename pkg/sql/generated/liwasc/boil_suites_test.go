@@ -14,56 +14,67 @@ import "testing"
 func TestParent(t *testing.T) {
 	t.Run("Nodes", testNodes)
 	t.Run("Scans", testScans)
+	t.Run("ScansNodes", testScansNodes)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("Nodes", testNodesDelete)
 	t.Run("Scans", testScansDelete)
+	t.Run("ScansNodes", testScansNodesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Nodes", testNodesQueryDeleteAll)
 	t.Run("Scans", testScansQueryDeleteAll)
+	t.Run("ScansNodes", testScansNodesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Nodes", testNodesSliceDeleteAll)
 	t.Run("Scans", testScansSliceDeleteAll)
+	t.Run("ScansNodes", testScansNodesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("Nodes", testNodesExists)
 	t.Run("Scans", testScansExists)
+	t.Run("ScansNodes", testScansNodesExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("Nodes", testNodesFind)
 	t.Run("Scans", testScansFind)
+	t.Run("ScansNodes", testScansNodesFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("Nodes", testNodesBind)
 	t.Run("Scans", testScansBind)
+	t.Run("ScansNodes", testScansNodesBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("Nodes", testNodesOne)
 	t.Run("Scans", testScansOne)
+	t.Run("ScansNodes", testScansNodesOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("Nodes", testNodesAll)
 	t.Run("Scans", testScansAll)
+	t.Run("ScansNodes", testScansNodesAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("Nodes", testNodesCount)
 	t.Run("Scans", testScansCount)
+	t.Run("ScansNodes", testScansNodesCount)
 }
 
 func TestHooks(t *testing.T) {
 	t.Run("Nodes", testNodesHooks)
 	t.Run("Scans", testScansHooks)
+	t.Run("ScansNodes", testScansNodesHooks)
 }
 
 func TestInsert(t *testing.T) {
@@ -71,13 +82,13 @@ func TestInsert(t *testing.T) {
 	t.Run("Nodes", testNodesInsertWhitelist)
 	t.Run("Scans", testScansInsert)
 	t.Run("Scans", testScansInsertWhitelist)
+	t.Run("ScansNodes", testScansNodesInsert)
+	t.Run("ScansNodes", testScansNodesInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOne(t *testing.T) {
-	t.Run("NodeToScanUsingScan", testNodeToOneScanUsingScan)
-}
+func TestToOne(t *testing.T) {}
 
 // TestOneToOne tests cannot be run in parallel
 // or deadlocks can occur.
@@ -85,15 +96,11 @@ func TestOneToOne(t *testing.T) {}
 
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToMany(t *testing.T) {
-	t.Run("ScanToNodes", testScanToManyNodes)
-}
+func TestToMany(t *testing.T) {}
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneSet(t *testing.T) {
-	t.Run("NodeToScanUsingNodes", testNodeToOneSetOpScanUsingScan)
-}
+func TestToOneSet(t *testing.T) {}
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
@@ -109,9 +116,7 @@ func TestOneToOneRemove(t *testing.T) {}
 
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyAdd(t *testing.T) {
-	t.Run("ScanToNodes", testScanToManyAddOpNodes)
-}
+func TestToManyAdd(t *testing.T) {}
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
@@ -124,24 +129,29 @@ func TestToManyRemove(t *testing.T) {}
 func TestReload(t *testing.T) {
 	t.Run("Nodes", testNodesReload)
 	t.Run("Scans", testScansReload)
+	t.Run("ScansNodes", testScansNodesReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Nodes", testNodesReloadAll)
 	t.Run("Scans", testScansReloadAll)
+	t.Run("ScansNodes", testScansNodesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("Nodes", testNodesSelect)
 	t.Run("Scans", testScansSelect)
+	t.Run("ScansNodes", testScansNodesSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("Nodes", testNodesUpdate)
 	t.Run("Scans", testScansUpdate)
+	t.Run("ScansNodes", testScansNodesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Nodes", testNodesSliceUpdateAll)
 	t.Run("Scans", testScansSliceUpdateAll)
+	t.Run("ScansNodes", testScansNodesSliceUpdateAll)
 }

@@ -84,7 +84,6 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 			}
 
 			dbNode := &liwascModels.Node{
-				ScanID:       scanID,
 				MacAddress:   node.MACAddress.String(),
 				IPAddress:    node.IPAddress.String(),
 				Vendor:       vendor.Vendor.String,

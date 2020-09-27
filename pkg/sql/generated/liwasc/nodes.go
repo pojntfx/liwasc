@@ -22,7 +22,6 @@ import (
 
 // Node is an object representing the database table.
 type Node struct {
-	ScanID       int64  `boil:"scan_id" json:"scan_id" toml:"scan_id" yaml:"scan_id"`
 	MacAddress   string `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
 	IPAddress    string `boil:"ip_address" json:"ip_address" toml:"ip_address" yaml:"ip_address"`
 	Vendor       string `boil:"vendor" json:"vendor" toml:"vendor" yaml:"vendor"`
@@ -36,7 +35,6 @@ type Node struct {
 }
 
 var NodeColumns = struct {
-	ScanID       string
 	MacAddress   string
 	IPAddress    string
 	Vendor       string
@@ -45,7 +43,6 @@ var NodeColumns = struct {
 	Address      string
 	Visible      string
 }{
-	ScanID:       "scan_id",
 	MacAddress:   "mac_address",
 	IPAddress:    "ip_address",
 	Vendor:       "vendor",
@@ -56,22 +53,6 @@ var NodeColumns = struct {
 }
 
 // Generated where
-
-type whereHelperint64 struct{ field string }
-
-func (w whereHelperint64) EQ(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperint64) NEQ(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperint64) LT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperint64) LTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperint64) GT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperint64) GTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
 
 type whereHelperstring struct{ field string }
 
@@ -89,8 +70,23 @@ func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
 }
 
+type whereHelperint64 struct{ field string }
+
+func (w whereHelperint64) EQ(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint64) NEQ(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint64) LT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint64) LTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint64) GT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint64) GTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+
 var NodeWhere = struct {
-	ScanID       whereHelperint64
 	MacAddress   whereHelperstring
 	IPAddress    whereHelperstring
 	Vendor       whereHelperstring
@@ -99,7 +95,6 @@ var NodeWhere = struct {
 	Address      whereHelperstring
 	Visible      whereHelperint64
 }{
-	ScanID:       whereHelperint64{field: "\"nodes\".\"scan_id\""},
 	MacAddress:   whereHelperstring{field: "\"nodes\".\"mac_address\""},
 	IPAddress:    whereHelperstring{field: "\"nodes\".\"ip_address\""},
 	Vendor:       whereHelperstring{field: "\"nodes\".\"vendor\""},
@@ -111,14 +106,10 @@ var NodeWhere = struct {
 
 // NodeRels is where relationship names are stored.
 var NodeRels = struct {
-	Scan string
-}{
-	Scan: "Scan",
-}
+}{}
 
 // nodeR is where relationships are stored.
 type nodeR struct {
-	Scan *Scan
 }
 
 // NewStruct creates a new relationship struct
@@ -130,8 +121,8 @@ func (*nodeR) NewStruct() *nodeR {
 type nodeL struct{}
 
 var (
-	nodeAllColumns            = []string{"scan_id", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
-	nodeColumnsWithoutDefault = []string{"scan_id", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
+	nodeAllColumns            = []string{"mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
+	nodeColumnsWithoutDefault = []string{"mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
 	nodeColumnsWithDefault    = []string{}
 	nodePrimaryKeyColumns     = []string{"mac_address"}
 )
@@ -409,168 +400,6 @@ func (q nodeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	}
 
 	return count > 0, nil
-}
-
-// Scan pointed to by the foreign key.
-func (o *Node) Scan(mods ...qm.QueryMod) scanQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.ScanID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Scans(queryMods...)
-	queries.SetFrom(query.Query, "\"scans\"")
-
-	return query
-}
-
-// LoadScan allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (nodeL) LoadScan(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNode interface{}, mods queries.Applicator) error {
-	var slice []*Node
-	var object *Node
-
-	if singular {
-		object = maybeNode.(*Node)
-	} else {
-		slice = *maybeNode.(*[]*Node)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &nodeR{}
-		}
-		args = append(args, object.ScanID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &nodeR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ScanID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ScanID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(qm.From(`scans`), qm.WhereIn(`scans.id in ?`, args...))
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Scan")
-	}
-
-	var resultSlice []*Scan
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Scan")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for scans")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for scans")
-	}
-
-	if len(nodeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Scan = foreign
-		if foreign.R == nil {
-			foreign.R = &scanR{}
-		}
-		foreign.R.Nodes = append(foreign.R.Nodes, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ScanID == foreign.ID {
-				local.R.Scan = foreign
-				if foreign.R == nil {
-					foreign.R = &scanR{}
-				}
-				foreign.R.Nodes = append(foreign.R.Nodes, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// SetScan of the node to the related item.
-// Sets o.R.Scan to related.
-// Adds o to related.R.Nodes.
-func (o *Node) SetScan(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Scan) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"nodes\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 0, []string{"scan_id"}),
-		strmangle.WhereClause("\"", "\"", 0, nodePrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.MacAddress}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.ScanID = related.ID
-	if o.R == nil {
-		o.R = &nodeR{
-			Scan: related,
-		}
-	} else {
-		o.R.Scan = related
-	}
-
-	if related.R == nil {
-		related.R = &scanR{
-			Nodes: NodeSlice{o},
-		}
-	} else {
-		related.R.Nodes = append(related.R.Nodes, o)
-	}
-
-	return nil
 }
 
 // Nodes retrieves all the records using an executor.
