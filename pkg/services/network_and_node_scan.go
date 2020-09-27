@@ -119,13 +119,30 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
 	}
 
+	matchingLatestScans, err := s.liwascDatabase.GetNewestScansForNodes(allNodes)
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
+	}
+
 	// TODO: Subscribe to messenger for discovered nodes if messenger is set in cmap until recv node is nil (scan finished)
 
 	for _, dbNode := range allNodes {
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: -1, // TODO: Get from join table; select newest in join table for this node
+			NodeScanID: matchingLatestScans[dbNode.MacAddress][0], // This is the newest one
 			LucidNode: &proto.LucidNodeMessage{
-				PoweredOn:    false, // TODO: Get from join table; if scanID is in the array, it is powered on
+				PoweredOn: func() bool {
+					for nodeID := range matchingLatestScans {
+						if nodeID == dbNode.MacAddress {
+							for _, scanID := range matchingLatestScans[dbNode.MacAddress] {
+								if scanID == scanReferenceMessage.GetNetworkScanID() { // The node was scanned in this scan; therefore the node is powered on (otherwise it would not have been found)
+									return true
+								}
+							}
+						}
+					}
+
+					return false
+				}(),
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
 				Vendor:       dbNode.Vendor,
@@ -133,12 +150,11 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 				Organization: dbNode.Organization,
 				Address:      dbNode.Address,
 				Visible: func() bool {
-					visible := false
 					if dbNode.Visible == 1 {
-						visible = true
+						return true
 					}
 
-					return visible
+					return false
 				}(),
 			},
 		}
