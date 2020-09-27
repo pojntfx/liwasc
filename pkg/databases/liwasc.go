@@ -7,7 +7,9 @@ import (
 	"database/sql"
 
 	liwascModels "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
+	models "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 type LiwascDatabase struct {
@@ -83,4 +85,26 @@ func (d *LiwascDatabase) GetAllNodes() ([]*liwascModels.Node, error) {
 	}
 
 	return allNodes, nil
+}
+
+// GetNewestScansForNodes returns the newest scans in descending order
+func (d *LiwascDatabase) GetNewestScansForNodes(nodes []*liwascModels.Node) (map[string][]int64, error) {
+	outMap := make(map[string][]int64)
+	for _, node := range nodes {
+		// Get the latest scans for the node
+		scans, err := models.ScansNodes(
+			qm.Where(liwascModels.ScansNodeColumns.NodeID+"= ?", node.MacAddress),
+			qm.OrderBy(liwascModels.ScansNodeColumns.CreatedAt+" desc"),
+		).All(context.Background(), d.db)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, scan := range scans {
+			outMap[node.MacAddress] = append(outMap[node.MacAddress], scan.ScanID)
+		}
+
+	}
+
+	return outMap, nil
 }
