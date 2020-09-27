@@ -10,7 +10,10 @@ create table nodes (
     address text not null,
     visible integer not null
 );
-create table scans (id integer not null primary key);
+create table scans (
+    id integer not null primary key,
+    done integer not null
+);
 create table scans_nodes (
     id integer not null primary key,
     node_id text not null,

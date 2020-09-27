@@ -32,7 +32,9 @@ func NewNetworkAndNodeScanService(device string, mac2VendorDatabase *databases.M
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
 	// Create a scan
-	scan := &liwascModels.Scan{}
+	scan := &liwascModels.Scan{
+		Done: 0,
+	}
 
 	scanID, err := s.liwascDatabase.CreateScan(scan)
 	if err != nil {
@@ -96,8 +98,15 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 			if _, err := s.liwascDatabase.UpsertNode(dbNode, scanID); err != nil {
 				log.Println("could not create node in DB", err)
 
-				return
+				break
 			}
+		}
+
+		scan.Done = 1
+		if _, err := s.liwascDatabase.UpdateScan(scan); err != nil {
+			log.Println("could not update scan in DB", err)
+
+			return
 		}
 	}()
 
@@ -105,6 +114,11 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *proto.NetworkScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
+	scan, err := s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
+	}
+
 	allNodes, err := s.liwascDatabase.GetAllNodes()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
@@ -114,9 +128,17 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 	for _, dbNode := range allNodes {
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: -1, // TODO: Get from join table
+			NodeScanID: -1, // TODO: Get from join table; select newest in join table
 			LucidNode: &proto.LucidNodeMessage{
-				PoweredOn:    false, // TODO: Set to true if current scan ID
+				PoweredOn: func() bool {
+					poweredOn := false
+					// If the current scan returned the node, it is powered on
+					if scanReferenceMessage.GetNetworkScanID() == scan.ID {
+						poweredOn = true
+					}
+
+					return poweredOn
+				}(),
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
 				Vendor:       dbNode.Vendor,
