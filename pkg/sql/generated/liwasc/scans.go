@@ -22,24 +22,29 @@ import (
 
 // Scan is an object representing the database table.
 type Scan struct {
-	ID int64 `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ID   int64 `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Done int64 `boil:"done" json:"done" toml:"done" yaml:"done"`
 
 	R *scanR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L scanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ScanColumns = struct {
-	ID string
+	ID   string
+	Done string
 }{
-	ID: "id",
+	ID:   "id",
+	Done: "done",
 }
 
 // Generated where
 
 var ScanWhere = struct {
-	ID whereHelperint64
+	ID   whereHelperint64
+	Done whereHelperint64
 }{
-	ID: whereHelperint64{field: "\"scans\".\"id\""},
+	ID:   whereHelperint64{field: "\"scans\".\"id\""},
+	Done: whereHelperint64{field: "\"scans\".\"done\""},
 }
 
 // ScanRels is where relationship names are stored.
@@ -59,8 +64,8 @@ func (*scanR) NewStruct() *scanR {
 type scanL struct{}
 
 var (
-	scanAllColumns            = []string{"id"}
-	scanColumnsWithoutDefault = []string{}
+	scanAllColumns            = []string{"id", "done"}
+	scanColumnsWithoutDefault = []string{"done"}
 	scanColumnsWithDefault    = []string{"id"}
 	scanPrimaryKeyColumns     = []string{"id"}
 )
