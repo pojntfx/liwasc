@@ -149,7 +149,7 @@ func testNodesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := NodeExists(ctx, tx, o.ID)
+	e, err := NodeExists(ctx, tx, o.MacAddress)
 	if err != nil {
 		t.Errorf("Unable to check if Node exists: %s", err)
 	}
@@ -175,7 +175,7 @@ func testNodesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	nodeFound, err := FindNode(ctx, tx, o.ID)
+	nodeFound, err := FindNode(ctx, tx, o.MacAddress)
 	if err != nil {
 		t.Error(err)
 	}
@@ -677,7 +677,7 @@ func testNodesSelect(t *testing.T) {
 }
 
 var (
-	nodeDBTypes = map[string]string{`ID`: `INTEGER`, `ScanID`: `INTEGER`, `PoweredOn`: `INTEGER`, `MacAddress`: `TEXT`, `IPAddress`: `TEXT`, `Vendor`: `TEXT`, `Registry`: `TEXT`, `Organization`: `TEXT`, `Address`: `TEXT`, `Visible`: `INTEGER`}
+	nodeDBTypes = map[string]string{`ScanID`: `INTEGER`, `MacAddress`: `TEXT`, `IPAddress`: `TEXT`, `Vendor`: `TEXT`, `Registry`: `TEXT`, `Organization`: `TEXT`, `Address`: `TEXT`, `Visible`: `INTEGER`}
 	_           = bytes.MinRead
 )
 

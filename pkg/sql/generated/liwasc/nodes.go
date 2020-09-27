@@ -22,9 +22,7 @@ import (
 
 // Node is an object representing the database table.
 type Node struct {
-	ID           int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
 	ScanID       int64  `boil:"scan_id" json:"scan_id" toml:"scan_id" yaml:"scan_id"`
-	PoweredOn    int64  `boil:"powered_on" json:"powered_on" toml:"powered_on" yaml:"powered_on"`
 	MacAddress   string `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
 	IPAddress    string `boil:"ip_address" json:"ip_address" toml:"ip_address" yaml:"ip_address"`
 	Vendor       string `boil:"vendor" json:"vendor" toml:"vendor" yaml:"vendor"`
@@ -38,9 +36,7 @@ type Node struct {
 }
 
 var NodeColumns = struct {
-	ID           string
 	ScanID       string
-	PoweredOn    string
 	MacAddress   string
 	IPAddress    string
 	Vendor       string
@@ -49,9 +45,7 @@ var NodeColumns = struct {
 	Address      string
 	Visible      string
 }{
-	ID:           "id",
 	ScanID:       "scan_id",
-	PoweredOn:    "powered_on",
 	MacAddress:   "mac_address",
 	IPAddress:    "ip_address",
 	Vendor:       "vendor",
@@ -96,9 +90,7 @@ func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 }
 
 var NodeWhere = struct {
-	ID           whereHelperint64
 	ScanID       whereHelperint64
-	PoweredOn    whereHelperint64
 	MacAddress   whereHelperstring
 	IPAddress    whereHelperstring
 	Vendor       whereHelperstring
@@ -107,9 +99,7 @@ var NodeWhere = struct {
 	Address      whereHelperstring
 	Visible      whereHelperint64
 }{
-	ID:           whereHelperint64{field: "\"nodes\".\"id\""},
 	ScanID:       whereHelperint64{field: "\"nodes\".\"scan_id\""},
-	PoweredOn:    whereHelperint64{field: "\"nodes\".\"powered_on\""},
 	MacAddress:   whereHelperstring{field: "\"nodes\".\"mac_address\""},
 	IPAddress:    whereHelperstring{field: "\"nodes\".\"ip_address\""},
 	Vendor:       whereHelperstring{field: "\"nodes\".\"vendor\""},
@@ -140,10 +130,10 @@ func (*nodeR) NewStruct() *nodeR {
 type nodeL struct{}
 
 var (
-	nodeAllColumns            = []string{"id", "scan_id", "powered_on", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
-	nodeColumnsWithoutDefault = []string{"scan_id", "powered_on", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
-	nodeColumnsWithDefault    = []string{"id"}
-	nodePrimaryKeyColumns     = []string{"id"}
+	nodeAllColumns            = []string{"scan_id", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
+	nodeColumnsWithoutDefault = []string{"scan_id", "mac_address", "ip_address", "vendor", "registry", "organization", "address", "visible"}
+	nodeColumnsWithDefault    = []string{}
+	nodePrimaryKeyColumns     = []string{"mac_address"}
 )
 
 type (
@@ -552,7 +542,7 @@ func (o *Node) SetScan(ctx context.Context, exec boil.ContextExecutor, insert bo
 		strmangle.SetParamNames("\"", "\"", 0, []string{"scan_id"}),
 		strmangle.WhereClause("\"", "\"", 0, nodePrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.ID}
+	values := []interface{}{related.ID, o.MacAddress}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -591,7 +581,7 @@ func Nodes(mods ...qm.QueryMod) nodeQuery {
 
 // FindNode retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindNode(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*Node, error) {
+func FindNode(ctx context.Context, exec boil.ContextExecutor, macAddress string, selectCols ...string) (*Node, error) {
 	nodeObj := &Node{}
 
 	sel := "*"
@@ -599,10 +589,10 @@ func FindNode(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCo
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"nodes\" where \"id\"=?", sel,
+		"select %s from \"nodes\" where \"mac_address\"=?", sel,
 	)
 
-	q := queries.Raw(query, iD)
+	q := queries.Raw(query, macAddress)
 
 	err := q.Bind(ctx, exec, nodeObj)
 	if err != nil {
@@ -674,31 +664,20 @@ func (o *Node) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	result, err := exec.ExecContext(ctx, cache.query, vals...)
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
 		return errors.Wrap(err, "models: unable to insert into nodes")
 	}
 
-	var lastID int64
 	var identifierCols []interface{}
 
 	if len(cache.retMapping) == 0 {
 		goto CacheNoHooks
 	}
 
-	lastID, err = result.LastInsertId()
-	if err != nil {
-		return ErrSyncFail
-	}
-
-	o.ID = int64(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == nodeMapping["id"] {
-		goto CacheNoHooks
-	}
-
 	identifierCols = []interface{}{
-		o.ID,
+		o.MacAddress,
 	}
 
 	if boil.IsDebug(ctx) {
@@ -861,7 +840,7 @@ func (o *Node) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), nodePrimaryKeyMapping)
-	sql := "DELETE FROM \"nodes\" WHERE \"id\"=?"
+	sql := "DELETE FROM \"nodes\" WHERE \"mac_address\"=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -958,7 +937,7 @@ func (o NodeSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *Node) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindNode(ctx, exec, o.ID)
+	ret, err := FindNode(ctx, exec, o.MacAddress)
 	if err != nil {
 		return err
 	}
@@ -997,16 +976,16 @@ func (o *NodeSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // NodeExists checks if the Node row exists.
-func NodeExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+func NodeExists(ctx context.Context, exec boil.ContextExecutor, macAddress string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"nodes\" where \"id\"=? limit 1)"
+	sql := "select exists(select 1 from \"nodes\" where \"mac_address\"=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, iD)
+		fmt.Fprintln(writer, macAddress)
 	}
-	row := exec.QueryRowContext(ctx, sql, iD)
+	row := exec.QueryRowContext(ctx, sql, macAddress)
 
 	err := row.Scan(&exists)
 	if err != nil {
