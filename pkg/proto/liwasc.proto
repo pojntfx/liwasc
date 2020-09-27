@@ -15,6 +15,7 @@ service NetworkAndNodeScanService {
   // Use -1 as NodeScanID to return the latest finished scan
   rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
       returns (stream DiscoveredServiceMessage);
+  rpc DeleteNode(NodeDeleteMessage) returns (LucidNodeMessage);
 }
 
 message NetworkScanTriggerMessage { int64 Timeout = 1; }
@@ -48,6 +49,8 @@ message DiscoveredServiceMessage {
   string UnauthorizedUseReported = 11;
   string AssignmentNotes = 12;
 }
+
+message NodeDeleteMessage { string MACAddress = 1; }
 
 service NodeWakeService {
   rpc TriggerNodeWake(NodeWakeTriggerMessage)

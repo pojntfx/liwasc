@@ -104,6 +104,40 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 	return &proto.NetworkScanReferenceMessage{NetworkScanID: scanID}, nil
 }
 
-func (s *NetworkAndNodeScanService) SubscribeToNewNodes(*proto.NetworkScanReferenceMessage, proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeToNewNodes not implemented")
+func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *proto.NetworkScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
+	allNodes, err := s.liwascDatabase.GetAllNodes()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
+	}
+
+	// TODO: Subscribe to messenger for discovered nodes if messenger is set in cmap until recv node is nil (scan finished)
+
+	for _, dbNode := range allNodes {
+		protoNode := &proto.DiscoveredNodeMessage{
+			NodeScanID: -1, // TODO: Get from join table
+			LucidNode: &proto.LucidNodeMessage{
+				PoweredOn:    false, // TODO: Set to true if current scan ID
+				MACAddress:   dbNode.MacAddress,
+				IPAddress:    dbNode.IPAddress,
+				Vendor:       dbNode.Vendor,
+				Registry:     dbNode.Registry,
+				Organization: dbNode.Organization,
+				Address:      dbNode.Address,
+				Visible: func() bool {
+					visible := false
+					if dbNode.Visible == 1 {
+						visible = true
+					}
+
+					return visible
+				}(),
+			},
+		}
+
+		if err := stream.Send(protoNode); err != nil {
+			return status.Errorf(codes.Unknown, "could not send node to frontend: %v", err.Error())
+		}
+	}
+
+	return nil
 }
