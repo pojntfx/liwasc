@@ -16,6 +16,7 @@ create table scans (
 );
 create table scans_nodes (
     id integer not null primary key,
+    created_at date not null,
     node_id text not null,
     scan_id integer not null
 )

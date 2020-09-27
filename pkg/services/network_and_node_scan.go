@@ -114,11 +114,6 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *proto.NetworkScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
-	scan, err := s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
-	if err != nil {
-		return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
-	}
-
 	allNodes, err := s.liwascDatabase.GetAllNodes()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
@@ -128,17 +123,9 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 	for _, dbNode := range allNodes {
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: -1, // TODO: Get from join table; select newest in join table
+			NodeScanID: -1, // TODO: Get from join table; select newest in join table for this node
 			LucidNode: &proto.LucidNodeMessage{
-				PoweredOn: func() bool {
-					poweredOn := false
-					// If the current scan returned the node, it is powered on
-					if scanReferenceMessage.GetNetworkScanID() == scan.ID {
-						poweredOn = true
-					}
-
-					return poweredOn
-				}(),
+				PoweredOn:    false, // TODO: Get from join table; if scanID is in the array, it is powered on
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
 				Vendor:       dbNode.Vendor,

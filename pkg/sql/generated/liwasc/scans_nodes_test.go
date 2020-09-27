@@ -568,7 +568,7 @@ func testScansNodesSelect(t *testing.T) {
 }
 
 var (
-	scansNodeDBTypes = map[string]string{`ID`: `INTEGER`, `NodeID`: `TEXT`, `ScanID`: `INTEGER`}
+	scansNodeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `NodeID`: `TEXT`, `ScanID`: `INTEGER`}
 	_                = bytes.MinRead
 )
 

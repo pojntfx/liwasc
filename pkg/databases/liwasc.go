@@ -46,10 +46,6 @@ func (d *LiwascDatabase) UpdateScan(scan *liwascModels.Scan) (int64, error) {
 	return scan.ID, nil
 }
 
-func (d *LiwascDatabase) GetScan(id int64) (*liwascModels.Scan, error) {
-	return liwascModels.FindScan(context.Background(), d.db, id)
-}
-
 func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (string, error) {
 	// Insert node if it doesn't exist, otherwise update (the latter is required in case i.e. IP changes for MAC address)
 	exists, err := liwascModels.NodeExists(context.Background(), d.db, node.MacAddress)
