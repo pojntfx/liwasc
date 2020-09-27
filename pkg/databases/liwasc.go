@@ -67,3 +67,12 @@ func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (stri
 
 	return node.MacAddress, nil
 }
+
+func (d *LiwascDatabase) GetAllNodes() ([]*liwascModels.Node, error) {
+	allNodes, err := liwascModels.Nodes().All(context.Background(), d.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return allNodes, nil
+}
