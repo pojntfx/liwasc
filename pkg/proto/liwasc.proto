@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package com.pojtinger.felicitas.liwasc;
 
-import "google/protobuf/empty.proto";
-
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NetworkAndNodeScanService {
@@ -70,7 +68,6 @@ message LucidNodeMessage {
   string MACAddress = 2;
   string IPAddress = 3;
   string Vendor = 4;
-  repeated DiscoveredServiceMessage Service = 5;
   string Registry = 6;
   string Organization = 7;
   string Address = 8;

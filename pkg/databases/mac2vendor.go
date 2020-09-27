@@ -1,6 +1,6 @@
 package databases
 
-//go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated"
+//go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/mac2vendor -c pkg/sql/mac2vendor.toml"
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	models "github.com/pojntfx/liwasc/pkg/sql/generated"
+	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
 )
 
 type MAC2VendorDatabase struct {
@@ -32,13 +32,13 @@ func (d *MAC2VendorDatabase) Open() error {
 	return nil
 }
 
-func (d *MAC2VendorDatabase) GetVendor(mac string) (*models.Vendordb, error) {
+func (d *MAC2VendorDatabase) GetVendor(mac string) (*mac2vendorModels.Vendordb, error) {
 	oui, err := GetOUI(mac)
 	if err != nil {
 		return nil, err
 	}
 
-	vendor, err := models.FindVendordb(context.Background(), d.db, int64(oui))
+	vendor, err := mac2vendorModels.FindVendordb(context.Background(), d.db, int64(oui))
 	if err != nil {
 		return nil, err
 	}
