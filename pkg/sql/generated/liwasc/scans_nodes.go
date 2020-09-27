@@ -22,34 +22,60 @@ import (
 
 // ScansNode is an object representing the database table.
 type ScansNode struct {
-	ID     int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
-	NodeID string `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
-	ScanID int64  `boil:"scan_id" json:"scan_id" toml:"scan_id" yaml:"scan_id"`
+	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	NodeID    string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
+	ScanID    int64     `boil:"scan_id" json:"scan_id" toml:"scan_id" yaml:"scan_id"`
 
 	R *scansNodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L scansNodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ScansNodeColumns = struct {
-	ID     string
-	NodeID string
-	ScanID string
+	ID        string
+	CreatedAt string
+	NodeID    string
+	ScanID    string
 }{
-	ID:     "id",
-	NodeID: "node_id",
-	ScanID: "scan_id",
+	ID:        "id",
+	CreatedAt: "created_at",
+	NodeID:    "node_id",
+	ScanID:    "scan_id",
 }
 
 // Generated where
 
+type whereHelpertime_Time struct{ field string }
+
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var ScansNodeWhere = struct {
-	ID     whereHelperint64
-	NodeID whereHelperstring
-	ScanID whereHelperint64
+	ID        whereHelperint64
+	CreatedAt whereHelpertime_Time
+	NodeID    whereHelperstring
+	ScanID    whereHelperint64
 }{
-	ID:     whereHelperint64{field: "\"scans_nodes\".\"id\""},
-	NodeID: whereHelperstring{field: "\"scans_nodes\".\"node_id\""},
-	ScanID: whereHelperint64{field: "\"scans_nodes\".\"scan_id\""},
+	ID:        whereHelperint64{field: "\"scans_nodes\".\"id\""},
+	CreatedAt: whereHelpertime_Time{field: "\"scans_nodes\".\"created_at\""},
+	NodeID:    whereHelperstring{field: "\"scans_nodes\".\"node_id\""},
+	ScanID:    whereHelperint64{field: "\"scans_nodes\".\"scan_id\""},
 }
 
 // ScansNodeRels is where relationship names are stored.
@@ -69,8 +95,8 @@ func (*scansNodeR) NewStruct() *scansNodeR {
 type scansNodeL struct{}
 
 var (
-	scansNodeAllColumns            = []string{"id", "node_id", "scan_id"}
-	scansNodeColumnsWithoutDefault = []string{"node_id", "scan_id"}
+	scansNodeAllColumns            = []string{"id", "created_at", "node_id", "scan_id"}
+	scansNodeColumnsWithoutDefault = []string{"created_at", "node_id", "scan_id"}
 	scansNodeColumnsWithDefault    = []string{"id"}
 	scansNodePrimaryKeyColumns     = []string{"id"}
 )
@@ -390,6 +416,13 @@ func (o *ScansNode) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
