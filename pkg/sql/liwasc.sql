@@ -1,10 +1,8 @@
 drop table if exists nodes;
 drop table if exists scans;
 create table nodes (
-    id integer not null primary key,
     scan_id integer not null references scans(id),
-    powered_on integer not null,
-    mac_address text not null,
+    mac_address text not null primary key,
     ip_address text not null,
     vendor text not null,
     registry text not null,

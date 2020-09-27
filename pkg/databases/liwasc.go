@@ -38,10 +38,22 @@ func (d *LiwascDatabase) CreateScan(scan *liwascModels.Scan) (int64, error) {
 	return scan.ID, nil
 }
 
-func (d *LiwascDatabase) CreateNode(node *liwascModels.Node, scanID int64) (int64, error) {
-	if err := node.Insert(context.Background(), d.db, boil.Infer()); err != nil {
-		return -1, err
+func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (string, error) {
+	exists, err := liwascModels.NodeExists(context.Background(), d.db, node.MacAddress)
+	if err != nil {
+		return "", err
+	}
+	if exists {
+		if _, err := node.Update(context.Background(), d.db, boil.Infer()); err != nil {
+			return "", err
+		}
+
+		return node.MacAddress, nil
 	}
 
-	return node.ID, nil
+	if err := node.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return "", err
+	}
+
+	return node.MacAddress, nil
 }

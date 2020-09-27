@@ -478,7 +478,7 @@ func (o *Scan) AddNodes(ctx context.Context, exec boil.ContextExecutor, insert b
 				strmangle.SetParamNames("\"", "\"", 0, []string{"scan_id"}),
 				strmangle.WhereClause("\"", "\"", 0, nodePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.MacAddress}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)

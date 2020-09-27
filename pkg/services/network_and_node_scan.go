@@ -31,7 +31,10 @@ func NewNetworkAndNodeScanService(device string, mac2VendorDatabase *databases.M
 }
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
-	scanID, err := s.liwascDatabase.CreateScan(&liwascModels.Scan{})
+	// Create a scan
+	scan := &liwascModels.Scan{}
+
+	scanID, err := s.liwascDatabase.CreateScan(scan)
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not create scan in DB: %v", err.Error())
 	}
@@ -82,7 +85,6 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 			dbNode := &liwascModels.Node{
 				ScanID:       scanID,
-				PoweredOn:    0,
 				MacAddress:   node.MACAddress.String(),
 				IPAddress:    node.IPAddress.String(),
 				Vendor:       vendor.Vendor.String,
@@ -92,7 +94,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				Visible:      vendor.Visibility,
 			}
 
-			if _, err := s.liwascDatabase.CreateNode(dbNode, scanID); err != nil {
+			if _, err := s.liwascDatabase.UpsertNode(dbNode, scanID); err != nil {
 				log.Println("could not create node in DB", err)
 
 				return
