@@ -13,6 +13,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	liwascModels "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
+	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,13 +22,13 @@ type NetworkAndNodeScanService struct {
 	proto.UnimplementedNetworkAndNodeScanServiceServer
 
 	device             string
-	networkScanners    cmap.ConcurrentMap
 	mac2VendorDatabase *databases.MAC2VendorDatabase
 	liwascDatabase     *databases.LiwascDatabase
+	messengers         cmap.ConcurrentMap
 }
 
 func NewNetworkAndNodeScanService(device string, mac2VendorDatabase *databases.MAC2VendorDatabase, liwascDatabase *databases.LiwascDatabase) *NetworkAndNodeScanService {
-	return &NetworkAndNodeScanService{device: device, networkScanners: cmap.New(), mac2VendorDatabase: mac2VendorDatabase, liwascDatabase: liwascDatabase}
+	return &NetworkAndNodeScanService{device: device, mac2VendorDatabase: mac2VendorDatabase, liwascDatabase: liwascDatabase, messengers: cmap.New()}
 }
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
@@ -46,7 +47,9 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not open network scanner: %v", err.Error())
 	}
-	s.networkScanners.Set(string(scanID), networkScanner)
+
+	msgr := messenger.New(0, true)
+	s.messengers.Set(string(scanID), msgr)
 
 	// Receive packets
 	go func() {
@@ -100,7 +103,11 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 				break
 			}
+
+			msgr.Broadcast(dbNode)
 		}
+
+		msgr.Reset()
 
 		scan.Done = 1
 		if _, err := s.liwascDatabase.UpdateScan(scan); err != nil {
@@ -108,6 +115,8 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 			return
 		}
+
+		s.messengers.Remove(string(scanID))
 	}()
 
 	return &proto.NetworkScanReferenceMessage{NetworkScanID: scanID}, nil
@@ -123,8 +132,6 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
 	}
-
-	// TODO: Subscribe to messenger for discovered nodes if messenger is set in cmap until recv node is nil (scan finished)
 
 	for _, dbNode := range allNodes {
 		protoNode := &proto.DiscoveredNodeMessage{
@@ -143,6 +150,53 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 					return false
 				}(),
+				MACAddress:   dbNode.MacAddress,
+				IPAddress:    dbNode.IPAddress,
+				Vendor:       dbNode.Vendor,
+				Registry:     dbNode.Registry,
+				Organization: dbNode.Organization,
+				Address:      dbNode.Address,
+				Visible: func() bool {
+					if dbNode.Visible == 1 {
+						return true
+					}
+
+					return false
+				}(),
+			},
+		}
+
+		if err := stream.Send(protoNode); err != nil {
+			return status.Errorf(codes.Unknown, "could not send node to frontend: %v", err.Error())
+		}
+	}
+
+	scan, err := s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
+	}
+
+	if scan.Done == 1 {
+		return nil
+	}
+
+	msgr, exists := s.messengers.Get(string(scan.ID))
+	if !exists || msgr == nil {
+		return nil
+	}
+
+	client, err := msgr.(*messenger.Messenger).Sub()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not subscribe to nodes")
+	}
+
+	for receivedNode := range client {
+		dbNode := receivedNode.(*liwascModels.Node)
+
+		protoNode := &proto.DiscoveredNodeMessage{
+			NodeScanID: scan.ID,
+			LucidNode: &proto.LucidNodeMessage{
+				PoweredOn:    true, // Must be true; otherwise it would not have been found
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
 				Vendor:       dbNode.Vendor,

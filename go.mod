@@ -12,6 +12,7 @@ require (
 	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
 	github.com/spf13/cast v1.3.1 // indirect
+	github.com/ugjka/messenger v1.1.3
 	github.com/volatiletech/null/v8 v8.1.0
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
 	google.golang.org/grpc v1.32.0

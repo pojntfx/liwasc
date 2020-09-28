@@ -108,3 +108,7 @@ func (d *LiwascDatabase) GetNewestScansForNodes(nodes []*liwascModels.Node) (map
 
 	return outMap, nil
 }
+
+func (d *LiwascDatabase) GetScan(id int64) (*liwascModels.Scan, error) {
+	return liwascModels.FindScan(context.Background(), d.db, id)
+}
