@@ -12,78 +12,104 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("NodeScans", testNodeScans)
+	t.Run("NodeScansNodes", testNodeScansNodes)
 	t.Run("Nodes", testNodes)
-	t.Run("Scans", testScans)
-	t.Run("ScansNodes", testScansNodes)
+	t.Run("NodesServices", testNodesServices)
+	t.Run("Services", testServices)
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("NodeScans", testNodeScansDelete)
+	t.Run("NodeScansNodes", testNodeScansNodesDelete)
 	t.Run("Nodes", testNodesDelete)
-	t.Run("Scans", testScansDelete)
-	t.Run("ScansNodes", testScansNodesDelete)
+	t.Run("NodesServices", testNodesServicesDelete)
+	t.Run("Services", testServicesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("NodeScans", testNodeScansQueryDeleteAll)
+	t.Run("NodeScansNodes", testNodeScansNodesQueryDeleteAll)
 	t.Run("Nodes", testNodesQueryDeleteAll)
-	t.Run("Scans", testScansQueryDeleteAll)
-	t.Run("ScansNodes", testScansNodesQueryDeleteAll)
+	t.Run("NodesServices", testNodesServicesQueryDeleteAll)
+	t.Run("Services", testServicesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("NodeScans", testNodeScansSliceDeleteAll)
+	t.Run("NodeScansNodes", testNodeScansNodesSliceDeleteAll)
 	t.Run("Nodes", testNodesSliceDeleteAll)
-	t.Run("Scans", testScansSliceDeleteAll)
-	t.Run("ScansNodes", testScansNodesSliceDeleteAll)
+	t.Run("NodesServices", testNodesServicesSliceDeleteAll)
+	t.Run("Services", testServicesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
+	t.Run("NodeScans", testNodeScansExists)
+	t.Run("NodeScansNodes", testNodeScansNodesExists)
 	t.Run("Nodes", testNodesExists)
-	t.Run("Scans", testScansExists)
-	t.Run("ScansNodes", testScansNodesExists)
+	t.Run("NodesServices", testNodesServicesExists)
+	t.Run("Services", testServicesExists)
 }
 
 func TestFind(t *testing.T) {
+	t.Run("NodeScans", testNodeScansFind)
+	t.Run("NodeScansNodes", testNodeScansNodesFind)
 	t.Run("Nodes", testNodesFind)
-	t.Run("Scans", testScansFind)
-	t.Run("ScansNodes", testScansNodesFind)
+	t.Run("NodesServices", testNodesServicesFind)
+	t.Run("Services", testServicesFind)
 }
 
 func TestBind(t *testing.T) {
+	t.Run("NodeScans", testNodeScansBind)
+	t.Run("NodeScansNodes", testNodeScansNodesBind)
 	t.Run("Nodes", testNodesBind)
-	t.Run("Scans", testScansBind)
-	t.Run("ScansNodes", testScansNodesBind)
+	t.Run("NodesServices", testNodesServicesBind)
+	t.Run("Services", testServicesBind)
 }
 
 func TestOne(t *testing.T) {
+	t.Run("NodeScans", testNodeScansOne)
+	t.Run("NodeScansNodes", testNodeScansNodesOne)
 	t.Run("Nodes", testNodesOne)
-	t.Run("Scans", testScansOne)
-	t.Run("ScansNodes", testScansNodesOne)
+	t.Run("NodesServices", testNodesServicesOne)
+	t.Run("Services", testServicesOne)
 }
 
 func TestAll(t *testing.T) {
+	t.Run("NodeScans", testNodeScansAll)
+	t.Run("NodeScansNodes", testNodeScansNodesAll)
 	t.Run("Nodes", testNodesAll)
-	t.Run("Scans", testScansAll)
-	t.Run("ScansNodes", testScansNodesAll)
+	t.Run("NodesServices", testNodesServicesAll)
+	t.Run("Services", testServicesAll)
 }
 
 func TestCount(t *testing.T) {
+	t.Run("NodeScans", testNodeScansCount)
+	t.Run("NodeScansNodes", testNodeScansNodesCount)
 	t.Run("Nodes", testNodesCount)
-	t.Run("Scans", testScansCount)
-	t.Run("ScansNodes", testScansNodesCount)
+	t.Run("NodesServices", testNodesServicesCount)
+	t.Run("Services", testServicesCount)
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("NodeScans", testNodeScansHooks)
+	t.Run("NodeScansNodes", testNodeScansNodesHooks)
 	t.Run("Nodes", testNodesHooks)
-	t.Run("Scans", testScansHooks)
-	t.Run("ScansNodes", testScansNodesHooks)
+	t.Run("NodesServices", testNodesServicesHooks)
+	t.Run("Services", testServicesHooks)
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("NodeScans", testNodeScansInsert)
+	t.Run("NodeScans", testNodeScansInsertWhitelist)
+	t.Run("NodeScansNodes", testNodeScansNodesInsert)
+	t.Run("NodeScansNodes", testNodeScansNodesInsertWhitelist)
 	t.Run("Nodes", testNodesInsert)
 	t.Run("Nodes", testNodesInsertWhitelist)
-	t.Run("Scans", testScansInsert)
-	t.Run("Scans", testScansInsertWhitelist)
-	t.Run("ScansNodes", testScansNodesInsert)
-	t.Run("ScansNodes", testScansNodesInsertWhitelist)
+	t.Run("NodesServices", testNodesServicesInsert)
+	t.Run("NodesServices", testNodesServicesInsertWhitelist)
+	t.Run("Services", testServicesInsert)
+	t.Run("Services", testServicesInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
@@ -127,31 +153,41 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
+	t.Run("NodeScans", testNodeScansReload)
+	t.Run("NodeScansNodes", testNodeScansNodesReload)
 	t.Run("Nodes", testNodesReload)
-	t.Run("Scans", testScansReload)
-	t.Run("ScansNodes", testScansNodesReload)
+	t.Run("NodesServices", testNodesServicesReload)
+	t.Run("Services", testServicesReload)
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("NodeScans", testNodeScansReloadAll)
+	t.Run("NodeScansNodes", testNodeScansNodesReloadAll)
 	t.Run("Nodes", testNodesReloadAll)
-	t.Run("Scans", testScansReloadAll)
-	t.Run("ScansNodes", testScansNodesReloadAll)
+	t.Run("NodesServices", testNodesServicesReloadAll)
+	t.Run("Services", testServicesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("NodeScans", testNodeScansSelect)
+	t.Run("NodeScansNodes", testNodeScansNodesSelect)
 	t.Run("Nodes", testNodesSelect)
-	t.Run("Scans", testScansSelect)
-	t.Run("ScansNodes", testScansNodesSelect)
+	t.Run("NodesServices", testNodesServicesSelect)
+	t.Run("Services", testServicesSelect)
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("NodeScans", testNodeScansUpdate)
+	t.Run("NodeScansNodes", testNodeScansNodesUpdate)
 	t.Run("Nodes", testNodesUpdate)
-	t.Run("Scans", testScansUpdate)
-	t.Run("ScansNodes", testScansNodesUpdate)
+	t.Run("NodesServices", testNodesServicesUpdate)
+	t.Run("Services", testServicesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("NodeScans", testNodeScansSliceUpdateAll)
+	t.Run("NodeScansNodes", testNodeScansNodesSliceUpdateAll)
 	t.Run("Nodes", testNodesSliceUpdateAll)
-	t.Run("Scans", testScansSliceUpdateAll)
-	t.Run("ScansNodes", testScansNodesSliceUpdateAll)
+	t.Run("NodesServices", testNodesServicesSliceUpdateAll)
+	t.Run("Services", testServicesSliceUpdateAll)
 }

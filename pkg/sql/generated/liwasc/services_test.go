@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testScans(t *testing.T) {
+func testServices(t *testing.T) {
 	t.Parallel()
 
-	query := Scans()
+	query := Services()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testScansDelete(t *testing.T) {
+func testServicesDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testScansDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testScansDelete(t *testing.T) {
 	}
 }
 
-func testScansQueryDeleteAll(t *testing.T) {
+func testServicesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testScansQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Scans().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Services().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testScansQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testScansSliceDeleteAll(t *testing.T) {
+func testServicesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testScansSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := ScanSlice{o}
+	slice := ServiceSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testScansSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testScansSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testScansExists(t *testing.T) {
+func testServicesExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testScansExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := ScanExists(ctx, tx, o.ID)
+	e, err := ServiceExists(ctx, tx, o.PortNumber)
 	if err != nil {
-		t.Errorf("Unable to check if Scan exists: %s", err)
+		t.Errorf("Unable to check if Service exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected ScanExists to return true, but got false.")
+		t.Errorf("Expected ServiceExists to return true, but got false.")
 	}
 }
 
-func testScansFind(t *testing.T) {
+func testServicesFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testScansFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	scanFound, err := FindScan(ctx, tx, o.ID)
+	serviceFound, err := FindService(ctx, tx, o.PortNumber)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if scanFound == nil {
+	if serviceFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testScansBind(t *testing.T) {
+func testServicesBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testScansBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Scans().Bind(ctx, tx, o); err != nil {
+	if err = Services().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testScansOne(t *testing.T) {
+func testServicesOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testScansOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Scans().One(ctx, tx); err != nil {
+	if x, err := Services().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testScansAll(t *testing.T) {
+func testServicesAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	scanOne := &Scan{}
-	scanTwo := &Scan{}
-	if err = randomize.Struct(seed, scanOne, scanDBTypes, false, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	serviceOne := &Service{}
+	serviceTwo := &Service{}
+	if err = randomize.Struct(seed, serviceOne, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
-	if err = randomize.Struct(seed, scanTwo, scanDBTypes, false, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	if err = randomize.Struct(seed, serviceTwo, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = scanOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = serviceOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = scanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = serviceTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Scans().All(ctx, tx)
+	slice, err := Services().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testScansAll(t *testing.T) {
 	}
 }
 
-func testScansCount(t *testing.T) {
+func testServicesCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	scanOne := &Scan{}
-	scanTwo := &Scan{}
-	if err = randomize.Struct(seed, scanOne, scanDBTypes, false, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	serviceOne := &Service{}
+	serviceTwo := &Service{}
+	if err = randomize.Struct(seed, serviceOne, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
-	if err = randomize.Struct(seed, scanTwo, scanDBTypes, false, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	if err = randomize.Struct(seed, serviceTwo, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = scanOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = serviceOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = scanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = serviceTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testScansCount(t *testing.T) {
 	}
 }
 
-func scanBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func scanAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Scan) error {
-	*o = Scan{}
+func serviceAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Service) error {
+	*o = Service{}
 	return nil
 }
 
-func testScansHooks(t *testing.T) {
+func testServicesHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &Scan{}
-	o := &Scan{}
+	empty := &Service{}
+	o := &Service{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, scanDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Scan object: %s", err)
+	if err = randomize.Struct(seed, o, serviceDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize Service object: %s", err)
 	}
 
-	AddScanHook(boil.BeforeInsertHook, scanBeforeInsertHook)
+	AddServiceHook(boil.BeforeInsertHook, serviceBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	scanBeforeInsertHooks = []ScanHook{}
+	serviceBeforeInsertHooks = []ServiceHook{}
 
-	AddScanHook(boil.AfterInsertHook, scanAfterInsertHook)
+	AddServiceHook(boil.AfterInsertHook, serviceAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	scanAfterInsertHooks = []ScanHook{}
+	serviceAfterInsertHooks = []ServiceHook{}
 
-	AddScanHook(boil.AfterSelectHook, scanAfterSelectHook)
+	AddServiceHook(boil.AfterSelectHook, serviceAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	scanAfterSelectHooks = []ScanHook{}
+	serviceAfterSelectHooks = []ServiceHook{}
 
-	AddScanHook(boil.BeforeUpdateHook, scanBeforeUpdateHook)
+	AddServiceHook(boil.BeforeUpdateHook, serviceBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	scanBeforeUpdateHooks = []ScanHook{}
+	serviceBeforeUpdateHooks = []ServiceHook{}
 
-	AddScanHook(boil.AfterUpdateHook, scanAfterUpdateHook)
+	AddServiceHook(boil.AfterUpdateHook, serviceAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	scanAfterUpdateHooks = []ScanHook{}
+	serviceAfterUpdateHooks = []ServiceHook{}
 
-	AddScanHook(boil.BeforeDeleteHook, scanBeforeDeleteHook)
+	AddServiceHook(boil.BeforeDeleteHook, serviceBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	scanBeforeDeleteHooks = []ScanHook{}
+	serviceBeforeDeleteHooks = []ServiceHook{}
 
-	AddScanHook(boil.AfterDeleteHook, scanAfterDeleteHook)
+	AddServiceHook(boil.AfterDeleteHook, serviceAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	scanAfterDeleteHooks = []ScanHook{}
+	serviceAfterDeleteHooks = []ServiceHook{}
 
-	AddScanHook(boil.BeforeUpsertHook, scanBeforeUpsertHook)
+	AddServiceHook(boil.BeforeUpsertHook, serviceBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	scanBeforeUpsertHooks = []ScanHook{}
+	serviceBeforeUpsertHooks = []ServiceHook{}
 
-	AddScanHook(boil.AfterUpsertHook, scanAfterUpsertHook)
+	AddServiceHook(boil.AfterUpsertHook, serviceAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	scanAfterUpsertHooks = []ScanHook{}
+	serviceAfterUpsertHooks = []ServiceHook{}
 }
 
-func testScansInsert(t *testing.T) {
+func testServicesInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testScansInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testScansInsert(t *testing.T) {
 	}
 }
 
-func testScansInsertWhitelist(t *testing.T) {
+func testServicesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(scanColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(serviceColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testScansInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testScansReload(t *testing.T) {
+func testServicesReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testScansReload(t *testing.T) {
 	}
 }
 
-func testScansReloadAll(t *testing.T) {
+func testServicesReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testScansReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := ScanSlice{o}
+	slice := ServiceSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testScansSelect(t *testing.T) {
+func testServicesSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testScansSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Scans().All(ctx, tx)
+	slice, err := Services().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testScansSelect(t *testing.T) {
 }
 
 var (
-	scanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`}
-	_           = bytes.MinRead
+	serviceDBTypes = map[string]string{`ServiceName`: `TEXT`, `PortNumber`: `INTEGER`, `TransportProtocol`: `TEXT`, `Description`: `TEXT`, `Assignee`: `TEXT`, `Contact`: `TEXT`, `RegistrationDate`: `TEXT`, `ModificationDate`: `TEXT`, `Reference`: `TEXT`, `ServiceCode`: `TEXT`, `UnauthorizedUseReported`: `TEXT`, `AssignmentNotes`: `TEXT`}
+	_              = bytes.MinRead
 )
 
-func testScansUpdate(t *testing.T) {
+func testServicesUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(scanPrimaryKeyColumns) {
+	if 0 == len(servicePrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(scanAllColumns) == len(scanPrimaryKeyColumns) {
+	if len(serviceAllColumns) == len(servicePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testScansUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testScansUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, servicePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testScansUpdate(t *testing.T) {
 	}
 }
 
-func testScansSliceUpdateAll(t *testing.T) {
+func testServicesSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(scanAllColumns) == len(scanPrimaryKeyColumns) {
+	if len(serviceAllColumns) == len(servicePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Scan{}
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	o := &Service{}
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, serviceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testScansSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Scans().Count(ctx, tx)
+	count, err := Services().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testScansSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, scanDBTypes, true, scanPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Scan struct: %s", err)
+	if err = randomize.Struct(seed, o, serviceDBTypes, true, servicePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Service struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(scanAllColumns, scanPrimaryKeyColumns) {
-		fields = scanAllColumns
+	if strmangle.StringSliceMatch(serviceAllColumns, servicePrimaryKeyColumns) {
+		fields = serviceAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			scanAllColumns,
-			scanPrimaryKeyColumns,
+			serviceAllColumns,
+			servicePrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testScansSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := ScanSlice{o}
+	slice := ServiceSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
