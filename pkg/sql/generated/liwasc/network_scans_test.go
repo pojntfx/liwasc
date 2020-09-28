@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testNodeScansNodes(t *testing.T) {
+func testNetworkScans(t *testing.T) {
 	t.Parallel()
 
-	query := NodeScansNodes()
+	query := NetworkScans()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testNodeScansNodesDelete(t *testing.T) {
+func testNetworkScansDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testNodeScansNodesDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testNodeScansNodesDelete(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesQueryDeleteAll(t *testing.T) {
+func testNetworkScansQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testNodeScansNodesQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := NodeScansNodes().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := NetworkScans().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testNodeScansNodesQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesSliceDeleteAll(t *testing.T) {
+func testNetworkScansSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testNodeScansNodesSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeScansNodeSlice{o}
+	slice := NetworkScanSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testNodeScansNodesSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testNodeScansNodesSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesExists(t *testing.T) {
+func testNetworkScansExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testNodeScansNodesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := NodeScansNodeExists(ctx, tx, o.ID)
+	e, err := NetworkScanExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if NodeScansNode exists: %s", err)
+		t.Errorf("Unable to check if NetworkScan exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected NodeScansNodeExists to return true, but got false.")
+		t.Errorf("Expected NetworkScanExists to return true, but got false.")
 	}
 }
 
-func testNodeScansNodesFind(t *testing.T) {
+func testNetworkScansFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testNodeScansNodesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	nodeScansNodeFound, err := FindNodeScansNode(ctx, tx, o.ID)
+	networkScanFound, err := FindNetworkScan(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if nodeScansNodeFound == nil {
+	if networkScanFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testNodeScansNodesBind(t *testing.T) {
+func testNetworkScansBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testNodeScansNodesBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = NodeScansNodes().Bind(ctx, tx, o); err != nil {
+	if err = NetworkScans().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodeScansNodesOne(t *testing.T) {
+func testNetworkScansOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testNodeScansNodesOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := NodeScansNodes().One(ctx, tx); err != nil {
+	if x, err := NetworkScans().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testNodeScansNodesAll(t *testing.T) {
+func testNetworkScansAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	nodeScansNodeOne := &NodeScansNode{}
-	nodeScansNodeTwo := &NodeScansNode{}
-	if err = randomize.Struct(seed, nodeScansNodeOne, nodeScansNodeDBTypes, false, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	networkScanOne := &NetworkScan{}
+	networkScanTwo := &NetworkScan{}
+	if err = randomize.Struct(seed, networkScanOne, networkScanDBTypes, false, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeScansNodeTwo, nodeScansNodeDBTypes, false, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	if err = randomize.Struct(seed, networkScanTwo, networkScanDBTypes, false, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeScansNodeOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = networkScanOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeScansNodeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = networkScanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := NodeScansNodes().All(ctx, tx)
+	slice, err := NetworkScans().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testNodeScansNodesAll(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesCount(t *testing.T) {
+func testNetworkScansCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	nodeScansNodeOne := &NodeScansNode{}
-	nodeScansNodeTwo := &NodeScansNode{}
-	if err = randomize.Struct(seed, nodeScansNodeOne, nodeScansNodeDBTypes, false, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	networkScanOne := &NetworkScan{}
+	networkScanTwo := &NetworkScan{}
+	if err = randomize.Struct(seed, networkScanOne, networkScanDBTypes, false, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeScansNodeTwo, nodeScansNodeDBTypes, false, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	if err = randomize.Struct(seed, networkScanTwo, networkScanDBTypes, false, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeScansNodeOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = networkScanOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeScansNodeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = networkScanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testNodeScansNodesCount(t *testing.T) {
 	}
 }
 
-func nodeScansNodeBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func nodeScansNodeAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeScansNode) error {
-	*o = NodeScansNode{}
+func networkScanAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NetworkScan) error {
+	*o = NetworkScan{}
 	return nil
 }
 
-func testNodeScansNodesHooks(t *testing.T) {
+func testNetworkScansHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &NodeScansNode{}
-	o := &NodeScansNode{}
+	empty := &NetworkScan{}
+	o := &NetworkScan{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode object: %s", err)
+	if err = randomize.Struct(seed, o, networkScanDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize NetworkScan object: %s", err)
 	}
 
-	AddNodeScansNodeHook(boil.BeforeInsertHook, nodeScansNodeBeforeInsertHook)
+	AddNetworkScanHook(boil.BeforeInsertHook, networkScanBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeBeforeInsertHooks = []NodeScansNodeHook{}
+	networkScanBeforeInsertHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.AfterInsertHook, nodeScansNodeAfterInsertHook)
+	AddNetworkScanHook(boil.AfterInsertHook, networkScanAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeAfterInsertHooks = []NodeScansNodeHook{}
+	networkScanAfterInsertHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.AfterSelectHook, nodeScansNodeAfterSelectHook)
+	AddNetworkScanHook(boil.AfterSelectHook, networkScanAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeAfterSelectHooks = []NodeScansNodeHook{}
+	networkScanAfterSelectHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.BeforeUpdateHook, nodeScansNodeBeforeUpdateHook)
+	AddNetworkScanHook(boil.BeforeUpdateHook, networkScanBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeBeforeUpdateHooks = []NodeScansNodeHook{}
+	networkScanBeforeUpdateHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.AfterUpdateHook, nodeScansNodeAfterUpdateHook)
+	AddNetworkScanHook(boil.AfterUpdateHook, networkScanAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeAfterUpdateHooks = []NodeScansNodeHook{}
+	networkScanAfterUpdateHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.BeforeDeleteHook, nodeScansNodeBeforeDeleteHook)
+	AddNetworkScanHook(boil.BeforeDeleteHook, networkScanBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeBeforeDeleteHooks = []NodeScansNodeHook{}
+	networkScanBeforeDeleteHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.AfterDeleteHook, nodeScansNodeAfterDeleteHook)
+	AddNetworkScanHook(boil.AfterDeleteHook, networkScanAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeAfterDeleteHooks = []NodeScansNodeHook{}
+	networkScanAfterDeleteHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.BeforeUpsertHook, nodeScansNodeBeforeUpsertHook)
+	AddNetworkScanHook(boil.BeforeUpsertHook, networkScanBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeBeforeUpsertHooks = []NodeScansNodeHook{}
+	networkScanBeforeUpsertHooks = []NetworkScanHook{}
 
-	AddNodeScansNodeHook(boil.AfterUpsertHook, nodeScansNodeAfterUpsertHook)
+	AddNetworkScanHook(boil.AfterUpsertHook, networkScanAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeScansNodeAfterUpsertHooks = []NodeScansNodeHook{}
+	networkScanAfterUpsertHooks = []NetworkScanHook{}
 }
 
-func testNodeScansNodesInsert(t *testing.T) {
+func testNetworkScansInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testNodeScansNodesInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testNodeScansNodesInsert(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesInsertWhitelist(t *testing.T) {
+func testNetworkScansInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(nodeScansNodeColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(networkScanColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testNodeScansNodesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesReload(t *testing.T) {
+func testNetworkScansReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testNodeScansNodesReload(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesReloadAll(t *testing.T) {
+func testNetworkScansReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testNodeScansNodesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeScansNodeSlice{o}
+	slice := NetworkScanSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodeScansNodesSelect(t *testing.T) {
+func testNetworkScansSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testNodeScansNodesSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := NodeScansNodes().All(ctx, tx)
+	slice, err := NetworkScans().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testNodeScansNodesSelect(t *testing.T) {
 }
 
 var (
-	nodeScansNodeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `NodeID`: `TEXT`, `NodeScanID`: `INTEGER`}
-	_                    = bytes.MinRead
+	networkScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`}
+	_                  = bytes.MinRead
 )
 
-func testNodeScansNodesUpdate(t *testing.T) {
+func testNetworkScansUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(nodeScansNodePrimaryKeyColumns) {
+	if 0 == len(networkScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(nodeScansNodeAllColumns) == len(nodeScansNodePrimaryKeyColumns) {
+	if len(networkScanAllColumns) == len(networkScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testNodeScansNodesUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testNodeScansNodesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testNodeScansNodesUpdate(t *testing.T) {
 	}
 }
 
-func testNodeScansNodesSliceUpdateAll(t *testing.T) {
+func testNetworkScansSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(nodeScansNodeAllColumns) == len(nodeScansNodePrimaryKeyColumns) {
+	if len(networkScanAllColumns) == len(networkScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeScansNode{}
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	o := &NetworkScan{}
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testNodeScansNodesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeScansNodes().Count(ctx, tx)
+	count, err := NetworkScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testNodeScansNodesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeScansNodeDBTypes, true, nodeScansNodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize NodeScansNode struct: %s", err)
+	if err = randomize.Struct(seed, o, networkScanDBTypes, true, networkScanPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(nodeScansNodeAllColumns, nodeScansNodePrimaryKeyColumns) {
-		fields = nodeScansNodeAllColumns
+	if strmangle.StringSliceMatch(networkScanAllColumns, networkScanPrimaryKeyColumns) {
+		fields = networkScanAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			nodeScansNodeAllColumns,
-			nodeScansNodePrimaryKeyColumns,
+			networkScanAllColumns,
+			networkScanPrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testNodeScansNodesSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := NodeScansNodeSlice{o}
+	slice := NetworkScanSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {

@@ -1,9 +1,8 @@
 -- Remove old tables if they exist
 drop table if exists nodes;
-drop table if exists node_scans;
+drop table if exists network_scans;
 drop table if exists services;
-drop table if exists node_scans_nodes;
-drop table if exists nodes_services;
+drop table if exists network_scans_nodes;
 -- Create new tables
 create table nodes (
     mac_address text not null primary key,
@@ -14,7 +13,7 @@ create table nodes (
     address text not null,
     visible integer not null
 );
-create table node_scans (
+create table network_scans (
     id integer not null primary key,
     created_at date not null,
     done integer not null
@@ -34,14 +33,9 @@ create table services (
     assignment_notes text not null
 );
 -- Create join tables
-create table node_scans_nodes (
+create table network_scans_nodes (
     id integer not null primary key,
     created_at date not null,
     node_id text not null,
     node_scan_id integer not null
-);
-create table nodes_services (
-    id integer not null primary key,
-    node_id text not null,
-    service_id integer not null
 );

@@ -12,102 +12,89 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
-	t.Run("NodeScans", testNodeScans)
-	t.Run("NodeScansNodes", testNodeScansNodes)
+	t.Run("NetworkScans", testNetworkScans)
+	t.Run("NetworkScansNodes", testNetworkScansNodes)
 	t.Run("Nodes", testNodes)
-	t.Run("NodesServices", testNodesServices)
 	t.Run("Services", testServices)
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("NodeScans", testNodeScansDelete)
-	t.Run("NodeScansNodes", testNodeScansNodesDelete)
+	t.Run("NetworkScans", testNetworkScansDelete)
+	t.Run("NetworkScansNodes", testNetworkScansNodesDelete)
 	t.Run("Nodes", testNodesDelete)
-	t.Run("NodesServices", testNodesServicesDelete)
 	t.Run("Services", testServicesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
-	t.Run("NodeScans", testNodeScansQueryDeleteAll)
-	t.Run("NodeScansNodes", testNodeScansNodesQueryDeleteAll)
+	t.Run("NetworkScans", testNetworkScansQueryDeleteAll)
+	t.Run("NetworkScansNodes", testNetworkScansNodesQueryDeleteAll)
 	t.Run("Nodes", testNodesQueryDeleteAll)
-	t.Run("NodesServices", testNodesServicesQueryDeleteAll)
 	t.Run("Services", testServicesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
-	t.Run("NodeScans", testNodeScansSliceDeleteAll)
-	t.Run("NodeScansNodes", testNodeScansNodesSliceDeleteAll)
+	t.Run("NetworkScans", testNetworkScansSliceDeleteAll)
+	t.Run("NetworkScansNodes", testNetworkScansNodesSliceDeleteAll)
 	t.Run("Nodes", testNodesSliceDeleteAll)
-	t.Run("NodesServices", testNodesServicesSliceDeleteAll)
 	t.Run("Services", testServicesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
-	t.Run("NodeScans", testNodeScansExists)
-	t.Run("NodeScansNodes", testNodeScansNodesExists)
+	t.Run("NetworkScans", testNetworkScansExists)
+	t.Run("NetworkScansNodes", testNetworkScansNodesExists)
 	t.Run("Nodes", testNodesExists)
-	t.Run("NodesServices", testNodesServicesExists)
 	t.Run("Services", testServicesExists)
 }
 
 func TestFind(t *testing.T) {
-	t.Run("NodeScans", testNodeScansFind)
-	t.Run("NodeScansNodes", testNodeScansNodesFind)
+	t.Run("NetworkScans", testNetworkScansFind)
+	t.Run("NetworkScansNodes", testNetworkScansNodesFind)
 	t.Run("Nodes", testNodesFind)
-	t.Run("NodesServices", testNodesServicesFind)
 	t.Run("Services", testServicesFind)
 }
 
 func TestBind(t *testing.T) {
-	t.Run("NodeScans", testNodeScansBind)
-	t.Run("NodeScansNodes", testNodeScansNodesBind)
+	t.Run("NetworkScans", testNetworkScansBind)
+	t.Run("NetworkScansNodes", testNetworkScansNodesBind)
 	t.Run("Nodes", testNodesBind)
-	t.Run("NodesServices", testNodesServicesBind)
 	t.Run("Services", testServicesBind)
 }
 
 func TestOne(t *testing.T) {
-	t.Run("NodeScans", testNodeScansOne)
-	t.Run("NodeScansNodes", testNodeScansNodesOne)
+	t.Run("NetworkScans", testNetworkScansOne)
+	t.Run("NetworkScansNodes", testNetworkScansNodesOne)
 	t.Run("Nodes", testNodesOne)
-	t.Run("NodesServices", testNodesServicesOne)
 	t.Run("Services", testServicesOne)
 }
 
 func TestAll(t *testing.T) {
-	t.Run("NodeScans", testNodeScansAll)
-	t.Run("NodeScansNodes", testNodeScansNodesAll)
+	t.Run("NetworkScans", testNetworkScansAll)
+	t.Run("NetworkScansNodes", testNetworkScansNodesAll)
 	t.Run("Nodes", testNodesAll)
-	t.Run("NodesServices", testNodesServicesAll)
 	t.Run("Services", testServicesAll)
 }
 
 func TestCount(t *testing.T) {
-	t.Run("NodeScans", testNodeScansCount)
-	t.Run("NodeScansNodes", testNodeScansNodesCount)
+	t.Run("NetworkScans", testNetworkScansCount)
+	t.Run("NetworkScansNodes", testNetworkScansNodesCount)
 	t.Run("Nodes", testNodesCount)
-	t.Run("NodesServices", testNodesServicesCount)
 	t.Run("Services", testServicesCount)
 }
 
 func TestHooks(t *testing.T) {
-	t.Run("NodeScans", testNodeScansHooks)
-	t.Run("NodeScansNodes", testNodeScansNodesHooks)
+	t.Run("NetworkScans", testNetworkScansHooks)
+	t.Run("NetworkScansNodes", testNetworkScansNodesHooks)
 	t.Run("Nodes", testNodesHooks)
-	t.Run("NodesServices", testNodesServicesHooks)
 	t.Run("Services", testServicesHooks)
 }
 
 func TestInsert(t *testing.T) {
-	t.Run("NodeScans", testNodeScansInsert)
-	t.Run("NodeScans", testNodeScansInsertWhitelist)
-	t.Run("NodeScansNodes", testNodeScansNodesInsert)
-	t.Run("NodeScansNodes", testNodeScansNodesInsertWhitelist)
+	t.Run("NetworkScans", testNetworkScansInsert)
+	t.Run("NetworkScans", testNetworkScansInsertWhitelist)
+	t.Run("NetworkScansNodes", testNetworkScansNodesInsert)
+	t.Run("NetworkScansNodes", testNetworkScansNodesInsertWhitelist)
 	t.Run("Nodes", testNodesInsert)
 	t.Run("Nodes", testNodesInsertWhitelist)
-	t.Run("NodesServices", testNodesServicesInsert)
-	t.Run("NodesServices", testNodesServicesInsertWhitelist)
 	t.Run("Services", testServicesInsert)
 	t.Run("Services", testServicesInsertWhitelist)
 }
@@ -153,41 +140,36 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
-	t.Run("NodeScans", testNodeScansReload)
-	t.Run("NodeScansNodes", testNodeScansNodesReload)
+	t.Run("NetworkScans", testNetworkScansReload)
+	t.Run("NetworkScansNodes", testNetworkScansNodesReload)
 	t.Run("Nodes", testNodesReload)
-	t.Run("NodesServices", testNodesServicesReload)
 	t.Run("Services", testServicesReload)
 }
 
 func TestReloadAll(t *testing.T) {
-	t.Run("NodeScans", testNodeScansReloadAll)
-	t.Run("NodeScansNodes", testNodeScansNodesReloadAll)
+	t.Run("NetworkScans", testNetworkScansReloadAll)
+	t.Run("NetworkScansNodes", testNetworkScansNodesReloadAll)
 	t.Run("Nodes", testNodesReloadAll)
-	t.Run("NodesServices", testNodesServicesReloadAll)
 	t.Run("Services", testServicesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
-	t.Run("NodeScans", testNodeScansSelect)
-	t.Run("NodeScansNodes", testNodeScansNodesSelect)
+	t.Run("NetworkScans", testNetworkScansSelect)
+	t.Run("NetworkScansNodes", testNetworkScansNodesSelect)
 	t.Run("Nodes", testNodesSelect)
-	t.Run("NodesServices", testNodesServicesSelect)
 	t.Run("Services", testServicesSelect)
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("NodeScans", testNodeScansUpdate)
-	t.Run("NodeScansNodes", testNodeScansNodesUpdate)
+	t.Run("NetworkScans", testNetworkScansUpdate)
+	t.Run("NetworkScansNodes", testNetworkScansNodesUpdate)
 	t.Run("Nodes", testNodesUpdate)
-	t.Run("NodesServices", testNodesServicesUpdate)
 	t.Run("Services", testServicesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
-	t.Run("NodeScans", testNodeScansSliceUpdateAll)
-	t.Run("NodeScansNodes", testNodeScansNodesSliceUpdateAll)
+	t.Run("NetworkScans", testNetworkScansSliceUpdateAll)
+	t.Run("NetworkScansNodes", testNetworkScansNodesSliceUpdateAll)
 	t.Run("Nodes", testNodesSliceUpdateAll)
-	t.Run("NodesServices", testNodesServicesSliceUpdateAll)
 	t.Run("Services", testServicesSliceUpdateAll)
 }

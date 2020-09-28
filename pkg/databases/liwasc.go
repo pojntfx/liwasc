@@ -32,7 +32,7 @@ func (d *LiwascDatabase) Open() error {
 	return nil
 }
 
-func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
+func (d *LiwascDatabase) CreateNetworkScan(scan *liwascModels.NetworkScan) (int64, error) {
 	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
 		return -1, err
 	}
@@ -40,7 +40,7 @@ func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan) (int64, err
 	return scan.ID, nil
 }
 
-func (d *LiwascDatabase) UpdateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
+func (d *LiwascDatabase) UpdateNetworkScan(scan *liwascModels.NetworkScan) (int64, error) {
 	if _, err := scan.Update(context.Background(), d.db, boil.Infer()); err != nil {
 		return -1, err
 	}
@@ -48,7 +48,25 @@ func (d *LiwascDatabase) UpdateNodeScan(scan *liwascModels.NodeScan) (int64, err
 	return scan.ID, nil
 }
 
-func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (string, error) {
+func (d *LiwascDatabase) GetNetworkScan(id int64) (*liwascModels.NetworkScan, error) {
+	return liwascModels.FindNetworkScan(context.Background(), d.db, id)
+}
+
+// GetNewestNetworkScan returns the newest network scan
+func (d *LiwascDatabase) GetNewestNetworkScan() (*liwascModels.NetworkScan, error) {
+	// Get the latest scan for the node
+	scan, err := models.NetworkScans(
+		qm.OrderBy(liwascModels.NetworkScansNodeColumns.CreatedAt+" desc"),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return scan, nil
+}
+
+func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, networkScanID int64) (string, error) {
 	// Insert node if it doesn't exist, otherwise update (the latter is required in case i.e. IP changes for MAC address)
 	exists, err := liwascModels.NodeExists(context.Background(), d.db, node.MacAddress)
 	if err != nil {
@@ -66,9 +84,9 @@ func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (stri
 	}
 
 	// Create the relationship between the scan and the node so that the active nodes of a scan can be fetched later
-	scansNode := &liwascModels.NodeScansNode{
+	scansNode := &liwascModels.NetworkScansNode{
 		NodeID:     node.MacAddress,
-		NodeScanID: scanID,
+		NodeScanID: networkScanID,
 	}
 
 	if err := scansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
@@ -87,14 +105,14 @@ func (d *LiwascDatabase) GetAllNodes() ([]*liwascModels.Node, error) {
 	return allNodes, nil
 }
 
-// GetNewestNodeScansForNodes returns the newest scans in descending order
-func (d *LiwascDatabase) GetNewestNodeScansForNodes(nodes []*liwascModels.Node) (map[string][]int64, error) {
+// GetNewestNetworkScansForNodes returns the newest scans in descending order
+func (d *LiwascDatabase) GetNewestNetworkScansForNodes(nodes []*liwascModels.Node) (map[string][]int64, error) {
 	outMap := make(map[string][]int64)
 	for _, node := range nodes {
 		// Get the latest scans for the node
-		scans, err := models.NodeScansNodes(
-			qm.Where(liwascModels.NodeScansNodeColumns.NodeID+"= ?", node.MacAddress),
-			qm.OrderBy(liwascModels.NodeScansNodeColumns.CreatedAt+" desc"),
+		scans, err := models.NetworkScansNodes(
+			qm.Where(liwascModels.NetworkScansNodeColumns.NodeID+"= ?", node.MacAddress),
+			qm.OrderBy(liwascModels.NetworkScansNodeColumns.CreatedAt+" desc"),
 		).All(context.Background(), d.db)
 		if err != nil {
 			return nil, err
@@ -109,25 +127,7 @@ func (d *LiwascDatabase) GetNewestNodeScansForNodes(nodes []*liwascModels.Node) 
 	return outMap, nil
 }
 
-func (d *LiwascDatabase) GetNodeScan(id int64) (*liwascModels.NodeScan, error) {
-	return liwascModels.FindNodeScan(context.Background(), d.db, id)
-}
-
-// GetNewestScan returns the newest scan
-func (d *LiwascDatabase) GetNewestScan() (*liwascModels.NodeScan, error) {
-	// Get the latest scan for the node
-	scan, err := models.NodeScans(
-		qm.OrderBy(liwascModels.NodeScansNodeColumns.CreatedAt+" desc"),
-		qm.Limit(1),
-	).One(context.Background(), d.db)
-	if err != nil {
-		return nil, err
-	}
-
-	return scan, nil
-}
-
-func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string) (int64, error) {
+func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeScanID string) (int64, error) {
 	// Insert service if it doesn't exist, otherwise update
 	// This way each service only needs to be saved once
 	exists, err := liwascModels.ServiceExists(context.Background(), d.db, service.PortNumber)
@@ -146,14 +146,15 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 	}
 
 	// Create a relationship between the service and the node for later fetching
-	nodesService := &liwascModels.NodesService{
-		NodeID:    nodeID,
-		ServiceID: service.PortNumber,
-	}
+	// TODO: Create join table
+	// nodesService := &liwascModels.NodesService{
+	// 	NodeID:    nodeScanID,
+	// 	ServiceID: service.PortNumber,
+	// }
 
-	if err := nodesService.Insert(context.Background(), d.db, boil.Infer()); err != nil {
-		return -1, err
-	}
+	// if err := nodesService.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	// 	return -1, err
+	// }
 
 	return service.PortNumber, nil
 }
