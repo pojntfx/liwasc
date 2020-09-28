@@ -22,25 +22,25 @@ import (
 
 // NetworkScansNode is an object representing the database table.
 type NetworkScansNode struct {
-	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	NodeID     string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
-	NodeScanID int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
+	ID            int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	NodeID        string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
+	NetworkScanID int64     `boil:"network_scan_id" json:"network_scan_id" toml:"network_scan_id" yaml:"network_scan_id"`
 
 	R *networkScansNodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L networkScansNodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var NetworkScansNodeColumns = struct {
-	ID         string
-	CreatedAt  string
-	NodeID     string
-	NodeScanID string
+	ID            string
+	CreatedAt     string
+	NodeID        string
+	NetworkScanID string
 }{
-	ID:         "id",
-	CreatedAt:  "created_at",
-	NodeID:     "node_id",
-	NodeScanID: "node_scan_id",
+	ID:            "id",
+	CreatedAt:     "created_at",
+	NodeID:        "node_id",
+	NetworkScanID: "network_scan_id",
 }
 
 // Generated where
@@ -62,15 +62,15 @@ func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 }
 
 var NetworkScansNodeWhere = struct {
-	ID         whereHelperint64
-	CreatedAt  whereHelpertime_Time
-	NodeID     whereHelperstring
-	NodeScanID whereHelperint64
+	ID            whereHelperint64
+	CreatedAt     whereHelpertime_Time
+	NodeID        whereHelperstring
+	NetworkScanID whereHelperint64
 }{
-	ID:         whereHelperint64{field: "\"network_scans_nodes\".\"id\""},
-	CreatedAt:  whereHelpertime_Time{field: "\"network_scans_nodes\".\"created_at\""},
-	NodeID:     whereHelperstring{field: "\"network_scans_nodes\".\"node_id\""},
-	NodeScanID: whereHelperint64{field: "\"network_scans_nodes\".\"node_scan_id\""},
+	ID:            whereHelperint64{field: "\"network_scans_nodes\".\"id\""},
+	CreatedAt:     whereHelpertime_Time{field: "\"network_scans_nodes\".\"created_at\""},
+	NodeID:        whereHelperstring{field: "\"network_scans_nodes\".\"node_id\""},
+	NetworkScanID: whereHelperint64{field: "\"network_scans_nodes\".\"network_scan_id\""},
 }
 
 // NetworkScansNodeRels is where relationship names are stored.
@@ -90,8 +90,8 @@ func (*networkScansNodeR) NewStruct() *networkScansNodeR {
 type networkScansNodeL struct{}
 
 var (
-	networkScansNodeAllColumns            = []string{"id", "created_at", "node_id", "node_scan_id"}
-	networkScansNodeColumnsWithoutDefault = []string{"created_at", "node_id", "node_scan_id"}
+	networkScansNodeAllColumns            = []string{"id", "created_at", "node_id", "network_scan_id"}
+	networkScansNodeColumnsWithoutDefault = []string{"created_at", "node_id", "network_scan_id"}
 	networkScansNodeColumnsWithDefault    = []string{"id"}
 	networkScansNodePrimaryKeyColumns     = []string{"id"}
 )

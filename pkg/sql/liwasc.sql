@@ -1,8 +1,10 @@
 -- Remove old tables if they exist
 drop table if exists nodes;
 drop table if exists network_scans;
+drop table if exists node_scans;
 drop table if exists services;
 drop table if exists network_scans_nodes;
+drop table if exists node_scans_services_nodes;
 -- Create new tables
 create table nodes (
     mac_address text not null primary key,
@@ -14,6 +16,11 @@ create table nodes (
     visible integer not null
 );
 create table network_scans (
+    id integer not null primary key,
+    created_at date not null,
+    done integer not null
+);
+create table node_scans (
     id integer not null primary key,
     created_at date not null,
     done integer not null
@@ -36,6 +43,13 @@ create table services (
 create table network_scans_nodes (
     id integer not null primary key,
     created_at date not null,
+    node_id text not null,
+    network_scan_id integer not null
+);
+create table node_scans_services_nodes (
+    id integer not null primary key,
+    created_at date not null,
+    service_id integer not null,
     node_id text not null,
     node_scan_id integer not null
 );
