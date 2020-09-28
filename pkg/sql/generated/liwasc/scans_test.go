@@ -568,7 +568,7 @@ func testScansSelect(t *testing.T) {
 }
 
 var (
-	scanDBTypes = map[string]string{`ID`: `INTEGER`, `Done`: `INTEGER`}
+	scanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`}
 	_           = bytes.MinRead
 )
 

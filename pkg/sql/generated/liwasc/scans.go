@@ -22,29 +22,55 @@ import (
 
 // Scan is an object representing the database table.
 type Scan struct {
-	ID   int64 `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Done int64 `boil:"done" json:"done" toml:"done" yaml:"done"`
+	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	Done      int64     `boil:"done" json:"done" toml:"done" yaml:"done"`
 
 	R *scanR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L scanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ScanColumns = struct {
-	ID   string
-	Done string
+	ID        string
+	CreatedAt string
+	Done      string
 }{
-	ID:   "id",
-	Done: "done",
+	ID:        "id",
+	CreatedAt: "created_at",
+	Done:      "done",
 }
 
 // Generated where
 
+type whereHelpertime_Time struct{ field string }
+
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var ScanWhere = struct {
-	ID   whereHelperint64
-	Done whereHelperint64
+	ID        whereHelperint64
+	CreatedAt whereHelpertime_Time
+	Done      whereHelperint64
 }{
-	ID:   whereHelperint64{field: "\"scans\".\"id\""},
-	Done: whereHelperint64{field: "\"scans\".\"done\""},
+	ID:        whereHelperint64{field: "\"scans\".\"id\""},
+	CreatedAt: whereHelpertime_Time{field: "\"scans\".\"created_at\""},
+	Done:      whereHelperint64{field: "\"scans\".\"done\""},
 }
 
 // ScanRels is where relationship names are stored.
@@ -64,8 +90,8 @@ func (*scanR) NewStruct() *scanR {
 type scanL struct{}
 
 var (
-	scanAllColumns            = []string{"id", "done"}
-	scanColumnsWithoutDefault = []string{"done"}
+	scanAllColumns            = []string{"id", "created_at", "done"}
+	scanColumnsWithoutDefault = []string{"created_at", "done"}
 	scanColumnsWithDefault    = []string{"id"}
 	scanPrimaryKeyColumns     = []string{"id"}
 )
@@ -385,6 +411,13 @@ func (o *Scan) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err

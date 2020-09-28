@@ -128,19 +128,32 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
 	}
 
-	matchingLatestScans, err := s.liwascDatabase.GetNewestScansForNodes(allNodes)
+	matchingNewestScans, err := s.liwascDatabase.GetNewestScansForNodes(allNodes)
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
 	}
 
+	scan, err := s.liwascDatabase.GetNewestScan()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get latest scan from DB: %v", err.Error())
+	}
+
 	for _, dbNode := range allNodes {
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: matchingLatestScans[dbNode.MacAddress][0], // This is the newest one
+			NodeScanID: matchingNewestScans[dbNode.MacAddress][0], // This is the newest one
 			LucidNode: &proto.LucidNodeMessage{
 				PoweredOn: func() bool {
-					for nodeID := range matchingLatestScans {
+					for nodeID := range matchingNewestScans {
 						if nodeID == dbNode.MacAddress {
-							for _, scanID := range matchingLatestScans[dbNode.MacAddress] {
+							if scanReferenceMessage.GetNetworkScanID() == -1 {
+								if scan.ID == matchingNewestScans[dbNode.MacAddress][0] { // If the node is in the newest scan, it is powered on
+									return true
+								}
+
+								return false
+							}
+
+							for _, scanID := range matchingNewestScans[dbNode.MacAddress] {
 								if scanID == scanReferenceMessage.GetNetworkScanID() { // The node was scanned in this scan; therefore the node is powered on (otherwise it would not have been found)
 									return true
 								}
@@ -171,9 +184,11 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		}
 	}
 
-	scan, err := s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
-	if err != nil {
-		return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
+	if scanReferenceMessage.GetNetworkScanID() != -1 {
+		scan, err = s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
+		if err != nil {
+			return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
+		}
 	}
 
 	if scan.Done == 1 {

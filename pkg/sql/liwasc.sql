@@ -12,6 +12,7 @@ create table nodes (
 );
 create table scans (
     id integer not null primary key,
+    created_at date not null,
     done integer not null
 );
 create table scans_nodes (

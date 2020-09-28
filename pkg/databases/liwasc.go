@@ -112,3 +112,17 @@ func (d *LiwascDatabase) GetNewestScansForNodes(nodes []*liwascModels.Node) (map
 func (d *LiwascDatabase) GetScan(id int64) (*liwascModels.Scan, error) {
 	return liwascModels.FindScan(context.Background(), d.db, id)
 }
+
+// GetNewestScan returns the newest scan
+func (d *LiwascDatabase) GetNewestScan() (*liwascModels.Scan, error) {
+	// Get the latest scan for the node
+	scan, err := models.Scans(
+		qm.OrderBy(liwascModels.ScansNodeColumns.CreatedAt+" desc"),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return scan, nil
+}
