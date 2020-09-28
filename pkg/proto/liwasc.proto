@@ -12,7 +12,10 @@ service NetworkAndNodeScanService {
   // Use -1 as NetworkScanID to return the latest finished scan
   rpc SubscribeToNewNodes(NetworkScanReferenceMessage)
       returns (stream DiscoveredNodeMessage);
-  // Use -1 as NodeScanID to return the latest finished scan
+  // Use -1 as NodeScanID and a MAC address to return the latest scan
+  // for the specified MAC address
+  // Use a "" as the MAC address and a NodeScanID to return the matching
+  // scan
   rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
       returns (stream DiscoveredServiceMessage);
   rpc DeleteNode(NodeDeleteMessage) returns (LucidNodeMessage);
@@ -27,7 +30,10 @@ message NodeScanTriggerMessage {
   int64 Timeout = 2;
 }
 
-message NodeScanReferenceMessage { int64 NodeScanID = 1; }
+message NodeScanReferenceMessage {
+  string MACAddress = 1;
+  int64 NodeScanID = 2;
+}
 
 message DiscoveredNodeMessage {
   // NodeScanID is the ID of the running node scan to subscribe to
@@ -36,18 +42,19 @@ message DiscoveredNodeMessage {
 }
 
 message DiscoveredServiceMessage {
-  string ServiceName = 1;
-  int64 PortNumber = 2;
-  string TransportProtocol = 3;
-  string Description = 4;
-  string Assignee = 5;
-  string Contact = 6;
-  string RegistrationDate = 7;
-  string ModificationDate = 8;
-  string Reference = 9;
-  string ServiceCode = 10;
-  string UnauthorizedUseReported = 11;
-  string AssignmentNotes = 12;
+  string MACAddress = 1;
+  string ServiceName = 2;
+  int64 PortNumber = 3;
+  string TransportProtocol = 4;
+  string Description = 5;
+  string Assignee = 6;
+  string Contact = 7;
+  string RegistrationDate = 8;
+  string ModificationDate = 9;
+  string Reference = 10;
+  string ServiceCode = 11;
+  string UnauthorizedUseReported = 12;
+  string AssignmentNotes = 13;
 }
 
 message NodeDeleteMessage { string MACAddress = 1; }

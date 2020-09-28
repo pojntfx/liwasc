@@ -84,12 +84,12 @@ func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, networkScanID int64
 	}
 
 	// Create the relationship between the scan and the node so that the active nodes of a scan can be fetched later
-	scansNode := &liwascModels.NetworkScansNode{
-		NodeID:     node.MacAddress,
-		NodeScanID: networkScanID,
+	networkScansNode := &liwascModels.NetworkScansNode{
+		NodeID:        node.MacAddress,
+		NetworkScanID: networkScanID,
 	}
 
-	if err := scansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
 		return "", err
 	}
 
@@ -119,7 +119,7 @@ func (d *LiwascDatabase) GetNewestNetworkScansForNodes(nodes []*liwascModels.Nod
 		}
 
 		for _, scan := range scans {
-			outMap[node.MacAddress] = append(outMap[node.MacAddress], scan.NodeScanID)
+			outMap[node.MacAddress] = append(outMap[node.MacAddress], scan.NetworkScanID)
 		}
 
 	}
@@ -127,7 +127,7 @@ func (d *LiwascDatabase) GetNewestNetworkScansForNodes(nodes []*liwascModels.Nod
 	return outMap, nil
 }
 
-func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeScanID string) (int64, error) {
+func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string, nodeScanID int64) (int64, error) {
 	// Insert service if it doesn't exist, otherwise update
 	// This way each service only needs to be saved once
 	exists, err := liwascModels.ServiceExists(context.Background(), d.db, service.PortNumber)
@@ -146,15 +146,15 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeScanID
 	}
 
 	// Create a relationship between the service and the node for later fetching
-	// TODO: Create join table
-	// nodesService := &liwascModels.NodesService{
-	// 	NodeID:    nodeScanID,
-	// 	ServiceID: service.PortNumber,
-	// }
+	networkScansNode := &liwascModels.NodeScansServicesNode{
+		ServiceID:  service.PortNumber,
+		NodeID:     nodeID,
+		NodeScanID: nodeScanID,
+	}
 
-	// if err := nodesService.Insert(context.Background(), d.db, boil.Infer()); err != nil {
-	// 	return -1, err
-	// }
+	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
 
 	return service.PortNumber, nil
 }
