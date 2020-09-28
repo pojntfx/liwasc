@@ -21,23 +21,38 @@ import (
 type NetworkAndNodeScanService struct {
 	proto.UnimplementedNetworkAndNodeScanServiceServer
 
-	device             string
-	mac2VendorDatabase *databases.MAC2VendorDatabase
-	liwascDatabase     *databases.LiwascDatabase
-	messengers         cmap.ConcurrentMap
+	device                          string
+	mac2VendorDatabase              *databases.MAC2VendorDatabase
+	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase
+	ports2PacketsDatabase           *databases.Ports2PacketDatabase
+	liwascDatabase                  *databases.LiwascDatabase
+	messengers                      cmap.ConcurrentMap
 }
 
-func NewNetworkAndNodeScanService(device string, mac2VendorDatabase *databases.MAC2VendorDatabase, liwascDatabase *databases.LiwascDatabase) *NetworkAndNodeScanService {
-	return &NetworkAndNodeScanService{device: device, mac2VendorDatabase: mac2VendorDatabase, liwascDatabase: liwascDatabase, messengers: cmap.New()}
+func NewNetworkAndNodeScanService(
+	device string,
+	mac2VendorDatabase *databases.MAC2VendorDatabase,
+	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
+	ports2PacketsDatabase *databases.Ports2PacketDatabase,
+	liwascDatabase *databases.LiwascDatabase,
+) *NetworkAndNodeScanService {
+	return &NetworkAndNodeScanService{
+		device:                          device,
+		mac2VendorDatabase:              mac2VendorDatabase,
+		serviceNamesPortNumbersDatabase: serviceNamesPortNumbersDatabase,
+		ports2PacketsDatabase:           ports2PacketsDatabase,
+		liwascDatabase:                  liwascDatabase,
+		messengers:                      cmap.New(),
+	}
 }
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
 	// Create a scan
-	scan := &liwascModels.Scan{
+	scan := &liwascModels.NodeScan{
 		Done: 0,
 	}
 
-	scanID, err := s.liwascDatabase.CreateScan(scan)
+	scanID, err := s.liwascDatabase.CreateNodeScan(scan)
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not create scan in DB: %v", err.Error())
 	}
@@ -110,7 +125,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 		msgr.Reset()
 
 		scan.Done = 1
-		if _, err := s.liwascDatabase.UpdateScan(scan); err != nil {
+		if _, err := s.liwascDatabase.UpdateNodeScan(scan); err != nil {
 			log.Println("could not update scan in DB", err)
 
 			return
@@ -128,7 +143,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
 	}
 
-	matchingNewestScans, err := s.liwascDatabase.GetNewestScansForNodes(allNodes)
+	matchingNewestScans, err := s.liwascDatabase.GetNewestNodeScansForNodes(allNodes)
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
 	}
@@ -185,7 +200,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 	}
 
 	if scanReferenceMessage.GetNetworkScanID() != -1 {
-		scan, err = s.liwascDatabase.GetScan(scanReferenceMessage.GetNetworkScanID())
+		scan, err = s.liwascDatabase.GetNodeScan(scanReferenceMessage.GetNetworkScanID())
 		if err != nil {
 			return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
 		}

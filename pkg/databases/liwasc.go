@@ -32,7 +32,7 @@ func (d *LiwascDatabase) Open() error {
 	return nil
 }
 
-func (d *LiwascDatabase) CreateScan(scan *liwascModels.Scan) (int64, error) {
+func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
 	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
 		return -1, err
 	}
@@ -40,7 +40,7 @@ func (d *LiwascDatabase) CreateScan(scan *liwascModels.Scan) (int64, error) {
 	return scan.ID, nil
 }
 
-func (d *LiwascDatabase) UpdateScan(scan *liwascModels.Scan) (int64, error) {
+func (d *LiwascDatabase) UpdateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
 	if _, err := scan.Update(context.Background(), d.db, boil.Infer()); err != nil {
 		return -1, err
 	}
@@ -66,9 +66,9 @@ func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, scanID int64) (stri
 	}
 
 	// Create the relationship between the scan and the node so that the active nodes of a scan can be fetched later
-	scansNode := &liwascModels.ScansNode{
-		NodeID: node.MacAddress,
-		ScanID: scanID,
+	scansNode := &liwascModels.NodeScansNode{
+		NodeID:     node.MacAddress,
+		NodeScanID: scanID,
 	}
 
 	if err := scansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
@@ -87,21 +87,21 @@ func (d *LiwascDatabase) GetAllNodes() ([]*liwascModels.Node, error) {
 	return allNodes, nil
 }
 
-// GetNewestScansForNodes returns the newest scans in descending order
-func (d *LiwascDatabase) GetNewestScansForNodes(nodes []*liwascModels.Node) (map[string][]int64, error) {
+// GetNewestNodeScansForNodes returns the newest scans in descending order
+func (d *LiwascDatabase) GetNewestNodeScansForNodes(nodes []*liwascModels.Node) (map[string][]int64, error) {
 	outMap := make(map[string][]int64)
 	for _, node := range nodes {
 		// Get the latest scans for the node
-		scans, err := models.ScansNodes(
-			qm.Where(liwascModels.ScansNodeColumns.NodeID+"= ?", node.MacAddress),
-			qm.OrderBy(liwascModels.ScansNodeColumns.CreatedAt+" desc"),
+		scans, err := models.NodeScansNodes(
+			qm.Where(liwascModels.NodeScansNodeColumns.NodeID+"= ?", node.MacAddress),
+			qm.OrderBy(liwascModels.NodeScansNodeColumns.CreatedAt+" desc"),
 		).All(context.Background(), d.db)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, scan := range scans {
-			outMap[node.MacAddress] = append(outMap[node.MacAddress], scan.ScanID)
+			outMap[node.MacAddress] = append(outMap[node.MacAddress], scan.NodeScanID)
 		}
 
 	}
@@ -109,15 +109,15 @@ func (d *LiwascDatabase) GetNewestScansForNodes(nodes []*liwascModels.Node) (map
 	return outMap, nil
 }
 
-func (d *LiwascDatabase) GetScan(id int64) (*liwascModels.Scan, error) {
-	return liwascModels.FindScan(context.Background(), d.db, id)
+func (d *LiwascDatabase) GetNodeScan(id int64) (*liwascModels.NodeScan, error) {
+	return liwascModels.FindNodeScan(context.Background(), d.db, id)
 }
 
 // GetNewestScan returns the newest scan
-func (d *LiwascDatabase) GetNewestScan() (*liwascModels.Scan, error) {
+func (d *LiwascDatabase) GetNewestScan() (*liwascModels.NodeScan, error) {
 	// Get the latest scan for the node
-	scan, err := models.Scans(
-		qm.OrderBy(liwascModels.ScansNodeColumns.CreatedAt+" desc"),
+	scan, err := models.NodeScans(
+		qm.OrderBy(liwascModels.NodeScansNodeColumns.CreatedAt+" desc"),
 		qm.Limit(1),
 	).One(context.Background(), d.db)
 	if err != nil {
@@ -125,4 +125,35 @@ func (d *LiwascDatabase) GetNewestScan() (*liwascModels.Scan, error) {
 	}
 
 	return scan, nil
+}
+
+func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string) (int64, error) {
+	// Insert service if it doesn't exist, otherwise update
+	// This way each service only needs to be saved once
+	exists, err := liwascModels.ServiceExists(context.Background(), d.db, service.PortNumber)
+	if err != nil {
+		return -1, err
+	}
+
+	if exists {
+		if _, err := service.Update(context.Background(), d.db, boil.Infer()); err != nil {
+			return -1, err
+		}
+	} else {
+		if err := service.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+			return -1, err
+		}
+	}
+
+	// Create a relationship between the service and the node for later fetching
+	nodesService := &liwascModels.NodesService{
+		NodeID:    nodeID,
+		ServiceID: service.PortNumber,
+	}
+
+	if err := nodesService.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	return service.PortNumber, nil
 }
