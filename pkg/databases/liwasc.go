@@ -130,7 +130,9 @@ func (d *LiwascDatabase) GetNewestNetworkScansForNodes(nodes []*liwascModels.Nod
 	return outMap, nil
 }
 
-func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string, nodeScanID int64) (int64, error) {
+// UpsertService persists a service and connects it with it's node and network scan
+// If the node scan was not triggered by a network scan,
+func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string, nodeScanID int64, networkScanID int64) (int64, error) {
 	// Insert service if it doesn't exist, otherwise update
 	// This way each service only needs to be saved once
 	exists, err := liwascModels.ServiceExists(context.Background(), d.db, service.PortNumber)
@@ -150,9 +152,8 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 
 	// Create a relationship between the service and the node for later fetching
 	networkScansNode := &liwascModels.NodeScansServicesNode{
-		ServiceID:  service.PortNumber,
-		NodeID:     nodeID,
-		NodeScanID: nodeScanID,
+		ServiceID: service.PortNumber,
+		NodeID:    nodeID,
 	}
 
 	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
@@ -162,9 +163,23 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 	return service.PortNumber, nil
 }
 
-func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
+// CreateNodeScan creates a node scan. Set nodeID to an empty string and networkScanID to -1 if there is not network scan for this node scan
+func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan, nodeID string, networkScanID int64) (int64, error) {
 	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
 		return -1, err
+	}
+
+	// Create a relationship between the node scan and the network scan (if there is a network scan)
+	if networkScanID != -1 && nodeID != "" {
+		nodeNodeScanNetworkScan := &liwascModels.NodeNodeScansNetworkScan{
+			NodeID:        nodeID,
+			NetworkScanID: networkScanID,
+			NodeScanID:    scan.ID,
+		}
+
+		if err := nodeNodeScanNetworkScan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+			return -1, err
+		}
 	}
 
 	return scan.ID, nil
@@ -176,4 +191,18 @@ func (d *LiwascDatabase) UpdateNodeScan(scan *liwascModels.NodeScan) (int64, err
 	}
 
 	return scan.ID, nil
+}
+
+// GetNodeScanIDByNetworkScanIDAndNodeID returns the node scan ID for a network scan ID and a node ID
+func (d *LiwascDatabase) GetNodeScanIDByNetworkScanIDAndNodeID(nodeID string, networkScanID int64) (int64, error) {
+	nodeScan, err := models.NodeNodeScansNetworkScans(
+		qm.Where(liwascModels.NodeNodeScansNetworkScanColumns.NodeID+"= ?", nodeID),
+		qm.And(liwascModels.NodeNodeScansNetworkScanColumns.NetworkScanID+"= ?", networkScanID),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return -1, err
+	}
+
+	return nodeScan.NodeScanID, err
 }
