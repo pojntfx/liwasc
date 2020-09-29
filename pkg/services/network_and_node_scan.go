@@ -121,6 +121,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 			}
 
 			// Scan for open ports for node
+			// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
 			portScanner := scanners.NewPortScanner(node.IPAddress.String(), 0, math.MaxUint16, time.Millisecond*time.Duration(scanTriggerMessage.GetNodeScanTimeout()), []string{"tcp", "udp"}, func(port int) ([]byte, error) {
 				packet, err := s.ports2PacketsDatabase.GetPacket(port)
 
@@ -143,7 +144,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				nodeScan := &liwascModels.NodeScan{
 					Done: 0,
 				}
-				nodeScanID, err := s.liwascDatabase.CreateNodeScan(nodeScan)
+				nodeScanID, err := s.liwascDatabase.CreateNodeScan(nodeScan, dbNode.MacAddress, networkScanID)
 				if err != nil {
 					log.Println("could not create node scan in DB", err)
 
@@ -200,7 +201,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 							}
 						}
 
-						if _, err := s.liwascDatabase.UpsertService(dbService, dbNode.MacAddress, nodeScanID); err != nil {
+						if _, err := s.liwascDatabase.UpsertService(dbService, dbNode.MacAddress, nodeScanID, networkScanID); err != nil {
 							log.Println("could not create node in DB", err)
 
 							break
@@ -245,27 +246,39 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
 	}
 
-	scan, err := s.liwascDatabase.GetNewestNetworkScan()
+	networkScan, err := s.liwascDatabase.GetNewestNetworkScan()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get latest scan from DB: %v", err.Error())
 	}
 
 	if scanReferenceMessage.GetNetworkScanID() != -1 {
-		scan, err = s.liwascDatabase.GetNetworkScan(scanReferenceMessage.GetNetworkScanID())
+		networkScan, err = s.liwascDatabase.GetNetworkScan(scanReferenceMessage.GetNetworkScanID())
 		if err != nil {
 			return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
 		}
 	}
 
+	nodeScansForNetworkScanAndNode := make(map[string]int64)
 	for _, dbNode := range allNodes {
+		nodeScanID, err := s.liwascDatabase.GetNodeScanIDByNetworkScanIDAndNodeID(dbNode.MacAddress, networkScan.ID)
+		if err != nil {
+			if strings.Contains(err.Error(), "sql: no rows in result set") {
+				nodeScansForNetworkScanAndNode[dbNode.MacAddress] = -1
+			} else {
+				return status.Errorf(codes.Unknown, "could not get node scan from DB: %v", err.Error())
+			}
+		} else {
+			nodeScansForNetworkScanAndNode[dbNode.MacAddress] = nodeScanID
+		}
+
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: -1, // TODO: Select NodeScanID here and below by scanID and MAC address in the join table
+			NodeScanID: nodeScansForNetworkScanAndNode[dbNode.MacAddress],
 			LucidNode: &proto.LucidNodeMessage{
 				PoweredOn: func() bool {
 					for nodeID := range matchingNewestScans {
 						if nodeID == dbNode.MacAddress {
 							if scanReferenceMessage.GetNetworkScanID() == -1 {
-								if scan.ID == matchingNewestScans[dbNode.MacAddress][0] { // If the node is in the newest scan, it is powered on
+								if networkScan.ID == matchingNewestScans[dbNode.MacAddress][0] { // If the node is in the newest scan, it is powered on
 									return true
 								}
 
@@ -303,11 +316,11 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		}
 	}
 
-	if scan.Done == 1 {
+	if networkScan.Done == 1 {
 		return nil
 	}
 
-	msgr, exists := s.messengers.Get(string(scan.ID))
+	msgr, exists := s.messengers.Get(string(networkScan.ID))
 	if !exists || msgr == nil {
 		return nil
 	}
@@ -321,9 +334,9 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		dbNode := receivedNode.(*liwascModels.Node)
 
 		protoNode := &proto.DiscoveredNodeMessage{
-			NodeScanID: -1, // TODO: Add node scan once service/port scanning is implemented
+			NodeScanID: nodeScansForNetworkScanAndNode[dbNode.MacAddress],
 			LucidNode: &proto.LucidNodeMessage{
-				PoweredOn:    true, // Must be true; otherwise it would not have been found
+				PoweredOn:    true,
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
 				Vendor:       dbNode.Vendor,

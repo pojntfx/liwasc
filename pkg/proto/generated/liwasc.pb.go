@@ -35,7 +35,7 @@ type NetworkScanTriggerMessage struct {
 	unknownFields protoimpl.UnknownFields
 
 	NetworkScanTimeout int64 `protobuf:"varint,1,opt,name=NetworkScanTimeout,proto3" json:"NetworkScanTimeout,omitempty"`
-	NodeScanTimeout    int64 `protobuf:"varint,2,opt,name=NodeScanTimeout,proto3" json:"NodeScanTimeout,omitempty"`
+	NodeScanTimeout    int64 `protobuf:"varint,2,opt,name=NodeScanTimeout,proto3" json:"NodeScanTimeout,omitempty"` // Time in millisecond to wait for a response per port
 }
 
 func (x *NetworkScanTriggerMessage) Reset() {
