@@ -5,6 +5,7 @@ package databases
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	liwascModels "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
@@ -22,10 +23,12 @@ func NewLiwascDatabase(dbPath string) *LiwascDatabase {
 }
 
 func (d *LiwascDatabase) Open() error {
-	db, err := sql.Open("sqlite3", d.dbPath)
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?cache=shared", d.dbPath)) // Prevent "database locked" errors
 	if err != nil {
 		return err
 	}
+
+	db.SetMaxOpenConns(1) // Prevent "database locked" errors
 
 	d.db = db
 
@@ -157,4 +160,20 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 	}
 
 	return service.PortNumber, nil
+}
+
+func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
+	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	return scan.ID, nil
+}
+
+func (d *LiwascDatabase) UpdateNodeScan(scan *liwascModels.NodeScan) (int64, error) {
+	if _, err := scan.Update(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	return scan.ID, nil
 }

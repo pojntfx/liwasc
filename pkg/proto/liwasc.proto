@@ -21,7 +21,11 @@ service NetworkAndNodeScanService {
   rpc DeleteNode(NodeDeleteMessage) returns (LucidNodeMessage);
 }
 
-message NetworkScanTriggerMessage { int64 Timeout = 1; }
+message NetworkScanTriggerMessage {
+  int64 NetworkScanTimeout = 1;
+  int64 NodeScanTimeout =
+      2; // Time in millisecond to wait for a response per port
+}
 
 message NetworkScanReferenceMessage { int64 NetworkScanID = 1; }
 
