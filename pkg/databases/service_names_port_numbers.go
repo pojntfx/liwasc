@@ -81,7 +81,7 @@ func (d *ServiceNamesPortNumbersDatabase) Open() error {
 
 // GetService returns the services that match the port and protocol given
 // Use "*" as the protocol to find all services on the port independent of protocol
-func (d *ServiceNamesPortNumbersDatabase) GetService(port int, protocol string) (*[]Service, error) {
+func (d *ServiceNamesPortNumbersDatabase) GetService(port int, protocol string) ([]Service, error) {
 	allServicesForProtocol := d.services[port]
 	if allServicesForProtocol == nil {
 		return nil, fmt.Errorf("could not find service(s) for port %v", port)
@@ -98,5 +98,5 @@ func (d *ServiceNamesPortNumbersDatabase) GetService(port int, protocol string) 
 		return nil, fmt.Errorf("could find service(s) for port %v, but not for protocol %v on that port", port, protocol)
 	}
 
-	return &outServices, nil
+	return outServices, nil
 }
