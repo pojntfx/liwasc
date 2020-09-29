@@ -28,7 +28,8 @@ type NetworkAndNodeScanService struct {
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase
 	ports2PacketsDatabase           *databases.Ports2PacketDatabase
 	liwascDatabase                  *databases.LiwascDatabase
-	messengers                      cmap.ConcurrentMap
+	networkScanMessengers           cmap.ConcurrentMap
+	nodeScanMessengers              cmap.ConcurrentMap
 }
 
 func NewNetworkAndNodeScanService(
@@ -44,7 +45,8 @@ func NewNetworkAndNodeScanService(
 		serviceNamesPortNumbersDatabase: serviceNamesPortNumbersDatabase,
 		ports2PacketsDatabase:           ports2PacketsDatabase,
 		liwascDatabase:                  liwascDatabase,
-		messengers:                      cmap.New(),
+		networkScanMessengers:           cmap.New(),
+		nodeScanMessengers:              cmap.New(),
 	}
 }
 
@@ -64,8 +66,8 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 		return nil, status.Errorf(codes.Unknown, "could not open network scanner: %v", err.Error())
 	}
 
-	msgr := messenger.New(0, true)
-	s.messengers.Set(string(networkScanID), msgr)
+	networkScanMessenger := messenger.New(0, true)
+	s.networkScanMessengers.Set(string(networkScanID), networkScanMessenger)
 
 	// Receive packets
 	go func() {
@@ -151,6 +153,9 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 					return
 				}
 
+				nodeScanMessenger := messenger.New(0, true)
+				s.nodeScanMessengers.Set(string(nodeScanID), nodeScanMessenger)
+
 				for {
 					port := portScanner.Read()
 
@@ -206,8 +211,12 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 							break
 						}
+
+						nodeScanMessenger.Broadcast(dbService)
 					}
 				}
+
+				nodeScanMessenger.Reset()
 
 				nodeScan.Done = 1
 				if _, err := s.liwascDatabase.UpdateNodeScan(nodeScan); err != nil {
@@ -217,10 +226,10 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				}
 			}()
 
-			msgr.Broadcast(dbNode)
+			networkScanMessenger.Broadcast(dbNode)
 		}
 
-		msgr.Reset()
+		networkScanMessenger.Reset()
 
 		networkScan.Done = 1
 		if _, err := s.liwascDatabase.UpdateNetworkScan(networkScan); err != nil {
@@ -229,7 +238,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 			return
 		}
 
-		s.messengers.Remove(string(networkScanID))
+		s.networkScanMessengers.Remove(string(networkScanID))
 	}()
 
 	return &proto.NetworkScanReferenceMessage{NetworkScanID: networkScanID}, nil
@@ -320,7 +329,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return nil
 	}
 
-	msgr, exists := s.messengers.Get(string(networkScan.ID))
+	msgr, exists := s.networkScanMessengers.Get(string(networkScan.ID))
 	if !exists || msgr == nil {
 		return nil
 	}
