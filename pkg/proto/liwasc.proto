@@ -41,7 +41,8 @@ message NodeScanReferenceMessage {
 
 message DiscoveredNodeMessage {
   // NodeScanID is the ID of the running node scan to subscribe to
-  int64 NodeScanID = 1;
+  int64 NodeScanID = 1; // If NodeScanID == -1 || LucidNodeMessage.PoweredOn ==
+                        // false, the node is not powered on.
   LucidNodeMessage LucidNode = 2;
 }
 

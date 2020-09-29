@@ -247,8 +247,9 @@ type DiscoveredNodeMessage struct {
 	unknownFields protoimpl.UnknownFields
 
 	// NodeScanID is the ID of the running node scan to subscribe to
-	NodeScanID int64             `protobuf:"varint,1,opt,name=NodeScanID,proto3" json:"NodeScanID,omitempty"`
-	LucidNode  *LucidNodeMessage `protobuf:"bytes,2,opt,name=LucidNode,proto3" json:"LucidNode,omitempty"`
+	NodeScanID int64 `protobuf:"varint,1,opt,name=NodeScanID,proto3" json:"NodeScanID,omitempty"` // If NodeScanID == -1 || LucidNodeMessage.PoweredOn ==
+	// false, the node is not powered on.
+	LucidNode *LucidNodeMessage `protobuf:"bytes,2,opt,name=LucidNode,proto3" json:"LucidNode,omitempty"`
 }
 
 func (x *DiscoveredNodeMessage) Reset() {
