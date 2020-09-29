@@ -374,5 +374,85 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReferenceMessage *proto.NodeScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewOpenServicesServer) error {
+	nodeScanID := nodeScanReferenceMessage.GetNodeScanID()
+	if nodeScanReferenceMessage.GetNodeScanID() == -1 {
+		newestNodeScanID, err := s.liwascDatabase.GetNewestNodeScanIDForNodeID(nodeScanReferenceMessage.GetMACAddress())
+		if err != nil {
+			return status.Errorf(codes.Unknown, "could not get scan ID from DB: %v", err.Error())
+		}
+
+		nodeScanID = newestNodeScanID
+	}
+
+	nodeScan, err := s.liwascDatabase.GetNodeScan(nodeScanID)
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
+	}
+
+	services, err := s.liwascDatabase.GetServicesForNodeScanID(nodeScanID)
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get service from DB: %v", err.Error())
+	}
+
+	for _, dbService := range services {
+		protoService := &proto.DiscoveredServiceMessage{
+			MACAddress:              nodeScanReferenceMessage.GetMACAddress(),
+			ServiceName:             dbService.ServiceName,
+			PortNumber:              dbService.PortNumber,
+			TransportProtocol:       dbService.TransportProtocol,
+			Description:             dbService.Description,
+			Assignee:                dbService.Assignee,
+			Contact:                 dbService.Contact,
+			RegistrationDate:        dbService.RegistrationDate,
+			ModificationDate:        dbService.ModificationDate,
+			Reference:               dbService.Reference,
+			ServiceCode:             dbService.ServiceCode,
+			UnauthorizedUseReported: dbService.UnauthorizedUseReported,
+			AssignmentNotes:         dbService.AssignmentNotes,
+		}
+
+		if err := stream.Send(protoService); err != nil {
+			return status.Errorf(codes.Unknown, "could not send service to frontend: %v", err.Error())
+		}
+	}
+
+	if nodeScan.Done == 1 {
+		return nil
+	}
+
+	msgr, exists := s.nodeScanMessengers.Get(string(nodeScan.ID))
+	if !exists || msgr == nil {
+		return nil
+	}
+
+	client, err := msgr.(*messenger.Messenger).Sub()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not subscribe to services")
+	}
+
+	for receivedNode := range client {
+		dbService := receivedNode.(*liwascModels.Service)
+
+		protoService := &proto.DiscoveredServiceMessage{
+			MACAddress:              nodeScanReferenceMessage.GetMACAddress(),
+			ServiceName:             dbService.ServiceName,
+			PortNumber:              dbService.PortNumber,
+			TransportProtocol:       dbService.TransportProtocol,
+			Description:             dbService.Description,
+			Assignee:                dbService.Assignee,
+			Contact:                 dbService.Contact,
+			RegistrationDate:        dbService.RegistrationDate,
+			ModificationDate:        dbService.ModificationDate,
+			Reference:               dbService.Reference,
+			ServiceCode:             dbService.ServiceCode,
+			UnauthorizedUseReported: dbService.UnauthorizedUseReported,
+			AssignmentNotes:         dbService.AssignmentNotes,
+		}
+
+		if err := stream.Send(protoService); err != nil {
+			return status.Errorf(codes.Unknown, "could not send service to frontend: %v", err.Error())
+		}
+	}
+
 	return nil
 }

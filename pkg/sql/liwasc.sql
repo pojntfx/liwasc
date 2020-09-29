@@ -51,10 +51,12 @@ create table node_scans_services_nodes (
     id integer not null primary key,
     created_at date not null,
     service_id integer not null,
-    node_id text not null
+    node_id text not null,
+    node_scan_id integer not null
 );
 create table node_node_scans_network_scans (
     id integer not null primary key,
+    created_at date not null,
     node_id text not null,
     network_scan_id integer not null,
     node_scan_id integer not null

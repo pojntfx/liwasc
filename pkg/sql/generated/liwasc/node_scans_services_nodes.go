@@ -22,39 +22,44 @@ import (
 
 // NodeScansServicesNode is an object representing the database table.
 type NodeScansServicesNode struct {
-	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	ServiceID int64     `boil:"service_id" json:"service_id" toml:"service_id" yaml:"service_id"`
-	NodeID    string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
+	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ServiceID  int64     `boil:"service_id" json:"service_id" toml:"service_id" yaml:"service_id"`
+	NodeID     string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
+	NodeScanID int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
 
 	R *nodeScansServicesNodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L nodeScansServicesNodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var NodeScansServicesNodeColumns = struct {
-	ID        string
-	CreatedAt string
-	ServiceID string
-	NodeID    string
+	ID         string
+	CreatedAt  string
+	ServiceID  string
+	NodeID     string
+	NodeScanID string
 }{
-	ID:        "id",
-	CreatedAt: "created_at",
-	ServiceID: "service_id",
-	NodeID:    "node_id",
+	ID:         "id",
+	CreatedAt:  "created_at",
+	ServiceID:  "service_id",
+	NodeID:     "node_id",
+	NodeScanID: "node_scan_id",
 }
 
 // Generated where
 
 var NodeScansServicesNodeWhere = struct {
-	ID        whereHelperint64
-	CreatedAt whereHelpertime_Time
-	ServiceID whereHelperint64
-	NodeID    whereHelperstring
+	ID         whereHelperint64
+	CreatedAt  whereHelpertime_Time
+	ServiceID  whereHelperint64
+	NodeID     whereHelperstring
+	NodeScanID whereHelperint64
 }{
-	ID:        whereHelperint64{field: "\"node_scans_services_nodes\".\"id\""},
-	CreatedAt: whereHelpertime_Time{field: "\"node_scans_services_nodes\".\"created_at\""},
-	ServiceID: whereHelperint64{field: "\"node_scans_services_nodes\".\"service_id\""},
-	NodeID:    whereHelperstring{field: "\"node_scans_services_nodes\".\"node_id\""},
+	ID:         whereHelperint64{field: "\"node_scans_services_nodes\".\"id\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"node_scans_services_nodes\".\"created_at\""},
+	ServiceID:  whereHelperint64{field: "\"node_scans_services_nodes\".\"service_id\""},
+	NodeID:     whereHelperstring{field: "\"node_scans_services_nodes\".\"node_id\""},
+	NodeScanID: whereHelperint64{field: "\"node_scans_services_nodes\".\"node_scan_id\""},
 }
 
 // NodeScansServicesNodeRels is where relationship names are stored.
@@ -74,8 +79,8 @@ func (*nodeScansServicesNodeR) NewStruct() *nodeScansServicesNodeR {
 type nodeScansServicesNodeL struct{}
 
 var (
-	nodeScansServicesNodeAllColumns            = []string{"id", "created_at", "service_id", "node_id"}
-	nodeScansServicesNodeColumnsWithoutDefault = []string{"created_at", "service_id", "node_id"}
+	nodeScansServicesNodeAllColumns            = []string{"id", "created_at", "service_id", "node_id", "node_scan_id"}
+	nodeScansServicesNodeColumnsWithoutDefault = []string{"created_at", "service_id", "node_id", "node_scan_id"}
 	nodeScansServicesNodeColumnsWithDefault    = []string{"id"}
 	nodeScansServicesNodePrimaryKeyColumns     = []string{"id"}
 )

@@ -22,10 +22,11 @@ import (
 
 // NodeNodeScansNetworkScan is an object representing the database table.
 type NodeNodeScansNetworkScan struct {
-	ID            int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
-	NodeID        string `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
-	NetworkScanID int64  `boil:"network_scan_id" json:"network_scan_id" toml:"network_scan_id" yaml:"network_scan_id"`
-	NodeScanID    int64  `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
+	ID            int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	NodeID        string    `boil:"node_id" json:"node_id" toml:"node_id" yaml:"node_id"`
+	NetworkScanID int64     `boil:"network_scan_id" json:"network_scan_id" toml:"network_scan_id" yaml:"network_scan_id"`
+	NodeScanID    int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
 
 	R *nodeNodeScansNetworkScanR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L nodeNodeScansNetworkScanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -33,11 +34,13 @@ type NodeNodeScansNetworkScan struct {
 
 var NodeNodeScansNetworkScanColumns = struct {
 	ID            string
+	CreatedAt     string
 	NodeID        string
 	NetworkScanID string
 	NodeScanID    string
 }{
 	ID:            "id",
+	CreatedAt:     "created_at",
 	NodeID:        "node_id",
 	NetworkScanID: "network_scan_id",
 	NodeScanID:    "node_scan_id",
@@ -47,11 +50,13 @@ var NodeNodeScansNetworkScanColumns = struct {
 
 var NodeNodeScansNetworkScanWhere = struct {
 	ID            whereHelperint64
+	CreatedAt     whereHelpertime_Time
 	NodeID        whereHelperstring
 	NetworkScanID whereHelperint64
 	NodeScanID    whereHelperint64
 }{
 	ID:            whereHelperint64{field: "\"node_node_scans_network_scans\".\"id\""},
+	CreatedAt:     whereHelpertime_Time{field: "\"node_node_scans_network_scans\".\"created_at\""},
 	NodeID:        whereHelperstring{field: "\"node_node_scans_network_scans\".\"node_id\""},
 	NetworkScanID: whereHelperint64{field: "\"node_node_scans_network_scans\".\"network_scan_id\""},
 	NodeScanID:    whereHelperint64{field: "\"node_node_scans_network_scans\".\"node_scan_id\""},
@@ -74,8 +79,8 @@ func (*nodeNodeScansNetworkScanR) NewStruct() *nodeNodeScansNetworkScanR {
 type nodeNodeScansNetworkScanL struct{}
 
 var (
-	nodeNodeScansNetworkScanAllColumns            = []string{"id", "node_id", "network_scan_id", "node_scan_id"}
-	nodeNodeScansNetworkScanColumnsWithoutDefault = []string{"node_id", "network_scan_id", "node_scan_id"}
+	nodeNodeScansNetworkScanAllColumns            = []string{"id", "created_at", "node_id", "network_scan_id", "node_scan_id"}
+	nodeNodeScansNetworkScanColumnsWithoutDefault = []string{"created_at", "node_id", "network_scan_id", "node_scan_id"}
 	nodeNodeScansNetworkScanColumnsWithDefault    = []string{"id"}
 	nodeNodeScansNetworkScanPrimaryKeyColumns     = []string{"id"}
 )
@@ -395,6 +400,13 @@ func (o *NodeNodeScansNetworkScan) Insert(ctx context.Context, exec boil.Context
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
