@@ -224,6 +224,8 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 					return
 				}
+
+				s.nodeScanMessengers.Remove(string(nodeScanID))
 			}()
 
 			networkScanMessenger.Broadcast(dbNode)
@@ -255,12 +257,13 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		return status.Errorf(codes.Unknown, "could not get scans from DB: %v", err.Error())
 	}
 
-	networkScan, err := s.liwascDatabase.GetNewestNetworkScan()
-	if err != nil {
-		return status.Errorf(codes.Unknown, "could not get latest scan from DB: %v", err.Error())
-	}
-
-	if scanReferenceMessage.GetNetworkScanID() != -1 {
+	var networkScan *liwascModels.NetworkScan
+	if scanReferenceMessage.GetNetworkScanID() == -1 {
+		networkScan, err = s.liwascDatabase.GetNewestNetworkScan()
+		if err != nil {
+			return status.Errorf(codes.Unknown, "could not get latest scan from DB: %v", err.Error())
+		}
+	} else {
 		networkScan, err = s.liwascDatabase.GetNetworkScan(scanReferenceMessage.GetNetworkScanID())
 		if err != nil {
 			return status.Errorf(codes.Unknown, "could not get scan from DB: %v", err.Error())
@@ -367,5 +370,9 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 		}
 	}
 
+	return nil
+}
+
+func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReferenceMessage *proto.NodeScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewOpenServicesServer) error {
 	return nil
 }
