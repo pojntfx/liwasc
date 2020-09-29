@@ -152,8 +152,9 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 
 	// Create a relationship between the service and the node for later fetching
 	networkScansNode := &liwascModels.NodeScansServicesNode{
-		ServiceID: service.PortNumber,
-		NodeID:    nodeID,
+		ServiceID:  service.PortNumber,
+		NodeID:     nodeID,
+		NodeScanID: nodeScanID,
 	}
 
 	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
@@ -205,4 +206,35 @@ func (d *LiwascDatabase) GetNodeScanIDByNetworkScanIDAndNodeID(nodeID string, ne
 	}
 
 	return nodeScan.NodeScanID, err
+}
+
+func (d *LiwascDatabase) GetNewestNodeScanIDForNodeID(nodeID string) (int64, error) {
+	nodeScan, err := models.NodeNodeScansNetworkScans(
+		qm.Where(liwascModels.NodeNodeScansNetworkScanColumns.NodeID+"= ?", nodeID),
+		qm.OrderBy(liwascModels.NodeNodeScansNetworkScanColumns.CreatedAt+" desc"),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return -1, err
+	}
+
+	return nodeScan.NodeScanID, err
+}
+
+func (d *LiwascDatabase) GetServicesForNodeScanID(nodeScanID int64) ([]*liwascModels.Service, error) {
+	var res []*liwascModels.Service
+	err := models.NewQuery(
+		qm.Select("*"),
+		qm.From(liwascModels.TableNames.NodeScansServicesNodes),
+		qm.InnerJoin(
+			liwascModels.TableNames.Services+" on "+liwascModels.TableNames.NodeScansServicesNodes+"."+liwascModels.NodeScansServicesNodeColumns.ServiceID+" = "+liwascModels.TableNames.Services+"."+liwascModels.ServiceColumns.PortNumber,
+		),
+		qm.Where(liwascModels.TableNames.NodeScansServicesNodes+"."+liwascModels.NodeScansServicesNodeColumns.NodeScanID+"= ?", nodeScanID),
+	).Bind(context.Background(), d.db, &res)
+
+	return res, err
+}
+
+func (d *LiwascDatabase) GetNodeScan(id int64) (*liwascModels.NodeScan, error) {
+	return liwascModels.FindNodeScan(context.Background(), d.db, id)
 }
