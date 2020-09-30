@@ -171,16 +171,14 @@ func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan, nodeID stri
 	}
 
 	// Create a relationship between the node scan and the network scan (if there is a network scan)
-	if networkScanID != -1 && nodeID != "" {
-		nodeNodeScanNetworkScan := &liwascModels.NodeNodeScansNetworkScan{
-			NodeID:        nodeID,
-			NetworkScanID: networkScanID,
-			NodeScanID:    scan.ID,
-		}
+	nodeNodeScanNetworkScan := &liwascModels.NodeNodeScansNetworkScan{
+		NodeID:        nodeID,
+		NetworkScanID: networkScanID,
+		NodeScanID:    scan.ID,
+	}
 
-		if err := nodeNodeScanNetworkScan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
-			return -1, err
-		}
+	if err := nodeNodeScanNetworkScan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
 	}
 
 	return scan.ID, nil
@@ -237,4 +235,8 @@ func (d *LiwascDatabase) GetServicesForNodeScanID(nodeScanID int64) ([]*liwascMo
 
 func (d *LiwascDatabase) GetNodeScan(id int64) (*liwascModels.NodeScan, error) {
 	return liwascModels.FindNodeScan(context.Background(), d.db, id)
+}
+
+func (d *LiwascDatabase) GetNode(id string) (*liwascModels.Node, error) {
+	return liwascModels.FindNode(context.Background(), d.db, id)
 }

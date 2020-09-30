@@ -122,111 +122,12 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				break
 			}
 
-			// Scan for open ports for node
-			// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
-			portScanner := scanners.NewPortScanner(node.IPAddress.String(), 0, math.MaxUint16, time.Millisecond*time.Duration(scanTriggerMessage.GetNodeScanTimeout()), []string{"tcp", "udp"}, func(port int) ([]byte, error) {
-				packet, err := s.ports2PacketsDatabase.GetPacket(port)
+			_, err = s.startPortScan(dbNode.MacAddress, dbNode.IPAddress, networkScanID, scanTriggerMessage.GetNodeScanTimeout())
+			if err != nil {
+				log.Println("could not start node scan", err)
 
-				if err != nil {
-					return nil, err
-				}
-
-				return packet.Packet, err
-			})
-
-			// Dial and/or transmit packets ("start a scan")
-			go func() {
-				if err := portScanner.Transmit(); err != nil {
-					log.Println("could not transmit from node scanner", err)
-				}
-			}()
-
-			go func() {
-				// Create a scan
-				nodeScan := &liwascModels.NodeScan{
-					Done: 0,
-				}
-				nodeScanID, err := s.liwascDatabase.CreateNodeScan(nodeScan, dbNode.MacAddress, networkScanID)
-				if err != nil {
-					log.Println("could not create node scan in DB", err)
-
-					return
-				}
-
-				nodeScanMessenger := messenger.New(0, true)
-				s.nodeScanMessengers.Set(string(nodeScanID), nodeScanMessenger)
-
-				for {
-					port := portScanner.Read()
-
-					// Port scan is done
-					if port == nil {
-						break
-					}
-
-					// Note above does not apply here, there is no point in transmitting this info if the ports are closed
-					if port.Open {
-						services, err := s.serviceNamesPortNumbersDatabase.GetService(port.Port, port.Protocol)
-						if err != nil {
-							if !strings.Contains(err.Error(), "could find service") {
-								log.Println("could not get services for port", err)
-							}
-						}
-
-						var dbService *liwascModels.Service
-						if len(services) > 0 {
-							dbService = &liwascModels.Service{
-								ServiceName:             services[0].ServiceName,
-								PortNumber:              int64(port.Port),
-								TransportProtocol:       services[0].TransportProtocol,
-								Description:             services[0].Description,
-								Assignee:                services[0].Assignee,
-								Contact:                 services[0].Contact,
-								RegistrationDate:        services[0].RegistrationDate,
-								ModificationDate:        services[0].ModificationDate,
-								Reference:               services[0].Reference,
-								ServiceCode:             services[0].ServiceCode,
-								UnauthorizedUseReported: services[0].UnauthorizedUseReported,
-								AssignmentNotes:         services[0].AssignmentNotes,
-							}
-						} else {
-							dbService = &liwascModels.Service{
-								ServiceName:             "Non-Registered Service",
-								PortNumber:              int64(port.Port),
-								TransportProtocol:       port.Protocol,
-								Description:             "",
-								Assignee:                "",
-								Contact:                 "",
-								RegistrationDate:        "",
-								ModificationDate:        "",
-								Reference:               "",
-								ServiceCode:             "",
-								UnauthorizedUseReported: "",
-								AssignmentNotes:         "",
-							}
-						}
-
-						if _, err := s.liwascDatabase.UpsertService(dbService, dbNode.MacAddress, nodeScanID, networkScanID); err != nil {
-							log.Println("could not create node in DB", err)
-
-							break
-						}
-
-						nodeScanMessenger.Broadcast(dbService)
-					}
-				}
-
-				nodeScanMessenger.Reset()
-
-				nodeScan.Done = 1
-				if _, err := s.liwascDatabase.UpdateNodeScan(nodeScan); err != nil {
-					log.Println("could not update node scan in DB", err)
-
-					return
-				}
-
-				s.nodeScanMessengers.Remove(string(nodeScanID))
-			}()
+				break
+			}
 
 			networkScanMessenger.Broadcast(dbNode)
 		}
@@ -244,6 +145,25 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 	}()
 
 	return &proto.NetworkScanReferenceMessage{NetworkScanID: networkScanID}, nil
+}
+
+func (s *NetworkAndNodeScanService) TriggerNodeScan(ctx context.Context, nodeScanTriggerMessage *proto.NodeScanTriggerMessage) (*proto.NodeScanReferenceMessage, error) {
+	node, err := s.liwascDatabase.GetNode(nodeScanTriggerMessage.GetMACAddress())
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
+	}
+
+	nodeScanID, err := s.startPortScan(node.MacAddress, node.IPAddress, -1, nodeScanTriggerMessage.GetTimeout())
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, "could not get node from DB: %v", err.Error())
+	}
+
+	protoNodeScanReferenceMessage := &proto.NodeScanReferenceMessage{
+		MACAddress: node.MacAddress,
+		NodeScanID: nodeScanID,
+	}
+
+	return protoNodeScanReferenceMessage, nil
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *proto.NetworkScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
@@ -455,4 +375,120 @@ func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReference
 	}
 
 	return nil
+}
+
+func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress string, networkScanID int64, timeout int64) (int64, error) {
+	// Scan for open ports for node
+	// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
+	portScanner := scanners.NewPortScanner(ipAddress, 0, math.MaxUint16, time.Millisecond*time.Duration(timeout), []string{"tcp", "udp"}, func(port int) ([]byte, error) {
+		packet, err := s.ports2PacketsDatabase.GetPacket(port)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return packet.Packet, err
+	})
+
+	nodeScanIDChan := make(chan int64)
+
+	// Dial and/or transmit packets ("start a scan")
+	go func() {
+		if err := portScanner.Transmit(); err != nil {
+			log.Println("could not transmit from node scanner", err)
+		}
+	}()
+
+	go func() {
+		// Create a scan
+		nodeScan := &liwascModels.NodeScan{
+			Done: 0,
+		}
+		nodeScanID, err := s.liwascDatabase.CreateNodeScan(nodeScan, nodeID, networkScanID)
+		if err != nil {
+			log.Println("could not create node scan in DB", err)
+
+			return
+		}
+
+		nodeScanIDChan <- nodeScanID
+
+		nodeScanMessenger := messenger.New(0, true)
+		s.nodeScanMessengers.Set(string(nodeScanID), nodeScanMessenger)
+
+		for {
+			port := portScanner.Read()
+
+			// Port scan is done
+			if port == nil {
+				break
+			}
+
+			// Note above does not apply here, there is no point in transmitting this info if the ports are closed
+			if port.Open {
+				services, err := s.serviceNamesPortNumbersDatabase.GetService(port.Port, port.Protocol)
+				if err != nil {
+					if !strings.Contains(err.Error(), "could find service") {
+						log.Println("could not get services for port", err)
+					}
+				}
+
+				var dbService *liwascModels.Service
+				if len(services) > 0 {
+					dbService = &liwascModels.Service{
+						ServiceName:             services[0].ServiceName,
+						PortNumber:              int64(port.Port),
+						TransportProtocol:       services[0].TransportProtocol,
+						Description:             services[0].Description,
+						Assignee:                services[0].Assignee,
+						Contact:                 services[0].Contact,
+						RegistrationDate:        services[0].RegistrationDate,
+						ModificationDate:        services[0].ModificationDate,
+						Reference:               services[0].Reference,
+						ServiceCode:             services[0].ServiceCode,
+						UnauthorizedUseReported: services[0].UnauthorizedUseReported,
+						AssignmentNotes:         services[0].AssignmentNotes,
+					}
+				} else {
+					dbService = &liwascModels.Service{
+						ServiceName:             "Non-Registered Service",
+						PortNumber:              int64(port.Port),
+						TransportProtocol:       port.Protocol,
+						Description:             "",
+						Assignee:                "",
+						Contact:                 "",
+						RegistrationDate:        "",
+						ModificationDate:        "",
+						Reference:               "",
+						ServiceCode:             "",
+						UnauthorizedUseReported: "",
+						AssignmentNotes:         "",
+					}
+				}
+
+				if _, err := s.liwascDatabase.UpsertService(dbService, nodeID, nodeScanID, networkScanID); err != nil {
+					log.Println("could not create node in DB", err)
+
+					break
+				}
+
+				nodeScanMessenger.Broadcast(dbService)
+			}
+		}
+
+		nodeScanMessenger.Reset()
+
+		nodeScan.Done = 1
+		if _, err := s.liwascDatabase.UpdateNodeScan(nodeScan); err != nil {
+			log.Println("could not update node scan in DB", err)
+
+			return
+		}
+
+		s.nodeScanMessengers.Remove(string(nodeScanID))
+	}()
+
+	nodeScanID := <-nodeScanIDChan
+
+	return nodeScanID, nil
 }
