@@ -15,6 +15,7 @@ require (
 	github.com/ugjka/messenger v1.1.3
 	github.com/volatiletech/null/v8 v8.1.0
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 )
