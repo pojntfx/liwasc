@@ -269,6 +269,19 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 	for receivedNode := range client {
 		dbNode := receivedNode.(*liwascModels.Node)
 
+		if _, ok := nodeScansForNetworkScanAndNode[dbNode.MacAddress]; !ok {
+			nodeScanID, err := s.liwascDatabase.GetNodeScanIDByNetworkScanIDAndNodeID(dbNode.MacAddress, networkScan.ID)
+			if err != nil {
+				if strings.Contains(err.Error(), "sql: no rows in result set") {
+					nodeScansForNetworkScanAndNode[dbNode.MacAddress] = -1
+				} else {
+					return status.Errorf(codes.Unknown, "could not get node scan from DB: %v", err.Error())
+				}
+			} else {
+				nodeScansForNetworkScanAndNode[dbNode.MacAddress] = nodeScanID
+			}
+		}
+
 		protoNode := &proto.DiscoveredNodeMessage{
 			NodeScanID: nodeScansForNetworkScanAndNode[dbNode.MacAddress],
 			LucidNode: &proto.LucidNodeMessage{
