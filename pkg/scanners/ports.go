@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	tcpShaker "github.com/tevino/tcp-shaker"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -35,6 +36,7 @@ func NewPortScanner(target string, startPort int, endPort int, timeout time.Dura
 
 func (s *PortScanner) Transmit() error {
 	doneChan := make(chan struct{})
+	nonFatalErrorChan := make(chan error)
 	fatalErrorChan := make(chan error)
 
 	var wg sync.WaitGroup
@@ -49,14 +51,16 @@ func (s *PortScanner) Transmit() error {
 				defer s.lock.Release(1)
 				defer wg.Done()
 
-				conn, err := net.DialTimeout(innerProtocol, net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort)), s.timeout)
-				if err != nil {
-					// TODO: Re-try if too many open files here, this depends on a unlimited ulimit atm
-					s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, false}
-				}
+				raddr := net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort))
 
-				if conn != nil {
-					if innerProtocol == "udp" {
+				if innerProtocol == "udp" {
+					// Do a UDP scan using the packets from ports2packets
+					conn, err := net.DialTimeout(innerProtocol, raddr, s.timeout)
+					if err != nil {
+						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, false}
+					}
+
+					if conn != nil {
 						if err := conn.SetReadDeadline(time.Now().Add(s.timeout)); err != nil {
 							fatalErrorChan <- err
 						}
@@ -77,15 +81,38 @@ func (s *PortScanner) Transmit() error {
 						// Count every response that is at least 1 byte long as a "open port"
 						buffer := make([]byte, 1)
 						if _, err := conn.Read(buffer); err != nil {
+							// UDP port is closed
 							s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, false}
 						} else {
+							// UDP port is open
 							s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 						}
-					} else {
-						conn.Close()
-
-						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 					}
+				} else {
+					// Do a stealth (SYN) TCP scan
+					// See https://github.com/tevino/tcp-shaker
+					c := tcpShaker.NewChecker()
+
+					ctx, stopChecker := context.WithCancel(context.Background())
+					defer stopChecker()
+
+					go func() {
+						if err := c.CheckingLoop(ctx); err != nil {
+							nonFatalErrorChan <- err
+						}
+					}()
+
+					<-c.WaitReady()
+
+					if err := c.CheckAddr(raddr, s.timeout); err != nil {
+						// TCP port is closed
+						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, false}
+
+						return
+					}
+
+					// TCP port is open
+					s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 				}
 			}(port, protocol)
 		}
@@ -101,6 +128,10 @@ func (s *PortScanner) Transmit() error {
 	case <-doneChan:
 		s.scannedPortChan <- nil
 		close(s.scannedPortChan)
+
+		break
+	case <-nonFatalErrorChan:
+		s.scannedPortChan <- nil
 
 		break
 	case err := <-fatalErrorChan:
