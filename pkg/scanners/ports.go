@@ -1,11 +1,14 @@
 package scanners
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 )
 
 type ScannedPort struct {
@@ -22,11 +25,12 @@ type PortScanner struct {
 	timeout         time.Duration
 	protocols       []string
 	scannedPortChan chan *ScannedPort
+	lock            *semaphore.Weighted
 	packetGetter    func(port int) ([]byte, error)
 }
 
-func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string, packetGetter func(port int) ([]byte, error)) *PortScanner {
-	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort), packetGetter}
+func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string, lock *semaphore.Weighted, packetGetter func(port int) ([]byte, error)) *PortScanner {
+	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort), lock, packetGetter}
 }
 
 func (s *PortScanner) Transmit() error {
@@ -36,9 +40,15 @@ func (s *PortScanner) Transmit() error {
 	var wg sync.WaitGroup
 	for port := s.startPort; port <= s.endPort; port++ {
 		for _, protocol := range s.protocols {
+			if err := s.lock.Acquire(context.TODO(), 1); err != nil {
+				return err
+			}
 			wg.Add(1)
 
 			go func(innerPort int, innerProtocol string) {
+				defer s.lock.Release(1)
+				defer wg.Done()
+
 				conn, err := net.DialTimeout(innerProtocol, net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort)), s.timeout)
 				if err != nil {
 					// TODO: Re-try if too many open files here, this depends on a unlimited ulimit atm
@@ -77,8 +87,6 @@ func (s *PortScanner) Transmit() error {
 						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 					}
 				}
-
-				wg.Done()
 			}(port, protocol)
 		}
 	}

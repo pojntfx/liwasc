@@ -7,6 +7,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
+	"golang.org/x/sync/semaphore"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
 	listenAddress := flag.String("listenAddress", "0.0.0.0:15123", "Listen address.")
+	maxConcurrentPortScans := flag.Uint("maxConcurrentPortScans", 1000, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter.")
 
 	flag.Parse()
 
@@ -31,6 +33,7 @@ func main() {
 		serviceNamesPortNumbersDatabase,
 		ports2PacketsDatabase,
 		liwascDatabase,
+		semaphore.NewWeighted(int64(*maxConcurrentPortScans)),
 	)
 	liwascServer := servers.NewLiwascServer(*listenAddress, networkAndNodeScanService)
 

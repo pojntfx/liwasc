@@ -16,6 +16,7 @@ import (
 	liwascModels "github.com/pojntfx/liwasc/pkg/sql/generated/liwasc"
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
 	"github.com/ugjka/messenger"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,6 +31,7 @@ type NetworkAndNodeScanService struct {
 	liwascDatabase                  *databases.LiwascDatabase
 	networkScanMessengers           cmap.ConcurrentMap
 	nodeScanMessengers              cmap.ConcurrentMap
+	portScannerLock                 *semaphore.Weighted
 }
 
 func NewNetworkAndNodeScanService(
@@ -38,6 +40,7 @@ func NewNetworkAndNodeScanService(
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
 	ports2PacketsDatabase *databases.Ports2PacketDatabase,
 	liwascDatabase *databases.LiwascDatabase,
+	portScannerLock *semaphore.Weighted,
 ) *NetworkAndNodeScanService {
 	return &NetworkAndNodeScanService{
 		device:                          device,
@@ -47,6 +50,7 @@ func NewNetworkAndNodeScanService(
 		liwascDatabase:                  liwascDatabase,
 		networkScanMessengers:           cmap.New(),
 		nodeScanMessengers:              cmap.New(),
+		portScannerLock:                 portScannerLock,
 	}
 }
 
@@ -380,7 +384,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReference
 func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress string, networkScanID int64, timeout int64) (int64, error) {
 	// Scan for open ports for node
 	// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
-	portScanner := scanners.NewPortScanner(ipAddress, 0, math.MaxUint16, time.Millisecond*time.Duration(timeout), []string{"tcp", "udp"}, func(port int) ([]byte, error) {
+	portScanner := scanners.NewPortScanner(ipAddress, 0, math.MaxUint16, time.Millisecond*time.Duration(timeout), []string{"tcp", "udp"}, s.portScannerLock, func(port int) ([]byte, error) {
 		packet, err := s.ports2PacketsDatabase.GetPacket(port)
 
 		if err != nil {
