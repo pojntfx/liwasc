@@ -267,3 +267,39 @@ func (d *LiwascDatabase) GetNodeScan(id int64) (*liwascModels.NodeScan, error) {
 func (d *LiwascDatabase) GetNode(id string) (*liwascModels.Node, error) {
 	return liwascModels.FindNode(context.Background(), d.db, id)
 }
+
+func (d *LiwascDatabase) DeleteNode(id string) (*liwascModels.Node, error) {
+	node, err := d.GetNode(id)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := d.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = liwascModels.Nodes(
+		qm.Where(liwascModels.NodeColumns.MacAddress+"= ?", id),
+	).DeleteAll(context.Background(), tx); err != nil {
+		return nil, err
+	}
+
+	if _, err := liwascModels.NodeScansServicesNodes(
+		qm.Where(liwascModels.NodeScansServicesNodeColumns.NodeID+"= ?", id),
+	).DeleteAll(context.Background(), tx); err != nil {
+		return nil, err
+	}
+
+	if _, err := liwascModels.NodeNodeScansNetworkScans(
+		qm.Where(liwascModels.NodeNodeScansNetworkScanColumns.NodeID+"= ?", id),
+	).DeleteAll(context.Background(), tx); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
