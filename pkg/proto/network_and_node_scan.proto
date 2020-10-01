@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.pojtinger.felix.liwasc;
 
+import "node_wake.proto";
+
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NetworkAndNodeScanService {
@@ -63,35 +65,3 @@ message DiscoveredServiceMessage {
 }
 
 message NodeDeleteMessage { string MACAddress = 1; }
-
-service NodeWakeService {
-  rpc TriggerNodeWake(NodeWakeTriggerMessage)
-      returns (NodeWakeReferenceMessage);
-  // Use -1 as NodeWakeID and a valid MAC address to return the latest wake
-  // state for the MAC Address
-  // Use a valid NodeWakeID and "" as a MAC address to
-  // return the matching wake state
-  rpc SubscribeToNodeWakeUp(NodeWakeReferenceMessage)
-      returns (stream LucidNodeMessage);
-}
-
-message NodeWakeTriggerMessage {
-  string MACAddress = 1;
-  int64 Timeout = 2;
-}
-
-message NodeWakeReferenceMessage {
-  string MACAddress = 1;
-  int64 NodeWakeID = 2;
-}
-
-message LucidNodeMessage {
-  bool PoweredOn = 1;
-  string MACAddress = 2;
-  string IPAddress = 3;
-  string Vendor = 4;
-  string Registry = 6;
-  string Organization = 7;
-  string Address = 8;
-  bool Visible = 9;
-}

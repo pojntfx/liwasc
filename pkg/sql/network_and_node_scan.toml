@@ -1,0 +1,2 @@
+[sqlite3]
+dbname = "/var/liwasc/network_and_node_scan.sqlite"
