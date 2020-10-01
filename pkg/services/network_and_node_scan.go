@@ -509,3 +509,29 @@ func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress strin
 
 	return nodeScanID, nil
 }
+
+func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.LucidNodeMessage, error) {
+	dbNode, err := s.liwascDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, "could not get delete node from DB: %v", err.Error())
+	}
+
+	protoNode := &proto.LucidNodeMessage{
+		PoweredOn:    false, // Should not be relevant here, the node is being deleted
+		MACAddress:   dbNode.MacAddress,
+		IPAddress:    dbNode.IPAddress,
+		Vendor:       dbNode.Vendor,
+		Registry:     dbNode.Registry,
+		Organization: dbNode.Organization,
+		Address:      dbNode.Address,
+		Visible: func() bool {
+			if dbNode.Visible == 1 {
+				return true
+			}
+
+			return false
+		}(),
+	}
+
+	return protoNode, nil
+}
