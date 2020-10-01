@@ -70,18 +70,23 @@ func (d *LiwascDatabase) GetNewestNetworkScan() (*liwascModels.NetworkScan, erro
 }
 
 func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, networkScanID int64) (string, error) {
+	tx, err := d.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return "", err
+	}
+
 	// Insert node if it doesn't exist, otherwise update (the latter is required in case i.e. IP changes for MAC address)
-	exists, err := liwascModels.NodeExists(context.Background(), d.db, node.MacAddress)
+	exists, err := liwascModels.NodeExists(context.Background(), tx, node.MacAddress)
 	if err != nil {
 		return "", err
 	}
 
 	if exists {
-		if _, err := node.Update(context.Background(), d.db, boil.Infer()); err != nil {
+		if _, err := node.Update(context.Background(), tx, boil.Infer()); err != nil {
 			return "", err
 		}
 	} else {
-		if err := node.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		if err := node.Insert(context.Background(), tx, boil.Infer()); err != nil {
 			return "", err
 		}
 	}
@@ -92,7 +97,11 @@ func (d *LiwascDatabase) UpsertNode(node *liwascModels.Node, networkScanID int64
 		NetworkScanID: networkScanID,
 	}
 
-	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	if err := networkScansNode.Insert(context.Background(), tx, boil.Infer()); err != nil {
+		return "", err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return "", err
 	}
 
@@ -133,19 +142,24 @@ func (d *LiwascDatabase) GetNewestNetworkScansForNodes(nodes []*liwascModels.Nod
 // UpsertService persists a service and connects it with it's node and network scan
 // If the node scan was not triggered by a network scan,
 func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID string, nodeScanID int64, networkScanID int64) (int64, error) {
+	tx, err := d.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return -1, err
+	}
+
 	// Insert service if it doesn't exist, otherwise update
 	// This way each service only needs to be saved once
-	exists, err := liwascModels.ServiceExists(context.Background(), d.db, service.PortNumber)
+	exists, err := liwascModels.ServiceExists(context.Background(), tx, service.PortNumber)
 	if err != nil {
 		return -1, err
 	}
 
 	if exists {
-		if _, err := service.Update(context.Background(), d.db, boil.Infer()); err != nil {
+		if _, err := service.Update(context.Background(), tx, boil.Infer()); err != nil {
 			return -1, err
 		}
 	} else {
-		if err := service.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		if err := service.Insert(context.Background(), tx, boil.Infer()); err != nil {
 			return -1, err
 		}
 	}
@@ -157,7 +171,11 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 		NodeScanID: nodeScanID,
 	}
 
-	if err := networkScansNode.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	if err := networkScansNode.Insert(context.Background(), tx, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return -1, err
 	}
 
@@ -166,7 +184,12 @@ func (d *LiwascDatabase) UpsertService(service *liwascModels.Service, nodeID str
 
 // CreateNodeScan creates a node scan. Set nodeID to an empty string and networkScanID to -1 if there is not network scan for this node scan
 func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan, nodeID string, networkScanID int64) (int64, error) {
-	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	tx, err := d.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return -1, err
+	}
+
+	if err := scan.Insert(context.Background(), tx, boil.Infer()); err != nil {
 		return -1, err
 	}
 
@@ -177,7 +200,11 @@ func (d *LiwascDatabase) CreateNodeScan(scan *liwascModels.NodeScan, nodeID stri
 		NodeScanID:    scan.ID,
 	}
 
-	if err := nodeNodeScanNetworkScan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+	if err := nodeNodeScanNetworkScan.Insert(context.Background(), tx, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return -1, err
 	}
 
