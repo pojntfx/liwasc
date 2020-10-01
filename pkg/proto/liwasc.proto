@@ -12,10 +12,10 @@ service NetworkAndNodeScanService {
   // Use -1 as NetworkScanID to return the latest finished scan
   rpc SubscribeToNewNodes(NetworkScanReferenceMessage)
       returns (stream DiscoveredNodeMessage);
-  // Use -1 as NodeScanID and a MAC address to return the latest scan
-  // for the specified MAC address
-  // Use a "" as the MAC address and a NodeScanID to return the matching
-  // scan
+  // Use -1 as NodeScanID and a valid MAC address to return the latest scan for
+  // the MAC Address
+  // Use a valid NodeScanID and "" as a MAC address to return
+  // the matching scan
   rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
       returns (stream DiscoveredServiceMessage);
   rpc DeleteNode(NodeDeleteMessage) returns (LucidNodeMessage);
@@ -67,6 +67,10 @@ message NodeDeleteMessage { string MACAddress = 1; }
 service NodeWakeService {
   rpc TriggerNodeWake(NodeWakeTriggerMessage)
       returns (NodeWakeReferenceMessage);
+  // Use -1 as NodeWakeID and a valid MAC address to return the latest wake
+  // state for the MAC Address
+  // Use a valid NodeWakeID and "" as a MAC address to
+  // return the matching wake state
   rpc SubscribeToNodeWakeUp(NodeWakeReferenceMessage)
       returns (stream LucidNodeMessage);
 }
@@ -76,7 +80,10 @@ message NodeWakeTriggerMessage {
   int64 Timeout = 2;
 }
 
-message NodeWakeReferenceMessage { int64 NodeWakeID = 1; }
+message NodeWakeReferenceMessage {
+  string MACAddress = 1;
+  int64 NodeWakeID = 2;
+}
 
 message LucidNodeMessage {
   bool PoweredOn = 1;

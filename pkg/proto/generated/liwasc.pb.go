@@ -548,7 +548,8 @@ type NodeWakeReferenceMessage struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	NodeWakeID int64 `protobuf:"varint,1,opt,name=NodeWakeID,proto3" json:"NodeWakeID,omitempty"`
+	MACAddress string `protobuf:"bytes,1,opt,name=MACAddress,proto3" json:"MACAddress,omitempty"`
+	NodeWakeID int64  `protobuf:"varint,2,opt,name=NodeWakeID,proto3" json:"NodeWakeID,omitempty"`
 }
 
 func (x *NodeWakeReferenceMessage) Reset() {
@@ -581,6 +582,13 @@ func (x *NodeWakeReferenceMessage) ProtoReflect() protoreflect.Message {
 // Deprecated: Use NodeWakeReferenceMessage.ProtoReflect.Descriptor instead.
 func (*NodeWakeReferenceMessage) Descriptor() ([]byte, []int) {
 	return file_liwasc_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *NodeWakeReferenceMessage) GetMACAddress() string {
+	if x != nil {
+		return x.MACAddress
+	}
+	return ""
 }
 
 func (x *NodeWakeReferenceMessage) GetNodeWakeID() int64 {
@@ -770,10 +778,12 @@ var file_liwasc_proto_rawDesc = []byte{
 	0x4d, 0x41, 0x43, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x0a, 0x4d, 0x41, 0x43, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07,
 	0x54, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x54,
-	0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0x3a, 0x0a, 0x18, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61,
+	0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0x5a, 0x0a, 0x18, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61,
 	0x6b, 0x65, 0x52, 0x65, 0x66, 0x65, 0x72, 0x65, 0x6e, 0x63, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61, 0x6b, 0x65, 0x49, 0x44,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61, 0x6b, 0x65,
+	0x67, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x4d, 0x41, 0x43, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x4d, 0x41, 0x43, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x12, 0x1e, 0x0a, 0x0a, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61, 0x6b, 0x65, 0x49, 0x44,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x61, 0x6b, 0x65,
 	0x49, 0x44, 0x22, 0xfa, 0x01, 0x0a, 0x10, 0x4c, 0x75, 0x63, 0x69, 0x64, 0x4e, 0x6f, 0x64, 0x65,
 	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x50, 0x6f, 0x77, 0x65, 0x72,
 	0x65, 0x64, 0x4f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x50, 0x6f, 0x77, 0x65,
@@ -1065,10 +1075,10 @@ type NetworkAndNodeScanServiceClient interface {
 	TriggerNodeScan(ctx context.Context, in *NodeScanTriggerMessage, opts ...grpc.CallOption) (*NodeScanReferenceMessage, error)
 	// Use -1 as NetworkScanID to return the latest finished scan
 	SubscribeToNewNodes(ctx context.Context, in *NetworkScanReferenceMessage, opts ...grpc.CallOption) (NetworkAndNodeScanService_SubscribeToNewNodesClient, error)
-	// Use -1 as NodeScanID and a MAC address to return the latest scan
-	// for the specified MAC address
-	// Use a "" as the MAC address and a NodeScanID to return the matching
-	// scan
+	// Use -1 as NodeScanID and a valid MAC address to return the latest scan for
+	// the MAC Address
+	// Use a valid NodeScanID and "" as a MAC address to return
+	// the matching scan
 	SubscribeToNewOpenServices(ctx context.Context, in *NodeScanReferenceMessage, opts ...grpc.CallOption) (NetworkAndNodeScanService_SubscribeToNewOpenServicesClient, error)
 	DeleteNode(ctx context.Context, in *NodeDeleteMessage, opts ...grpc.CallOption) (*LucidNodeMessage, error)
 }
@@ -1178,10 +1188,10 @@ type NetworkAndNodeScanServiceServer interface {
 	TriggerNodeScan(context.Context, *NodeScanTriggerMessage) (*NodeScanReferenceMessage, error)
 	// Use -1 as NetworkScanID to return the latest finished scan
 	SubscribeToNewNodes(*NetworkScanReferenceMessage, NetworkAndNodeScanService_SubscribeToNewNodesServer) error
-	// Use -1 as NodeScanID and a MAC address to return the latest scan
-	// for the specified MAC address
-	// Use a "" as the MAC address and a NodeScanID to return the matching
-	// scan
+	// Use -1 as NodeScanID and a valid MAC address to return the latest scan for
+	// the MAC Address
+	// Use a valid NodeScanID and "" as a MAC address to return
+	// the matching scan
 	SubscribeToNewOpenServices(*NodeScanReferenceMessage, NetworkAndNodeScanService_SubscribeToNewOpenServicesServer) error
 	DeleteNode(context.Context, *NodeDeleteMessage) (*LucidNodeMessage, error)
 }
@@ -1343,6 +1353,10 @@ var _NetworkAndNodeScanService_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type NodeWakeServiceClient interface {
 	TriggerNodeWake(ctx context.Context, in *NodeWakeTriggerMessage, opts ...grpc.CallOption) (*NodeWakeReferenceMessage, error)
+	// Use -1 as NodeWakeID and a valid MAC address to return the latest wake
+	// state for the MAC Address
+	// Use a valid NodeWakeID and "" as a MAC address to
+	// return the matching wake state
 	SubscribeToNodeWakeUp(ctx context.Context, in *NodeWakeReferenceMessage, opts ...grpc.CallOption) (NodeWakeService_SubscribeToNodeWakeUpClient, error)
 }
 
@@ -1398,6 +1412,10 @@ func (x *nodeWakeServiceSubscribeToNodeWakeUpClient) Recv() (*LucidNodeMessage, 
 // NodeWakeServiceServer is the server API for NodeWakeService service.
 type NodeWakeServiceServer interface {
 	TriggerNodeWake(context.Context, *NodeWakeTriggerMessage) (*NodeWakeReferenceMessage, error)
+	// Use -1 as NodeWakeID and a valid MAC address to return the latest wake
+	// state for the MAC Address
+	// Use a valid NodeWakeID and "" as a MAC address to
+	// return the matching wake state
 	SubscribeToNodeWakeUp(*NodeWakeReferenceMessage, NodeWakeService_SubscribeToNodeWakeUpServer) error
 }
 
