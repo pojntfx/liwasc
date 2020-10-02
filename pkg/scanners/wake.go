@@ -14,25 +14,32 @@ type ScannedNode struct {
 }
 
 type WakeScanner struct {
-	ip         string
-	deviceName string
-	raddr      net.IP
-	timeout    time.Duration
-	statusChan chan *ScannedNode
+	macAddress   string
+	deviceName   string
+	raddr        net.IP
+	timeout      time.Duration
+	statusChan   chan *ScannedNode
+	getIPAddress func(string) (string, error)
 }
 
-func NewWakeScanner(ip string, deviceName string, timeout time.Duration) *WakeScanner {
+func NewWakeScanner(macAddress string, deviceName string, timeout time.Duration, getIPAddress func(string) (string, error)) *WakeScanner {
 	return &WakeScanner{
-		ip,
+		macAddress,
 		deviceName,
 		nil,
 		timeout,
 		make(chan *ScannedNode),
+		getIPAddress,
 	}
 }
 
 func (w *WakeScanner) Open() error {
-	raddr := net.ParseIP(w.ip)
+	ip, err := w.getIPAddress(w.macAddress)
+	if err != nil {
+		return err
+	}
+
+	raddr := net.ParseIP(ip)
 	if raddr == nil {
 		return errors.New("could not parse IP")
 	}
@@ -45,9 +52,10 @@ func (w *WakeScanner) Open() error {
 }
 
 func (w *WakeScanner) Transmit() error {
-	if _, _, err := arping.PingOverIfaceByName(w.raddr, w.deviceName); err != nil {
+	macAddress, _, err := arping.PingOverIfaceByName(w.raddr, w.deviceName)
+	if err != nil {
 		if err == arping.ErrTimeout {
-			w.statusChan <- &ScannedNode{w.ip, false}
+			w.statusChan <- &ScannedNode{macAddress.String(), false}
 			w.statusChan <- nil
 
 			return nil
@@ -58,7 +66,7 @@ func (w *WakeScanner) Transmit() error {
 		return err
 	}
 
-	w.statusChan <- &ScannedNode{w.ip, true}
+	w.statusChan <- &ScannedNode{macAddress.String(), true}
 	w.statusChan <- nil
 
 	return nil

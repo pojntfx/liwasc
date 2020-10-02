@@ -3,6 +3,7 @@ module github.com/pojntfx/liwasc
 go 1.15
 
 require (
+	github.com/ItsJimi/go-arp v0.0.0-20191211110343-90a245fb4759
 	github.com/friendsofgo/errors v0.9.2
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gopacket v1.1.18
