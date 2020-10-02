@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package com.pojtinger.felicitas.liwasc;
 
-import "node_wake.proto";
-
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NetworkAndNodeScanService {
@@ -20,7 +18,7 @@ service NetworkAndNodeScanService {
   // the matching scan
   rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
       returns (stream DiscoveredServiceMessage);
-  rpc DeleteNode(NodeDeleteMessage) returns (LucidNodeMessage);
+  rpc DeleteNode(NodeDeleteMessage) returns (NodeMetadataMessage);
 }
 
 message NetworkScanTriggerMessage {
@@ -43,9 +41,20 @@ message NodeScanReferenceMessage {
 
 message DiscoveredNodeMessage {
   // NodeScanID is the ID of the running node scan to subscribe to
-  int64 NodeScanID = 1; // If NodeScanID == -1 || LucidNodeMessage.PoweredOn ==
-                        // false, the node is not powered on.
-  LucidNodeMessage LucidNode = 2;
+  int64 NodeScanID = 1; // If NodeScanID == -1 || NodeMetadataMessage.PoweredOn
+                        // == false, the node is not powered on.
+  NodeMetadataMessage LucidNode = 2;
+}
+
+message NodeMetadataMessage {
+  bool PoweredOn = 1;
+  string MACAddress = 2;
+  string IPAddress = 3;
+  string Vendor = 4;
+  string Registry = 6;
+  string Organization = 7;
+  string Address = 8;
+  bool Visible = 9;
 }
 
 message DiscoveredServiceMessage {

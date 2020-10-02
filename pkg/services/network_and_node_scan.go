@@ -209,7 +209,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 		protoNode := &proto.DiscoveredNodeMessage{
 			NodeScanID: nodeScansForNetworkScanAndNode[dbNode.MacAddress],
-			LucidNode: &proto.LucidNodeMessage{
+			LucidNode: &proto.NodeMetadataMessage{
 				PoweredOn: func() bool {
 					for nodeID := range matchingNewestScans {
 						if nodeID == dbNode.MacAddress {
@@ -284,7 +284,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 		protoNode := &proto.DiscoveredNodeMessage{
 			NodeScanID: nodeScansForNetworkScanAndNode[dbNode.MacAddress],
-			LucidNode: &proto.LucidNodeMessage{
+			LucidNode: &proto.NodeMetadataMessage{
 				PoweredOn:    true,
 				MACAddress:   dbNode.MacAddress,
 				IPAddress:    dbNode.IPAddress,
@@ -510,13 +510,13 @@ func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress strin
 	return nodeScanID, nil
 }
 
-func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.LucidNodeMessage, error) {
+func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.NodeMetadataMessage, error) {
 	dbNode, err := s.networkAndNodeScanDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not get delete node from DB: %v", err.Error())
 	}
 
-	protoNode := &proto.LucidNodeMessage{
+	protoNode := &proto.NodeMetadataMessage{
 		PoweredOn:    false, // Should not be relevant here, the node is being deleted
 		MACAddress:   dbNode.MacAddress,
 		IPAddress:    dbNode.IPAddress,
