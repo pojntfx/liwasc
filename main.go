@@ -7,6 +7,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
+	"github.com/pojntfx/liwasc/pkg/wakers"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -37,6 +38,7 @@ func main() {
 		networkAndNodeScanDatabase,
 		semaphore.NewWeighted(int64(*maxConcurrentPortScans)),
 	)
+	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
 		*deviceName,
 		nodeWakeDatabase,
@@ -48,6 +50,7 @@ func main() {
 
 			return node.IPAddress, nil
 		},
+		wakeOnLANWaker,
 	)
 	liwascServer := servers.NewLiwascServer(*listenAddress, networkAndNodeScanService, nodeWakeService)
 
@@ -70,6 +73,10 @@ func main() {
 
 	if err := nodeWakeDatabase.Open(); err != nil {
 		log.Fatal("could not open nodeWakeDatabase", err)
+	}
+
+	if err := wakeOnLANWaker.Open(); err != nil {
+		log.Fatal("could not open wakeOnLANWaker", err)
 	}
 
 	log.Printf("Listening on %v", *listenAddress)
