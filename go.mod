@@ -6,6 +6,7 @@ require (
 	github.com/friendsofgo/errors v0.9.2
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gopacket v1.1.18
+	github.com/j-keck/arping v1.0.1
 	github.com/jszwec/csvutil v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.3
 	github.com/mdlayher/wol v0.0.0-20200423173749-bc23029f94e1
