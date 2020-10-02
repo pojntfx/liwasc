@@ -5,7 +5,6 @@ package databases
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -22,7 +21,7 @@ func NewNetworkAndNodeScanDatabase(dbPath string) *NetworkAndNodeScanDatabase {
 }
 
 func (d *NetworkAndNodeScanDatabase) Open() error {
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?cache=shared", d.dbPath)) // Prevent "database locked" errors
+	db, err := sql.Open("sqlite3", d.dbPath)
 	if err != nil {
 		return err
 	}

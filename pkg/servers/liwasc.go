@@ -12,10 +12,11 @@ import (
 type LiwascServer struct {
 	listenAddress             string
 	networkAndNodeScanService *services.NetworkAndNodeScanService
+	nodeWakeService           *services.NodeWakeService
 }
 
-func NewLiwascServer(listenAddress string, networkAndNodeScanService *services.NetworkAndNodeScanService) *LiwascServer {
-	return &LiwascServer{listenAddress, networkAndNodeScanService}
+func NewLiwascServer(listenAddress string, networkAndNodeScanService *services.NetworkAndNodeScanService, nodeWakeService *services.NodeWakeService) *LiwascServer {
+	return &LiwascServer{listenAddress, networkAndNodeScanService, nodeWakeService}
 }
 
 func (s *LiwascServer) Open() error {
@@ -33,6 +34,7 @@ func (s *LiwascServer) Open() error {
 
 	reflection.Register(server)
 	proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
+	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 
 	if err := server.Serve(listener); err != nil {
 		return err
