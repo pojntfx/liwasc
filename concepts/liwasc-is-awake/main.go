@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	arp "github.com/ItsJimi/go-arp"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 )
 
@@ -13,13 +14,17 @@ import (
 func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
-	targetIPAddress := flag.String("targetIPAddress", "10.0.0.1", "IP address of the target device")
+	targetMacAddress := flag.String("targetMacAddress", "00:15:5d:89:01:02", "MAC address of the target device")
 	timeout := flag.Int("timeout", 10000, "Timeout for ping in milliseconds")
 
 	flag.Parse()
 
 	// Create instances
-	wakeScanner := scanners.NewWakeScanner(*targetIPAddress, *deviceName, time.Millisecond*time.Duration(*timeout))
+	wakeScanner := scanners.NewWakeScanner(*targetMacAddress, *deviceName, time.Millisecond*time.Duration(*timeout), func(macAddress string) (string, error) {
+		ip, err := arp.GetEntryFromMAC(macAddress)
+
+		return ip.IPAddress, err
+	})
 
 	// Open instances
 	if err := wakeScanner.Open(); err != nil {
