@@ -78,3 +78,11 @@ func (d *NodeWakeDatabase) UpsertNode(node *nodeWakeModels.Node, nodeWakeID int6
 
 	return node.MacAddress, nil
 }
+
+func (d *NodeWakeDatabase) UpdateNodeWakeScan(scan *nodeWakeModels.NodeWake) (int64, error) {
+	if _, err := scan.Update(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	return scan.ID, nil
+}
