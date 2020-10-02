@@ -28,10 +28,4 @@ message NodeWakeReferenceMessage {
 message LucidNodeMessage {
   bool PoweredOn = 1;
   string MACAddress = 2;
-  string IPAddress = 3;
-  string Vendor = 4;
-  string Registry = 6;
-  string Organization = 7;
-  string Address = 8;
-  bool Visible = 9;
 }
