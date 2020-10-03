@@ -41,7 +41,7 @@ func (d *NodeWakeDatabase) CreateNodeWake(nodeWake *nodeWakeModels.NodeWake) (in
 	return nodeWake.ID, nil
 }
 
-func (d *NodeWakeDatabase) UpsertNode(node *nodeWakeModels.Node, nodeWakeID int64) (string, error) {
+func (d *NodeWakeDatabase) UpsertNodeAndRelations(node *nodeWakeModels.Node, nodeWakeID int64) (string, error) {
 	tx, err := d.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return "", err
@@ -53,11 +53,7 @@ func (d *NodeWakeDatabase) UpsertNode(node *nodeWakeModels.Node, nodeWakeID int6
 		return "", err
 	}
 
-	if exists {
-		if _, err := node.Update(context.Background(), tx, boil.Infer()); err != nil {
-			return "", err
-		}
-	} else {
+	if !exists {
 		if err := node.Insert(context.Background(), tx, boil.Infer()); err != nil {
 			return "", err
 		}
