@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package com.pojtinger.felicitas.liwasc;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/pojntfx/liwasc/pkg/proto";
+
+service NetworkAndNodeScanService {
+  rpc TriggerNetworkScan(NetworkScanTriggerMessage)
+      returns (NetworkScanReferenceMessage);
+  rpc TriggerNodeScan(NodeScanTriggerMessage)
+      returns (NodeScanReferenceMessage);
+  // Use -1 as NetworkScanID to return the latest finished scan
+  rpc SubscribeToNewNodes(NetworkScanReferenceMessage)
+      returns (stream DiscoveredNodeMessage);
+  // Use -1 as NodeScanID and a valid MAC address to return the latest scan for
+  // the MAC Address
+  // Use a valid NodeScanID and "" as a MAC address to return
+  // the matching scan
+  rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
+      returns (stream DiscoveredServiceMessage);
+  rpc SubscribeToNewPeriodicNetworkScans(google.protobuf.Empty)
+      returns (stream NetworkScanReferenceMessage);
+  rpc DeleteNode(NodeDeleteMessage) returns (NodeMetadataMessage);
+}
+
+message NetworkScanTriggerMessage {
+  int64 NetworkScanTimeout = 1;
+  int64 NodeScanTimeout =
+      2; // Time in milliseconds to wait for a response per port
+}
+
+message NetworkScanReferenceMessage { int64 NetworkScanID = 1; }
+
+message NodeScanTriggerMessage {
+  string MACAddress = 1;
+  int64 Timeout = 2;
+}
+
+message NodeScanReferenceMessage {
+  string MACAddress = 1;
+  int64 NodeScanID = 2;
+}
+
+message DiscoveredNodeMessage {
+  // NodeScanID is the ID of the running node scan to subscribe to
+  int64 NodeScanID = 1; // If NodeScanID == -1 || NodeMetadataMessage.PoweredOn
+                        // == false, the node is not powered on.
+  NodeMetadataMessage LucidNode = 2;
+}
+
+message NodeMetadataMessage {
+  bool PoweredOn = 1;
+  string MACAddress = 2;
+  string IPAddress = 3;
+  string Vendor = 4;
+  string Registry = 6;
+  string Organization = 7;
+  string Address = 8;
+  bool Visible = 9;
+}
+
+message DiscoveredServiceMessage {
+  string MACAddress = 1;
+  string ServiceName = 2;
+  int64 PortNumber = 3;
+  string TransportProtocol = 4;
+  string Description = 5;
+  string Assignee = 6;
+  string Contact = 7;
+  string RegistrationDate = 8;
+  string ModificationDate = 9;
+  string Reference = 10;
+  string ServiceCode = 11;
+  string UnauthorizedUseReported = 12;
+  string AssignmentNotes = 13;
+}
+
+message NodeDeleteMessage { string MACAddress = 1; }
