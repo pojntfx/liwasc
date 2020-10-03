@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
@@ -83,7 +84,7 @@ func (s *NetworkAndNodeScanService) Open() error {
 		}
 
 		dbPeriodicNetworkScan := &networkAndNodeScanModels.PeriodicNetworkScansNetworkScan{
-			NodeScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
+			NetworkScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
 		}
 
 		if _, err := s.networkAndNodeScanDatabase.CreatePeriodicNetworkScan(dbPeriodicNetworkScan); err != nil {
@@ -92,7 +93,7 @@ func (s *NetworkAndNodeScanService) Open() error {
 			return
 		}
 
-		s.periodicScanMessenger.Broadcast(dbPeriodicNetworkScan.NodeScanID)
+		s.periodicScanMessenger.Broadcast(dbPeriodicNetworkScan.NetworkScanID)
 		// TODO: Add subscribe rpc for latest periodic scans; this RPC should fetch the latest scan ID from the append-only table, send the scan ID to the frontend, subscribe to the messenger and send all further ones to the latter as well
 	}); err != nil {
 		return err
@@ -442,6 +443,66 @@ func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReference
 	return nil
 }
 
+func (s *NetworkAndNodeScanService) SubscribeToNewPeriodicNetworkScans(_ *empty.Empty, stream proto.NetworkAndNodeScanService_SubscribeToNewPeriodicNetworkScansServer) error {
+	dbNewestPeriodicNetworkScan, err := s.networkAndNodeScanDatabase.GetNewestPeriodicNetworkScan()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get get newest periodic network scan from DB: %v", err.Error())
+	}
+
+	protoNetworkScanReferenceMessage := &proto.NetworkScanReferenceMessage{
+		NetworkScanID: dbNewestPeriodicNetworkScan.NetworkScanID,
+	}
+
+	if err := stream.Send(protoNetworkScanReferenceMessage); err != nil {
+		return status.Errorf(codes.Unknown, "could not send network scan reference message to frontend: %v", err.Error())
+	}
+
+	client, err := s.periodicScanMessenger.Sub()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not subscribe to periodic scan messenger")
+	}
+
+	for receivedNode := range client {
+		dbPeriodicNetworkScanID := receivedNode.(int64)
+
+		protoNetworkScanReferenceMessageForMsgr := &proto.NetworkScanReferenceMessage{
+			NetworkScanID: dbPeriodicNetworkScanID,
+		}
+
+		if err := stream.Send(protoNetworkScanReferenceMessageForMsgr); err != nil {
+			return status.Errorf(codes.Unknown, "could not send network scan reference message to frontend: %v", err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.NodeMetadataMessage, error) {
+	dbNode, err := s.networkAndNodeScanDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
+	if err != nil {
+		return nil, status.Errorf(codes.Unknown, "could not get delete node from DB: %v", err.Error())
+	}
+
+	protoNode := &proto.NodeMetadataMessage{
+		PoweredOn:    false, // Should not be relevant here, the node is being deleted
+		MACAddress:   dbNode.MacAddress,
+		IPAddress:    dbNode.IPAddress,
+		Vendor:       dbNode.Vendor,
+		Registry:     dbNode.Registry,
+		Organization: dbNode.Organization,
+		Address:      dbNode.Address,
+		Visible: func() bool {
+			if dbNode.Visible == 1 {
+				return true
+			}
+
+			return false
+		}(),
+	}
+
+	return protoNode, nil
+}
+
 func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress string, networkScanID int64, timeout int64) (int64, error) {
 	// Scan for open ports for node
 	// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
@@ -556,30 +617,4 @@ func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress strin
 	nodeScanID := <-nodeScanIDChan
 
 	return nodeScanID, nil
-}
-
-func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.NodeMetadataMessage, error) {
-	dbNode, err := s.networkAndNodeScanDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
-	if err != nil {
-		return nil, status.Errorf(codes.Unknown, "could not get delete node from DB: %v", err.Error())
-	}
-
-	protoNode := &proto.NodeMetadataMessage{
-		PoweredOn:    false, // Should not be relevant here, the node is being deleted
-		MACAddress:   dbNode.MacAddress,
-		IPAddress:    dbNode.IPAddress,
-		Vendor:       dbNode.Vendor,
-		Registry:     dbNode.Registry,
-		Organization: dbNode.Organization,
-		Address:      dbNode.Address,
-		Visible: func() bool {
-			if dbNode.Visible == 1 {
-				return true
-			}
-
-			return false
-		}(),
-	}
-
-	return protoNode, nil
 }
