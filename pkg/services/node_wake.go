@@ -92,7 +92,7 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 				MacAddress: node.MacAddress,
 			}
 
-			if _, err := s.nodeWakeDatabase.UpsertNode(dbNode, nodeWakeID); err != nil {
+			if _, err := s.nodeWakeDatabase.UpsertNodeAndRelations(dbNode, nodeWakeID); err != nil {
 				log.Println("could not create node in DB", err)
 
 				break
@@ -175,7 +175,27 @@ func (s *NodeWakeService) SubscribeToNodeWakeUp(nodeWakeReferenceMessage *proto.
 		return status.Errorf(codes.Unknown, "could not send lucid node to frontend: %v", err.Error())
 	}
 
-	// TODO: If !done, sub to messenger and send to frontend
+	if nodeWake.Done == 1 {
+		return nil
+	}
+
+	msgr, exists := s.nodeWakeMessengers.Get(string(nodeWake.ID))
+	if !exists || msgr == nil {
+		return nil
+	}
+
+	client, err := msgr.(*messenger.Messenger).Sub()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not subscribe to nodes")
+	}
+
+	for receivedNode := range client {
+		protoLucidNodeMessage := receivedNode.(*proto.LucidNodeMessage)
+
+		if err := stream.Send(protoLucidNodeMessage); err != nil {
+			return status.Errorf(codes.Unknown, "could not send node to frontend: %v", err.Error())
+		}
+	}
 
 	return nil
 }
