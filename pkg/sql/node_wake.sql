@@ -3,14 +3,12 @@ drop table if exists nodes;
 drop table if exists node_wakes;
 drop table if exists node_wakes_nodes;
 -- Create new tables
-create table nodes (
-    mac_address text not null primary key,
-    powered_on integer not null
-);
+create table nodes (mac_address text not null primary key);
 create table node_wakes (
     id integer not null primary key,
     created_at date not null,
-    done integer not null
+    done integer not null,
+    powered_on integer not null
 );
 -- Create join tables
 create table node_wakes_nodes (

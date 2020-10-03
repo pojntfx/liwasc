@@ -568,7 +568,7 @@ func testNodesSelect(t *testing.T) {
 }
 
 var (
-	nodeDBTypes = map[string]string{`MacAddress`: `TEXT`, `PoweredOn`: `INTEGER`}
+	nodeDBTypes = map[string]string{`MacAddress`: `TEXT`}
 	_           = bytes.MinRead
 )
 

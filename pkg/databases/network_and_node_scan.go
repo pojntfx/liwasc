@@ -245,7 +245,7 @@ func (d *NetworkAndNodeScanDatabase) GetNewestNodeScanIDForNodeID(nodeID string)
 }
 
 func (d *NetworkAndNodeScanDatabase) GetServicesForNodeScanID(nodeScanID int64) ([]*networkAndNodeScanModels.Service, error) {
-	var res []*networkAndNodeScanModels.Service
+	var services []*networkAndNodeScanModels.Service
 	err := networkAndNodeScanModels.NewQuery(
 		qm.Select("*"),
 		qm.From(networkAndNodeScanModels.TableNames.NodeScansServicesNodes),
@@ -253,9 +253,9 @@ func (d *NetworkAndNodeScanDatabase) GetServicesForNodeScanID(nodeScanID int64) 
 			networkAndNodeScanModels.TableNames.Services+" on "+networkAndNodeScanModels.TableNames.NodeScansServicesNodes+"."+networkAndNodeScanModels.NodeScansServicesNodeColumns.ServiceID+" = "+networkAndNodeScanModels.TableNames.Services+"."+networkAndNodeScanModels.ServiceColumns.PortNumber,
 		),
 		qm.Where(networkAndNodeScanModels.TableNames.NodeScansServicesNodes+"."+networkAndNodeScanModels.NodeScansServicesNodeColumns.NodeScanID+"= ?", nodeScanID),
-	).Bind(context.Background(), d.db, &res)
+	).Bind(context.Background(), d.db, &services)
 
-	return res, err
+	return services, err
 }
 
 func (d *NetworkAndNodeScanDatabase) GetNodeScan(id int64) (*networkAndNodeScanModels.NodeScan, error) {
