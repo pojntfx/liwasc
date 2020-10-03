@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	listenAddress := flag.String("listenAddress", "0.0.0.0:7000", "Listen address")
+	listenAddress := flag.String("listenAddress", "0.0.0.0:15125", "Listen address")
 
 	flag.Parse()
 
