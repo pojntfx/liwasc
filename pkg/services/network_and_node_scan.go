@@ -15,6 +15,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
+	"github.com/robfig/cron"
 	"github.com/ugjka/messenger"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
@@ -32,6 +33,11 @@ type NetworkAndNodeScanService struct {
 	networkScanMessengers           cmap.ConcurrentMap
 	nodeScanMessengers              cmap.ConcurrentMap
 	portScannerLock                 *semaphore.Weighted
+	periodicScanCronExpression      string
+	periodicNetworkScanTimeout      int
+	periodicNodeScanTimeout         int
+	cron                            *cron.Cron
+	periodicScanMessenger           *messenger.Messenger
 }
 
 func NewNetworkAndNodeScanService(
@@ -41,6 +47,9 @@ func NewNetworkAndNodeScanService(
 	ports2PacketsDatabase *databases.Ports2PacketDatabase,
 	networkAndNodeScanDatabase *databases.NetworkAndNodeScanDatabase,
 	portScannerLock *semaphore.Weighted,
+	periodicScanCronExpression string,
+	periodicNetworkScanTimeout int,
+	periodicNodeScanTimeout int,
 ) *NetworkAndNodeScanService {
 	return &NetworkAndNodeScanService{
 		device:                          device,
@@ -51,7 +60,25 @@ func NewNetworkAndNodeScanService(
 		networkScanMessengers:           cmap.New(),
 		nodeScanMessengers:              cmap.New(),
 		portScannerLock:                 portScannerLock,
+		periodicScanCronExpression:      periodicScanCronExpression,
+		periodicNetworkScanTimeout:      periodicNetworkScanTimeout,
+		periodicNodeScanTimeout:         periodicNodeScanTimeout,
+		cron:                            cron.New(),
+		periodicScanMessenger:           messenger.New(0, true),
 	}
+}
+
+func (s *NetworkAndNodeScanService) Open() error {
+	if err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
+		// TODO: Trigger scan, save scan ID to new append-only table, publish over messenger
+		// TODO: Add subscribe rpc for latest periodic scans; this RPC should fetch the latest scan ID from the append-only table, send the scan ID to the frontend, subscribe to the messenger and send all further ones to the latter as well
+	}); err != nil {
+		return err
+	}
+
+	s.cron.Run()
+
+	return nil
 }
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
