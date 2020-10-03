@@ -301,3 +301,11 @@ func (d *NetworkAndNodeScanDatabase) DeleteNode(id string) (*networkAndNodeScanM
 
 	return node, nil
 }
+
+func (d *NetworkAndNodeScanDatabase) CreatePeriodicNetworkScan(scan *networkAndNodeScanModels.PeriodicNetworkScansNetworkScan) (int64, error) {
+	if err := scan.Insert(context.Background(), d.db, boil.Infer()); err != nil {
+		return -1, err
+	}
+
+	return scan.ID, nil
+}

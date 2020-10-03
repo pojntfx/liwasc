@@ -17,7 +17,10 @@ func TestParent(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScans)
 	t.Run("NodeScans", testNodeScans)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodes)
+	t.Run("NodeWakes", testNodeWakes)
+	t.Run("NodeWakesNodes", testNodeWakesNodes)
 	t.Run("Nodes", testNodes)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScans)
 	t.Run("Services", testServices)
 }
 
@@ -27,7 +30,10 @@ func TestDelete(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansDelete)
 	t.Run("NodeScans", testNodeScansDelete)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesDelete)
+	t.Run("NodeWakes", testNodeWakesDelete)
+	t.Run("NodeWakesNodes", testNodeWakesNodesDelete)
 	t.Run("Nodes", testNodesDelete)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansDelete)
 	t.Run("Services", testServicesDelete)
 }
 
@@ -37,7 +43,10 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansQueryDeleteAll)
 	t.Run("NodeScans", testNodeScansQueryDeleteAll)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesQueryDeleteAll)
+	t.Run("NodeWakes", testNodeWakesQueryDeleteAll)
+	t.Run("NodeWakesNodes", testNodeWakesNodesQueryDeleteAll)
 	t.Run("Nodes", testNodesQueryDeleteAll)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansQueryDeleteAll)
 	t.Run("Services", testServicesQueryDeleteAll)
 }
 
@@ -47,7 +56,10 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansSliceDeleteAll)
 	t.Run("NodeScans", testNodeScansSliceDeleteAll)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesSliceDeleteAll)
+	t.Run("NodeWakes", testNodeWakesSliceDeleteAll)
+	t.Run("NodeWakesNodes", testNodeWakesNodesSliceDeleteAll)
 	t.Run("Nodes", testNodesSliceDeleteAll)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansSliceDeleteAll)
 	t.Run("Services", testServicesSliceDeleteAll)
 }
 
@@ -57,7 +69,10 @@ func TestExists(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansExists)
 	t.Run("NodeScans", testNodeScansExists)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesExists)
+	t.Run("NodeWakes", testNodeWakesExists)
+	t.Run("NodeWakesNodes", testNodeWakesNodesExists)
 	t.Run("Nodes", testNodesExists)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansExists)
 	t.Run("Services", testServicesExists)
 }
 
@@ -67,7 +82,10 @@ func TestFind(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansFind)
 	t.Run("NodeScans", testNodeScansFind)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesFind)
+	t.Run("NodeWakes", testNodeWakesFind)
+	t.Run("NodeWakesNodes", testNodeWakesNodesFind)
 	t.Run("Nodes", testNodesFind)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansFind)
 	t.Run("Services", testServicesFind)
 }
 
@@ -77,7 +95,10 @@ func TestBind(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansBind)
 	t.Run("NodeScans", testNodeScansBind)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesBind)
+	t.Run("NodeWakes", testNodeWakesBind)
+	t.Run("NodeWakesNodes", testNodeWakesNodesBind)
 	t.Run("Nodes", testNodesBind)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansBind)
 	t.Run("Services", testServicesBind)
 }
 
@@ -87,7 +108,10 @@ func TestOne(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansOne)
 	t.Run("NodeScans", testNodeScansOne)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesOne)
+	t.Run("NodeWakes", testNodeWakesOne)
+	t.Run("NodeWakesNodes", testNodeWakesNodesOne)
 	t.Run("Nodes", testNodesOne)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansOne)
 	t.Run("Services", testServicesOne)
 }
 
@@ -97,7 +121,10 @@ func TestAll(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansAll)
 	t.Run("NodeScans", testNodeScansAll)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesAll)
+	t.Run("NodeWakes", testNodeWakesAll)
+	t.Run("NodeWakesNodes", testNodeWakesNodesAll)
 	t.Run("Nodes", testNodesAll)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansAll)
 	t.Run("Services", testServicesAll)
 }
 
@@ -107,7 +134,10 @@ func TestCount(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansCount)
 	t.Run("NodeScans", testNodeScansCount)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesCount)
+	t.Run("NodeWakes", testNodeWakesCount)
+	t.Run("NodeWakesNodes", testNodeWakesNodesCount)
 	t.Run("Nodes", testNodesCount)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansCount)
 	t.Run("Services", testServicesCount)
 }
 
@@ -117,7 +147,10 @@ func TestHooks(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansHooks)
 	t.Run("NodeScans", testNodeScansHooks)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesHooks)
+	t.Run("NodeWakes", testNodeWakesHooks)
+	t.Run("NodeWakesNodes", testNodeWakesNodesHooks)
 	t.Run("Nodes", testNodesHooks)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansHooks)
 	t.Run("Services", testServicesHooks)
 }
 
@@ -132,8 +165,14 @@ func TestInsert(t *testing.T) {
 	t.Run("NodeScans", testNodeScansInsertWhitelist)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesInsert)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesInsertWhitelist)
+	t.Run("NodeWakes", testNodeWakesInsert)
+	t.Run("NodeWakes", testNodeWakesInsertWhitelist)
+	t.Run("NodeWakesNodes", testNodeWakesNodesInsert)
+	t.Run("NodeWakesNodes", testNodeWakesNodesInsertWhitelist)
 	t.Run("Nodes", testNodesInsert)
 	t.Run("Nodes", testNodesInsertWhitelist)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansInsert)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansInsertWhitelist)
 	t.Run("Services", testServicesInsert)
 	t.Run("Services", testServicesInsertWhitelist)
 }
@@ -184,7 +223,10 @@ func TestReload(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansReload)
 	t.Run("NodeScans", testNodeScansReload)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesReload)
+	t.Run("NodeWakes", testNodeWakesReload)
+	t.Run("NodeWakesNodes", testNodeWakesNodesReload)
 	t.Run("Nodes", testNodesReload)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansReload)
 	t.Run("Services", testServicesReload)
 }
 
@@ -194,7 +236,10 @@ func TestReloadAll(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansReloadAll)
 	t.Run("NodeScans", testNodeScansReloadAll)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesReloadAll)
+	t.Run("NodeWakes", testNodeWakesReloadAll)
+	t.Run("NodeWakesNodes", testNodeWakesNodesReloadAll)
 	t.Run("Nodes", testNodesReloadAll)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansReloadAll)
 	t.Run("Services", testServicesReloadAll)
 }
 
@@ -204,7 +249,10 @@ func TestSelect(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansSelect)
 	t.Run("NodeScans", testNodeScansSelect)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesSelect)
+	t.Run("NodeWakes", testNodeWakesSelect)
+	t.Run("NodeWakesNodes", testNodeWakesNodesSelect)
 	t.Run("Nodes", testNodesSelect)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansSelect)
 	t.Run("Services", testServicesSelect)
 }
 
@@ -214,7 +262,10 @@ func TestUpdate(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansUpdate)
 	t.Run("NodeScans", testNodeScansUpdate)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesUpdate)
+	t.Run("NodeWakes", testNodeWakesUpdate)
+	t.Run("NodeWakesNodes", testNodeWakesNodesUpdate)
 	t.Run("Nodes", testNodesUpdate)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansUpdate)
 	t.Run("Services", testServicesUpdate)
 }
 
@@ -224,6 +275,9 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("NodeNodeScansNetworkScans", testNodeNodeScansNetworkScansSliceUpdateAll)
 	t.Run("NodeScans", testNodeScansSliceUpdateAll)
 	t.Run("NodeScansServicesNodes", testNodeScansServicesNodesSliceUpdateAll)
+	t.Run("NodeWakes", testNodeWakesSliceUpdateAll)
+	t.Run("NodeWakesNodes", testNodeWakesNodesSliceUpdateAll)
 	t.Run("Nodes", testNodesSliceUpdateAll)
+	t.Run("PeriodicNetworkScansNetworkScans", testPeriodicNetworkScansNetworkScansSliceUpdateAll)
 	t.Run("Services", testServicesSliceUpdateAll)
 }
