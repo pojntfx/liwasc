@@ -2,7 +2,9 @@ package servers
 
 import (
 	"net"
+	"sync"
 
+	"github.com/pojntfx/go-app-grpc-chat-backend/pkg/websocketproxy"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"google.golang.org/grpc"
@@ -11,21 +13,23 @@ import (
 
 type LiwascServer struct {
 	listenAddress             string
+	webSocketListenAddress    string
 	networkAndNodeScanService *services.NetworkAndNodeScanService
 	nodeWakeService           *services.NodeWakeService
 }
 
-func NewLiwascServer(listenAddress string, networkAndNodeScanService *services.NetworkAndNodeScanService, nodeWakeService *services.NodeWakeService) *LiwascServer {
-	return &LiwascServer{listenAddress, networkAndNodeScanService, nodeWakeService}
+func NewLiwascServer(listenAddress string, webSocketListenAddress string, networkAndNodeScanService *services.NetworkAndNodeScanService, nodeWakeService *services.NodeWakeService) *LiwascServer {
+	return &LiwascServer{listenAddress, webSocketListenAddress, networkAndNodeScanService, nodeWakeService}
 }
 
-func (s *LiwascServer) Open() error {
-	listenAddress, err := net.ResolveTCPAddr("tcp", s.listenAddress)
+func (s *LiwascServer) ListenAndServe() error {
+	listener, err := net.Listen("tcp", s.listenAddress)
 	if err != nil {
 		return err
 	}
 
-	listener, err := net.ListenTCP("tcp", listenAddress)
+	proxy := websocketproxy.NewWebSocketProxyServer(s.webSocketListenAddress)
+	webSocketListener, err := proxy.Listen()
 	if err != nil {
 		return err
 	}
@@ -36,9 +40,38 @@ func (s *LiwascServer) Open() error {
 	proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
 	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 
-	if err := server.Serve(listener); err != nil {
+	doneChan := make(chan struct{})
+	errChan := make(chan error)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		wg.Wait()
+
+		close(doneChan)
+	}()
+
+	go func() {
+		if err := server.Serve(listener); err != nil {
+			errChan <- err
+		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		if err := server.Serve(webSocketListener); err != nil {
+			errChan <- err
+		}
+
+		wg.Done()
+	}()
+
+	select {
+	case <-doneChan:
+		return nil
+	case err := <-errChan:
 		return err
 	}
-
-	return nil
 }
