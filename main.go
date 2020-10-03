@@ -21,6 +21,9 @@ func main() {
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
 	listenAddress := flag.String("listenAddress", "0.0.0.0:15123", "Listen address.")
 	maxConcurrentPortScans := flag.Uint("maxConcurrentPortScans", 1000, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter.")
+	periodicScanCronExpression := flag.String("periodicScanCronExpression", "* */5 * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format for more information")
+	periodicNetworkScanTimeout := flag.Int("periodicNetworkScanTimeout", 10000, "Time in milliseconds to wait for node discoveries in the periodic network scans.")
+	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 1000, "Time in milliseconds to wait for a response per port in the periodic node scans.")
 
 	flag.Parse()
 
@@ -37,6 +40,9 @@ func main() {
 		ports2PacketsDatabase,
 		networkAndNodeScanDatabase,
 		semaphore.NewWeighted(int64(*maxConcurrentPortScans)),
+		*periodicScanCronExpression,
+		*periodicNetworkScanTimeout,
+		*periodicNodeScanTimeout,
 	)
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
@@ -78,6 +84,12 @@ func main() {
 	if err := wakeOnLANWaker.Open(); err != nil {
 		log.Fatal("could not open wakeOnLANWaker", err)
 	}
+
+	go func() {
+		if err := networkAndNodeScanService.Open(); err != nil {
+			log.Fatal("could not open networkAndNodeScanService", err)
+		}
+	}()
 
 	log.Printf("Listening on %v", *listenAddress)
 
