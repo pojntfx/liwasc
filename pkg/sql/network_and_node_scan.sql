@@ -65,5 +65,5 @@ create table node_node_scans_network_scans (
 create table periodic_network_scans_network_scans (
     id integer not null primary key,
     created_at date not null,
-    node_scan_id integer not null
+    network_scan_id integer not null
 );

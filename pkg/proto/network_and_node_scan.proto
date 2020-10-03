@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.pojtinger.felicitas.liwasc;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NetworkAndNodeScanService {
@@ -18,6 +20,8 @@ service NetworkAndNodeScanService {
   // the matching scan
   rpc SubscribeToNewOpenServices(NodeScanReferenceMessage)
       returns (stream DiscoveredServiceMessage);
+  rpc SubscribeToNewPeriodicNetworkScans(google.protobuf.Empty)
+      returns (stream NetworkScanReferenceMessage);
   rpc DeleteNode(NodeDeleteMessage) returns (NodeMetadataMessage);
 }
 

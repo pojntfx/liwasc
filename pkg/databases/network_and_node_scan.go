@@ -309,3 +309,15 @@ func (d *NetworkAndNodeScanDatabase) CreatePeriodicNetworkScan(scan *networkAndN
 
 	return scan.ID, nil
 }
+
+func (d *NetworkAndNodeScanDatabase) GetNewestPeriodicNetworkScan() (*networkAndNodeScanModels.PeriodicNetworkScansNetworkScan, error) {
+	scan, err := networkAndNodeScanModels.PeriodicNetworkScansNetworkScans(
+		qm.OrderBy(networkAndNodeScanModels.PeriodicNetworkScansNetworkScanColumns.CreatedAt+" desc"),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return scan, nil
+}

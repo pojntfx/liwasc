@@ -568,7 +568,7 @@ func testPeriodicNetworkScansNetworkScansSelect(t *testing.T) {
 }
 
 var (
-	periodicNetworkScansNetworkScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `NodeScanID`: `INTEGER`}
+	periodicNetworkScansNetworkScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `NetworkScanID`: `INTEGER`}
 	_                                      = bytes.MinRead
 )
 

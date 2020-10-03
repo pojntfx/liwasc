@@ -22,34 +22,34 @@ import (
 
 // PeriodicNetworkScansNetworkScan is an object representing the database table.
 type PeriodicNetworkScansNetworkScan struct {
-	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	NodeScanID int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
+	ID            int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	NetworkScanID int64     `boil:"network_scan_id" json:"network_scan_id" toml:"network_scan_id" yaml:"network_scan_id"`
 
 	R *periodicNetworkScansNetworkScanR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L periodicNetworkScansNetworkScanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var PeriodicNetworkScansNetworkScanColumns = struct {
-	ID         string
-	CreatedAt  string
-	NodeScanID string
+	ID            string
+	CreatedAt     string
+	NetworkScanID string
 }{
-	ID:         "id",
-	CreatedAt:  "created_at",
-	NodeScanID: "node_scan_id",
+	ID:            "id",
+	CreatedAt:     "created_at",
+	NetworkScanID: "network_scan_id",
 }
 
 // Generated where
 
 var PeriodicNetworkScansNetworkScanWhere = struct {
-	ID         whereHelperint64
-	CreatedAt  whereHelpertime_Time
-	NodeScanID whereHelperint64
+	ID            whereHelperint64
+	CreatedAt     whereHelpertime_Time
+	NetworkScanID whereHelperint64
 }{
-	ID:         whereHelperint64{field: "\"periodic_network_scans_network_scans\".\"id\""},
-	CreatedAt:  whereHelpertime_Time{field: "\"periodic_network_scans_network_scans\".\"created_at\""},
-	NodeScanID: whereHelperint64{field: "\"periodic_network_scans_network_scans\".\"node_scan_id\""},
+	ID:            whereHelperint64{field: "\"periodic_network_scans_network_scans\".\"id\""},
+	CreatedAt:     whereHelpertime_Time{field: "\"periodic_network_scans_network_scans\".\"created_at\""},
+	NetworkScanID: whereHelperint64{field: "\"periodic_network_scans_network_scans\".\"network_scan_id\""},
 }
 
 // PeriodicNetworkScansNetworkScanRels is where relationship names are stored.
@@ -69,8 +69,8 @@ func (*periodicNetworkScansNetworkScanR) NewStruct() *periodicNetworkScansNetwor
 type periodicNetworkScansNetworkScanL struct{}
 
 var (
-	periodicNetworkScansNetworkScanAllColumns            = []string{"id", "created_at", "node_scan_id"}
-	periodicNetworkScansNetworkScanColumnsWithoutDefault = []string{"created_at", "node_scan_id"}
+	periodicNetworkScansNetworkScanAllColumns            = []string{"id", "created_at", "network_scan_id"}
+	periodicNetworkScansNetworkScanColumnsWithoutDefault = []string{"created_at", "network_scan_id"}
 	periodicNetworkScansNetworkScanColumnsWithDefault    = []string{"id"}
 	periodicNetworkScansNetworkScanPrimaryKeyColumns     = []string{"id"}
 )
