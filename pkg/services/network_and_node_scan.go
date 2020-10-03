@@ -70,7 +70,29 @@ func NewNetworkAndNodeScanService(
 
 func (s *NetworkAndNodeScanService) Open() error {
 	if err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
-		// TODO: Trigger scan, save scan ID to new append-only table, publish over messenger
+		protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
+			NetworkScanTimeout: int64(s.periodicNetworkScanTimeout),
+			NodeScanTimeout:    int64(s.periodicNodeScanTimeout),
+		}
+
+		protoNetworkScanReferenceMessage, err := s.TriggerNetworkScan(context.Background(), protoNetworkScanTriggerMessage)
+		if err != nil {
+			log.Println("could not trigger network scan", err)
+
+			return
+		}
+
+		dbPeriodicNetworkScan := &networkAndNodeScanModels.PeriodicNetworkScansNetworkScan{
+			NodeScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
+		}
+
+		if _, err := s.networkAndNodeScanDatabase.CreatePeriodicNetworkScan(dbPeriodicNetworkScan); err != nil {
+			log.Println("could not create network scan in DB", err)
+
+			return
+		}
+
+		s.periodicScanMessenger.Broadcast(dbPeriodicNetworkScan.NodeScanID)
 		// TODO: Add subscribe rpc for latest periodic scans; this RPC should fetch the latest scan ID from the append-only table, send the scan ID to the frontend, subscribe to the messenger and send all further ones to the latter as well
 	}); err != nil {
 		return err

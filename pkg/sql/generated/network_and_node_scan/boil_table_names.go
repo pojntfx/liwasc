@@ -4,19 +4,25 @@
 package models
 
 var TableNames = struct {
-	NetworkScans              string
-	NetworkScansNodes         string
-	NodeNodeScansNetworkScans string
-	NodeScans                 string
-	NodeScansServicesNodes    string
-	Nodes                     string
-	Services                  string
+	NetworkScans                     string
+	NetworkScansNodes                string
+	NodeNodeScansNetworkScans        string
+	NodeScans                        string
+	NodeScansServicesNodes           string
+	NodeWakes                        string
+	NodeWakesNodes                   string
+	Nodes                            string
+	PeriodicNetworkScansNetworkScans string
+	Services                         string
 }{
-	NetworkScans:              "network_scans",
-	NetworkScansNodes:         "network_scans_nodes",
-	NodeNodeScansNetworkScans: "node_node_scans_network_scans",
-	NodeScans:                 "node_scans",
-	NodeScansServicesNodes:    "node_scans_services_nodes",
-	Nodes:                     "nodes",
-	Services:                  "services",
+	NetworkScans:                     "network_scans",
+	NetworkScansNodes:                "network_scans_nodes",
+	NodeNodeScansNetworkScans:        "node_node_scans_network_scans",
+	NodeScans:                        "node_scans",
+	NodeScansServicesNodes:           "node_scans_services_nodes",
+	NodeWakes:                        "node_wakes",
+	NodeWakesNodes:                   "node_wakes_nodes",
+	Nodes:                            "nodes",
+	PeriodicNetworkScansNetworkScans: "periodic_network_scans_network_scans",
+	Services:                         "services",
 }
