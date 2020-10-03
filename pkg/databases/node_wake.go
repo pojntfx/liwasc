@@ -6,6 +6,7 @@ import (
 
 	nodeWakeModels "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 //go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_wake -c pkg/sql/node_wake.toml"
@@ -85,4 +86,37 @@ func (d *NodeWakeDatabase) UpdateNodeWakeScan(scan *nodeWakeModels.NodeWake) (in
 	}
 
 	return scan.ID, nil
+}
+
+func (d *NodeWakeDatabase) GetNodeWake(id int64) (*nodeWakeModels.NodeWake, error) {
+	return nodeWakeModels.FindNodeWake(context.Background(), d.db, id)
+}
+
+func (d *NodeWakeDatabase) GetNewestNodeWakeIDForNodeID(nodeID string) (int64, error) {
+	nodeWake, err := nodeWakeModels.NodeWakesNodes(
+		qm.Where(nodeWakeModels.NodeWakesNodeColumns.NodeID+"= ?", nodeID),
+		qm.OrderBy(nodeWakeModels.NodeWakesNodeColumns.CreatedAt+" desc"),
+		qm.Limit(1),
+	).One(context.Background(), d.db)
+	if err != nil {
+		return -1, err
+	}
+
+	return nodeWake.NodeWakesID, err
+}
+
+func (d *NodeWakeDatabase) GetNodeForNodeWakeID(nodeWakeID int64) (*nodeWakeModels.Node, error) {
+	var nodes []*nodeWakeModels.Node
+	err := nodeWakeModels.NewQuery(
+		qm.Select("*"),
+		qm.From(nodeWakeModels.TableNames.NodeWakesNodes),
+		qm.InnerJoin(
+			nodeWakeModels.TableNames.Nodes+" on "+
+				nodeWakeModels.TableNames.NodeWakesNodes+"."+nodeWakeModels.NodeWakesNodeColumns.NodeID+" = "+
+				nodeWakeModels.TableNames.Nodes+"."+nodeWakeModels.NodeColumns.MacAddress,
+		),
+		qm.Where(nodeWakeModels.TableNames.NodeWakesNodes+"."+nodeWakeModels.NodeWakesNodeColumns.NodeWakesID+"= ?", nodeWakeID),
+	).Bind(context.Background(), d.db, &nodes)
+
+	return nodes[0], err
 }

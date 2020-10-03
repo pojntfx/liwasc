@@ -311,7 +311,7 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 
 func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReferenceMessage *proto.NodeScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewOpenServicesServer) error {
 	nodeScanID := nodeScanReferenceMessage.GetNodeScanID()
-	if nodeScanReferenceMessage.GetNodeScanID() == -1 {
+	if nodeScanID == -1 {
 		newestNodeScanID, err := s.networkAndNodeScanDatabase.GetNewestNodeScanIDForNodeID(nodeScanReferenceMessage.GetMACAddress())
 		if err != nil {
 			return status.Errorf(codes.Unknown, "could not get scan ID from DB: %v", err.Error())

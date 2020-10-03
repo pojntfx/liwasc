@@ -23,7 +23,6 @@ import (
 // Node is an object representing the database table.
 type Node struct {
 	MacAddress string `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
-	PoweredOn  int64  `boil:"powered_on" json:"powered_on" toml:"powered_on" yaml:"powered_on"`
 
 	R *nodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L nodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -31,20 +30,16 @@ type Node struct {
 
 var NodeColumns = struct {
 	MacAddress string
-	PoweredOn  string
 }{
 	MacAddress: "mac_address",
-	PoweredOn:  "powered_on",
 }
 
 // Generated where
 
 var NodeWhere = struct {
 	MacAddress whereHelperstring
-	PoweredOn  whereHelperint64
 }{
 	MacAddress: whereHelperstring{field: "\"nodes\".\"mac_address\""},
-	PoweredOn:  whereHelperint64{field: "\"nodes\".\"powered_on\""},
 }
 
 // NodeRels is where relationship names are stored.
@@ -64,8 +59,8 @@ func (*nodeR) NewStruct() *nodeR {
 type nodeL struct{}
 
 var (
-	nodeAllColumns            = []string{"mac_address", "powered_on"}
-	nodeColumnsWithoutDefault = []string{"mac_address", "powered_on"}
+	nodeAllColumns            = []string{"mac_address"}
+	nodeColumnsWithoutDefault = []string{"mac_address"}
 	nodeColumnsWithDefault    = []string{}
 	nodePrimaryKeyColumns     = []string{"mac_address"}
 )

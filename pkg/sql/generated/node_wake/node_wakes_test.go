@@ -568,7 +568,7 @@ func testNodeWakesSelect(t *testing.T) {
 }
 
 var (
-	nodeWakeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`}
+	nodeWakeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`, `PoweredOn`: `INTEGER`}
 	_               = bytes.MinRead
 )
 

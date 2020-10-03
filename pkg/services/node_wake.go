@@ -90,13 +90,6 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 
 			dbNode := &nodeWakeModels.Node{
 				MacAddress: node.MacAddress,
-				PoweredOn: func() int64 {
-					if node.Awake {
-						return 1
-					}
-
-					return 0
-				}(),
 			}
 
 			if _, err := s.nodeWakeDatabase.UpsertNode(dbNode, nodeWakeID); err != nil {
@@ -105,7 +98,25 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 				break
 			}
 
-			nodeWakeMessenger.Broadcast(dbNode)
+			nodeWake.PoweredOn = func() int64 {
+				if node.Awake {
+					return 1
+				}
+
+				return 0
+			}()
+			if _, err := s.nodeWakeDatabase.UpdateNodeWakeScan(nodeWake); err != nil {
+				log.Println("could not update node wake scan in DB", err)
+
+				return
+			}
+
+			protoLucidNodeMessage := &proto.LucidNodeMessage{
+				MACAddress: dbNode.MacAddress,
+				PoweredOn:  node.Awake,
+			}
+
+			nodeWakeMessenger.Broadcast(protoLucidNodeMessage)
 		}
 
 		nodeWakeMessenger.Reset()
@@ -126,4 +137,45 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 	}
 
 	return protoNodeWakeReferenceMessage, nil
+}
+
+func (s *NodeWakeService) SubscribeToNodeWakeUp(nodeWakeReferenceMessage *proto.NodeWakeReferenceMessage, stream proto.NodeWakeService_SubscribeToNodeWakeUpServer) error {
+	nodeWakeID := nodeWakeReferenceMessage.GetNodeWakeID()
+	if nodeWakeID == -1 {
+		newestNodeWakeID, err := s.nodeWakeDatabase.GetNewestNodeWakeIDForNodeID(nodeWakeReferenceMessage.GetMACAddress())
+		if err != nil {
+			return status.Errorf(codes.Unknown, "could not get node wake ID from DB: %v", err.Error())
+		}
+
+		nodeWakeID = newestNodeWakeID
+	}
+
+	nodeWake, err := s.nodeWakeDatabase.GetNodeWake(nodeWakeID)
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get node wake from DB: %v", err.Error())
+	}
+
+	node, err := s.nodeWakeDatabase.GetNodeForNodeWakeID(nodeWakeID)
+	if err != nil {
+		return status.Errorf(codes.Unknown, "could not get node from DB: %v", err.Error())
+	}
+
+	protoLucidNodeMessage := &proto.LucidNodeMessage{
+		MACAddress: node.MacAddress,
+		PoweredOn: func() bool {
+			if nodeWake.PoweredOn == 1 {
+				return true
+			}
+
+			return false
+		}(),
+	}
+
+	if err := stream.Send(protoLucidNodeMessage); err != nil {
+		return status.Errorf(codes.Unknown, "could not send lucid node to frontend: %v", err.Error())
+	}
+
+	// TODO: If !done, sub to messenger and send to frontend
+
+	return nil
 }

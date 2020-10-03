@@ -25,6 +25,7 @@ type NodeWake struct {
 	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	Done      int64     `boil:"done" json:"done" toml:"done" yaml:"done"`
+	PoweredOn int64     `boil:"powered_on" json:"powered_on" toml:"powered_on" yaml:"powered_on"`
 
 	R *nodeWakeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L nodeWakeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -34,10 +35,12 @@ var NodeWakeColumns = struct {
 	ID        string
 	CreatedAt string
 	Done      string
+	PoweredOn string
 }{
 	ID:        "id",
 	CreatedAt: "created_at",
 	Done:      "done",
+	PoweredOn: "powered_on",
 }
 
 // Generated where
@@ -83,10 +86,12 @@ var NodeWakeWhere = struct {
 	ID        whereHelperint64
 	CreatedAt whereHelpertime_Time
 	Done      whereHelperint64
+	PoweredOn whereHelperint64
 }{
 	ID:        whereHelperint64{field: "\"node_wakes\".\"id\""},
 	CreatedAt: whereHelpertime_Time{field: "\"node_wakes\".\"created_at\""},
 	Done:      whereHelperint64{field: "\"node_wakes\".\"done\""},
+	PoweredOn: whereHelperint64{field: "\"node_wakes\".\"powered_on\""},
 }
 
 // NodeWakeRels is where relationship names are stored.
@@ -106,8 +111,8 @@ func (*nodeWakeR) NewStruct() *nodeWakeR {
 type nodeWakeL struct{}
 
 var (
-	nodeWakeAllColumns            = []string{"id", "created_at", "done"}
-	nodeWakeColumnsWithoutDefault = []string{"created_at", "done"}
+	nodeWakeAllColumns            = []string{"id", "created_at", "done", "powered_on"}
+	nodeWakeColumnsWithoutDefault = []string{"created_at", "done", "powered_on"}
 	nodeWakeColumnsWithDefault    = []string{"id"}
 	nodeWakePrimaryKeyColumns     = []string{"id"}
 )
