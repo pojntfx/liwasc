@@ -42,10 +42,11 @@ func (s *PortScanner) Transmit() error {
 	var wg sync.WaitGroup
 	for port := s.startPort; port <= s.endPort; port++ {
 		for _, protocol := range s.protocols {
+			wg.Add(1)
+
 			if err := s.lock.Acquire(context.TODO(), 1); err != nil {
 				return err
 			}
-			wg.Add(1)
 
 			go func(innerPort int, innerProtocol string) {
 				defer wg.Done()
@@ -106,13 +107,13 @@ func (s *PortScanner) Transmit() error {
 					if err := c.CheckAddr(raddr, s.timeout); err != nil {
 						// TCP port is closed
 						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, false}
-
-						return
+					} else {
+						// TCP port is open
+						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 					}
-
-					// TCP port is open
-					s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 				}
+
+				s.lock.Release(1)
 			}(port, protocol)
 		}
 	}
@@ -127,7 +128,6 @@ func (s *PortScanner) Transmit() error {
 	case <-doneChan:
 		s.scannedPortChan <- nil
 		close(s.scannedPortChan)
-		s.lock.Release(1)
 
 		break
 	case <-nonFatalErrorChan:
@@ -137,7 +137,6 @@ func (s *PortScanner) Transmit() error {
 	case err := <-fatalErrorChan:
 		s.scannedPortChan <- nil
 		close(s.scannedPortChan)
-		s.lock.Release(1)
 
 		return err
 	}
