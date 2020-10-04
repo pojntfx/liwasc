@@ -50,6 +50,8 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 		return nil, status.Errorf(codes.Unknown, "could not create node wake in DB: %v", err.Error())
 	}
 
+	log.Printf("starting node wake %v for node %v\n", nodeWake, nodeWakeTriggerMessage.GetMACAddress())
+
 	if err := s.wakeOnLANWaker.Write(nodeWakeTriggerMessage.GetMACAddress()); err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not send Wake-on-LAN packet: %v", err.Error())
 	}
@@ -85,6 +87,8 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 
 			// Wake scan is done
 			if node == nil {
+				log.Printf("finished node wake %v for node %v\n", nodeWakeID, nodeWakeTriggerMessage.GetMACAddress())
+
 				break
 			}
 
