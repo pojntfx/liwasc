@@ -57,7 +57,7 @@ func (c *NavbarComponent) Render() app.UI {
 								c.Connected,
 								app.Text("You are connected to the real-time node stream. No need to reload!"),
 							).Else(
-								app.Text("You are not to the real-time node stream. Please reload!"),
+								app.Text("You are not connected to the real-time node stream. Please check the console for errors and reload!"),
 							),
 						),
 					},
