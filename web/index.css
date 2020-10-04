@@ -27,3 +27,7 @@
 .x__brand--svg {
   height: fit-content;
 }
+
+.x__table__col--vertical-center {
+  vertical-align: middle !important;
+}
