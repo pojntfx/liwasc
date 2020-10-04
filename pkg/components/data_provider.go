@@ -31,7 +31,7 @@ func (c *DataProviderComponent) Render() app.UI {
 	return c.Children(DataProviderChildrenProps{
 		Nodes: c.nodes,
 
-		Connected: false,
+		Connected: true,
 		Scanning:  true,
 	})
 }

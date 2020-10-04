@@ -27,11 +27,15 @@ func (c *NavbarComponent) Render() app.UI {
 			),
 		),
 		app.Div().Class("pf-c-page__header-tools").Body(
-			app.If(c.Connected,
-				app.Span().Class("pf-c-spinner pf-m-lg").Body(
-					app.Span().Class("pf-c-spinner__clipper"),
-					app.Span().Class("pf-c-spinner__lead-ball"),
-					app.Span().Class("pf-c-spinner__tail-ball"),
+			app.Div().Class("pf-c-page__header-tools-group").Body(
+				app.Div().Class("pf-c-page__header-tools-item pf-u-mx-lg").Body(
+					&TooltipComponent{
+						Children: app.I().Class("fas fa-satellite-dish"),
+						Tooltip: app.Div().Body(
+							app.I().Class("fas fa-check-circle pf-u-mr-sm"),
+							app.Text("You are connected to the node stream."),
+						),
+					},
 				),
 			),
 			app.Div().Class(fmt.Sprintf("pf-c-dropdown %v", func() string {
