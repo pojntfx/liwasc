@@ -13,6 +13,8 @@ type NavbarComponent struct {
 	UserAvatar   string
 	UserName     string
 
+	Connected bool
+
 	OnUserMenuToggle func(ctx app.Context, e app.Event)
 	OnSignOutClick   func(ctx app.Context, e app.Event)
 }
@@ -25,6 +27,13 @@ func (c *NavbarComponent) Render() app.UI {
 			),
 		),
 		app.Div().Class("pf-c-page__header-tools").Body(
+			app.If(c.Connected,
+				app.Span().Class("pf-c-spinner pf-m-lg").Body(
+					app.Span().Class("pf-c-spinner__clipper"),
+					app.Span().Class("pf-c-spinner__lead-ball"),
+					app.Span().Class("pf-c-spinner__tail-ball"),
+				),
+			),
 			app.Div().Class(fmt.Sprintf("pf-c-dropdown %v", func() string {
 				if c.UserMenuOpen {
 					return "pf-m-expanded"

@@ -28,6 +28,9 @@ type AppComponent struct {
 	servicesOpen         bool
 	selectedService      int
 	InspectorSearchValue string
+
+	Connected bool
+	Scanning  bool
 }
 
 func (c *AppComponent) Render() app.UI {
@@ -48,6 +51,8 @@ func (c *AppComponent) Render() app.UI {
 			UserMenuOpen: c.userMenuOpen,
 			UserAvatar:   c.UserAvatar,
 			UserName:     c.UserName,
+
+			Connected: c.Connected,
 
 			OnUserMenuToggle: func(ctx app.Context, e app.Event) {
 				c.handleUserMenuToggle()
@@ -90,6 +95,8 @@ func (c *AppComponent) Render() app.UI {
 							Subnets:     []string{"10.0.0.0/9", "192.168.0.0/27"},
 							Device:      "eth0",
 							SearchValue: c.NodeSearchValue,
+
+							Scanning: c.Scanning,
 
 							OnSearchChange: func(newSearchValue string) {
 								c.handleNodeSearchChange(newSearchValue)
