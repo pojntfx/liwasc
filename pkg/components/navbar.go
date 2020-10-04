@@ -28,12 +28,37 @@ func (c *NavbarComponent) Render() app.UI {
 		),
 		app.Div().Class("pf-c-page__header-tools").Body(
 			app.Div().Class("pf-c-page__header-tools-group").Body(
-				app.Div().Class("pf-c-page__header-tools-item pf-u-mx-lg").Body(
+				app.Div().Class("pf-c-page__header-tools-item ").Body(
 					&TooltipComponent{
-						Children: app.I().Class("fas fa-satellite-dish"),
+						Children: app.I().Class(fmt.Sprintf(
+							"fas %v %v",
+							func() string {
+								if c.Connected {
+									return "fa-satellite-dish"
+								}
+
+								return "fa-exclamation-triangle"
+							}(),
+							func() string {
+								if c.Connected {
+									return "x__icon--pulsating"
+								}
+
+								return "x__icon--danger"
+							}())),
 						Tooltip: app.Div().Body(
-							app.I().Class("fas fa-check-circle pf-u-mr-sm"),
-							app.Text("You are connected to the node stream."),
+							app.If(
+								c.Connected,
+								app.I().Class("fas fa-check-circle pf-u-mr-sm"),
+							).Else(
+								app.I().Class("fas fa-times pf-u-mr-sm"),
+							),
+							app.If(
+								c.Connected,
+								app.Text("You are connected to the real-time node stream. No need to reload!"),
+							).Else(
+								app.Text("You are not to the real-time node stream. Please reload!"),
+							),
 						),
 					},
 				),

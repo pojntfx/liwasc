@@ -57,3 +57,31 @@
   opacity: 1 !important;
   visibility: visible !important;
 }
+
+.x__icon--pulsating:after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  border: 0.125rem solid var(--pf-global--info-color--100);
+  border-radius: 50%;
+  animation: pulse 3s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.x__icon--danger {
+  color: var(--pf-global--danger-color--100);
+}
