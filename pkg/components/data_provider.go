@@ -32,7 +32,7 @@ func (c *DataProviderComponent) Render() app.UI {
 		Nodes: c.nodes,
 
 		Connected: true,
-		Scanning:  true,
+		Scanning:  false,
 	})
 }
 
