@@ -11,13 +11,13 @@ import (
 )
 
 type DataProviderChildrenProps struct {
-	Nodes []models.Node
+	Nodes []*models.Node
 }
 
 type DataProviderComponent struct {
 	app.Compo
 
-	nodes []models.Node
+	nodes []*models.Node
 
 	NetworkAndNodeScanServiceClient proto.NetworkAndNodeScanServiceClient
 	NodeWakeServiceClient           proto.NodeWakeServiceClient
@@ -30,117 +30,6 @@ func (c *DataProviderComponent) Render() app.UI {
 
 func (c *DataProviderComponent) OnMount(ctx app.Context) {
 	go func() {
-		c.nodes = []models.Node{
-			{
-				PoweredOn:  false,
-				MACAddress: "ff:ff:ff:ff",
-				IPAddress:  "10.0.0.1",
-				Vendor:     "TP-Link",
-				Services: []models.Service{
-					{
-						ServiceName:             "ssh",
-						PortNumber:              22,
-						TransportProtocol:       "tcp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-					{
-						ServiceName:             "dns",
-						PortNumber:              53,
-						TransportProtocol:       "udp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-					{
-						ServiceName:             "http",
-						PortNumber:              80,
-						TransportProtocol:       "tcp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-				},
-				Registry:     "MA-1",
-				Organization: "TP-Link",
-				Address:      "One Hacker Way",
-				Visible:      true,
-			},
-			{
-				PoweredOn:  true,
-				MACAddress: "00:1B:44:11:3A:B7",
-				IPAddress:  "10.0.0.2",
-				Vendor:     "Realtek",
-				Services: []models.Service{
-					{
-						ServiceName:             "echo",
-						PortNumber:              7,
-						TransportProtocol:       "tcp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-					{
-						ServiceName:             "echo",
-						PortNumber:              7,
-						TransportProtocol:       "udp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-					{
-						ServiceName:             "http",
-						PortNumber:              80,
-						TransportProtocol:       "tcp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-				},
-				Registry:     "MA-1",
-				Organization: "Realtek",
-				Address:      "Two Hacker Way",
-				Visible:      false,
-			},
-		}
-
 		protoNetworkScanReferenceMessage := proto.NetworkScanReferenceMessage{
 			NetworkScanID: -1,
 		}
@@ -161,8 +50,55 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 				log.Fatal(err)
 			}
 
-			log.Println(protoNode)
-			// TODO: Convert protoNode to internal node, update, and subscribe to new services
+			newNode := &models.Node{
+				PoweredOn:    protoNode.LucidNode.PoweredOn,
+				MACAddress:   protoNode.LucidNode.MACAddress,
+				IPAddress:    protoNode.LucidNode.IPAddress,
+				Vendor:       protoNode.LucidNode.Vendor,
+				Registry:     protoNode.LucidNode.Registry,
+				Organization: protoNode.LucidNode.Organization,
+				Address:      protoNode.LucidNode.Address,
+				Visible:      protoNode.LucidNode.Visible,
+				Services: []models.Service{
+					{
+						ServiceName:             "echo",
+						PortNumber:              7,
+						TransportProtocol:       "tcp",
+						Description:             "Lorem dolor sit amet",
+						Assignee:                "Felicitas Pojtinger",
+						Contact:                 "felicitas@pojtinger.com",
+						RegistrationDate:        "2002-01-01",
+						ModificationDate:        "2002-02-02",
+						Reference:               "RFC1234",
+						ServiceCode:             "C241",
+						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
+						AssignmentNotes:         "Might glow in the dark.",
+					},
+				},
+			}
+
+			exists := false
+			for _, node := range c.nodes {
+				if node.MACAddress == protoNode.LucidNode.MACAddress {
+					exists = true
+
+					break
+				}
+			}
+
+			if exists {
+				for _, node := range c.nodes {
+					if node.MACAddress == protoNode.LucidNode.MACAddress {
+						node = newNode
+
+						break
+					}
+				}
+			} else {
+				c.nodes = append(c.nodes, newNode)
+			}
+
+			// TODO: Subscribe to node scans if nodeScanID != -1
 
 			app.Dispatch(func() {
 				c.Update()
