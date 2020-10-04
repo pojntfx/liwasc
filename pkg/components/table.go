@@ -39,7 +39,7 @@ func (c *TableComponent) Render() app.UI {
 
 					return ""
 				}())).Body(
-					app.Td().DataSet("label", headers[0]).Class(fmt.Sprintf("pf-m-nowrap %v", func() string {
+					app.Td().DataSet("label", headers[0]).Class(fmt.Sprintf("pf-m-nowrap x__table__col--vertical-center %v", func() string {
 						if i == c.SelectedNode {
 							return "x__table__col--selectable--selected--first"
 						}
