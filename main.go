@@ -24,7 +24,7 @@ func main() {
 	maxConcurrentPortScans := flag.Uint("maxConcurrentPortScans", 1000, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter.")
 	periodicScanCronExpression := flag.String("periodicScanCronExpression", "@every 5m", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
 	periodicNetworkScanTimeout := flag.Int("periodicNetworkScanTimeout", 10000, "Time in milliseconds to wait for node discoveries in the periodic network scans.")
-	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 1000, "Time in milliseconds to wait for a response per port in the periodic node scans.")
+	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 100, "Time in milliseconds to wait for a response per port in the periodic node scans.")
 
 	flag.Parse()
 
