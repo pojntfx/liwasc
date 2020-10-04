@@ -3,6 +3,8 @@ package components
 import (
 	"context"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
@@ -48,9 +50,11 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 	})
 
 	go func() {
+		log.Println("subscribing to periodic background network scan IDs")
+
 		periodicBackgroundNetworkScanStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewPeriodicNetworkScans(context.Background(), &emptypb.Empty{})
 		if err != nil {
-			log.Println("could not subscribe to periodic background scan IDs", err)
+			log.Println("could not subscribe to periodic background network scan IDs", err)
 
 			c.invalidateConnection()
 
@@ -58,16 +62,48 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 		}
 
 		for {
-			periodicNetworkScanID, err := periodicBackgroundNetworkScanStream.Recv()
+			periodicNetworkScanReference, err := periodicBackgroundNetworkScanStream.Recv()
 			if err != nil {
-				log.Println("could not receive periodic background scan ID", err)
+				log.Println("could not receive periodic background network scan ID", err)
 
 				c.invalidateConnection()
 
-				return
+				break
 			}
 
-			log.Println(periodicNetworkScanID)
+			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference)
+
+			nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(context.Background(), periodicNetworkScanReference)
+			if err != nil {
+				log.Println("could not subscribe to network scan, retrying in 5s", err)
+
+				c.invalidateConnection()
+
+				time.Sleep(time.Second * 5)
+
+				continue
+			}
+
+			for {
+				protoNode, err := nodeStream.Recv()
+				if err != nil {
+					if strings.Contains(err.Error(), "EOF") {
+						log.Printf("network scan %v done, subscribing to next periodic background network scan\n", periodicNetworkScanReference.GetNetworkScanID())
+
+						break
+					}
+
+					log.Println("could not receive node, retrying in 5s", err)
+
+					c.invalidateConnection()
+
+					time.Sleep(time.Second * 5)
+
+					continue
+				}
+
+				log.Println(protoNode)
+			}
 		}
 
 		// protoNetworkScanReferenceMessage := proto.NetworkScanReferenceMessage{
