@@ -46,7 +46,7 @@ func (c *AppComponent) Render() app.UI {
 		c.selectedService = -1
 	}
 
-	return app.Div().Class("pf-c-page").Body(
+	return app.Div().TabIndex(0).Class("pf-c-page").Body(
 		&NavbarComponent{
 			UserMenuOpen: c.userMenuOpen,
 			UserAvatar:   c.UserAvatar,
