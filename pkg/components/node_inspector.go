@@ -31,9 +31,15 @@ func (c *NodeInspectorComponent) Render() app.UI {
 				Content: app.Text(c.Node.IPAddress),
 			},
 			&DefinitionComponent{
-				Title:   "Vendor",
-				Icon:    "fas fa-store-alt",
-				Content: &SearchLinkComponent{Topic: c.Node.Vendor},
+				Title: "Vendor",
+				Icon:  "fas fa-store-alt",
+				Content: func() app.UI {
+					if c.Node.Vendor != "" {
+						return &SearchLinkComponent{Topic: c.Node.Vendor}
+					}
+
+					return app.Text("Unknown vendor")
+				}(),
 			},
 		),
 		&ExpandableSectionComponent{
@@ -82,19 +88,37 @@ func (c *NodeInspectorComponent) Render() app.UI {
 			Title:         "Details",
 			Content: app.Dl().Class("pf-c-description-list pf-m-2-col pf-u-mb-md").Body(
 				&DefinitionComponent{
-					Title:   "Registry",
-					Icon:    "fas fa-list",
-					Content: app.Text(c.Node.Registry),
+					Title: "Registry",
+					Icon:  "fas fa-list",
+					Content: app.Text(func() string {
+						if c.Node.Registry != "" {
+							return c.Node.Registry
+						}
+
+						return "Unknown registry"
+					}()),
 				},
 				&DefinitionComponent{
-					Title:   "Organization",
-					Icon:    "fas fa-university",
-					Content: &SearchLinkComponent{Topic: c.Node.Organization},
+					Title: "Organization",
+					Icon:  "fas fa-university",
+					Content: func() app.UI {
+						if c.Node.Organization != "" {
+							return &SearchLinkComponent{Topic: c.Node.Organization}
+						}
+
+						return app.Text("Unknown organization")
+					}(),
 				},
 				&DefinitionComponent{
-					Title:   "Registered Address",
-					Icon:    "fas fa-map-marker-alt",
-					Content: &SearchLinkComponent{Topic: c.Node.Address},
+					Title: "Registered Address",
+					Icon:  "fas fa-map-marker-alt",
+					Content: func() app.UI {
+						if c.Node.Organization != "" {
+							return &SearchLinkComponent{Topic: c.Node.Address}
+						}
+
+						return app.Text("Unknown address")
+					}(),
 				},
 				&DefinitionComponent{
 					Title: "Visible Address",
