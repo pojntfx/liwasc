@@ -78,7 +78,13 @@ func (c *AppComponent) Render() app.UI {
 									return ""
 								}
 
-								return c.Nodes[c.selectedNode].Services[c.selectedService].ServiceName
+								serviceName := c.Nodes[c.selectedNode].Services[c.selectedService].ServiceName
+
+								if serviceName == "" {
+									return "Non-Registered service"
+								}
+
+								return serviceName
 							}())),
 						),
 					).Else(

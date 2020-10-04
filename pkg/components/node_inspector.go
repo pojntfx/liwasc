@@ -64,7 +64,15 @@ func (c *NodeInspectorComponent) Render() app.UI {
 							app.Div().Class("pf-c-data-list__item-row").Body(
 								app.Div().Class("pf-c-data-list__item-content").Body(
 									app.Div().Class("pf-c-data-list__cell pf-u-display-flex pf-u-justify-content-space-between").Body(
-										app.Span().Text(c.Node.Services[i].ServiceName),
+										app.Span().Text(func() string {
+											serviceName := c.Node.Services[i].ServiceName
+
+											if serviceName == "" {
+												return "Non-Registered service"
+											}
+
+											return serviceName
+										}()),
 										app.Span().Class("pf-u-ml-md").Text(fmt.Sprintf("%v/%v", c.Node.Services[i].PortNumber, c.Node.Services[i].TransportProtocol)),
 									),
 								),
