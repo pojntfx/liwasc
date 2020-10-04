@@ -189,7 +189,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				break
 			}
 
-			log.Printf("found node %v in network scan %v, started node scan %v\n", networkScanID, dbNode.MacAddress, nodeScanID)
+			log.Printf("found node %v in network scan %v, started node scan %v\n", dbNode.MacAddress, networkScanID, nodeScanID)
 
 			networkScanMessenger.Broadcast(dbNode)
 		}

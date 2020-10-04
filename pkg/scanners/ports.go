@@ -48,7 +48,6 @@ func (s *PortScanner) Transmit() error {
 			wg.Add(1)
 
 			go func(innerPort int, innerProtocol string) {
-				defer s.lock.Release(1)
 				defer wg.Done()
 
 				raddr := net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort))
@@ -128,6 +127,7 @@ func (s *PortScanner) Transmit() error {
 	case <-doneChan:
 		s.scannedPortChan <- nil
 		close(s.scannedPortChan)
+		s.lock.Release(1)
 
 		break
 	case <-nonFatalErrorChan:
@@ -137,6 +137,7 @@ func (s *PortScanner) Transmit() error {
 	case err := <-fatalErrorChan:
 		s.scannedPortChan <- nil
 		close(s.scannedPortChan)
+		s.lock.Release(1)
 
 		return err
 	}
