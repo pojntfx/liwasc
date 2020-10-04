@@ -49,7 +49,10 @@ func (s *PortScanner) Transmit() error {
 			}
 
 			go func(innerPort int, innerProtocol string) {
-				defer wg.Done()
+				defer func() {
+					s.lock.Release(1)
+					wg.Done()
+				}()
 
 				raddr := net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort))
 
@@ -112,8 +115,6 @@ func (s *PortScanner) Transmit() error {
 						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 					}
 				}
-
-				s.lock.Release(1)
 			}(port, protocol)
 		}
 	}
