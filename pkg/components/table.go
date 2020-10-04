@@ -50,23 +50,36 @@ func (c *TableComponent) Render() app.UI {
 					),
 					app.Td().DataSet("label", headers[1]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].MACAddress)),
 					app.Td().DataSet("label", headers[2]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].IPAddress)),
-					app.Td().DataSet("label", headers[3]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(app.Text(c.Nodes[i].Vendor)),
+					app.Td().DataSet("label", headers[3]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
+						app.Text(func() string {
+							if c.Nodes[i].Vendor != "" {
+								return c.Nodes[i].Vendor
+							}
+
+							return "Unknown vendor"
+						}()),
+					),
 					app.Td().DataSet("label", headers[4]).Class("x__table__col--selectable").OnClick(func(ctx app.Context, e app.Event) { c.OnRowClick(i) }).Body(
 						app.Div().Class("pf-c-label-group").Body(
 							app.Ul().Class("pf-c-label-group__list").Body(
-								app.Range(c.Nodes[i].Services).Slice(func(i2 int) app.UI {
-									return app.Li().Class("pf-c-label-group__list-item").Body(
-										app.Span().Class("pf-c-label").Body(
-											app.Span().Class("pf-c-label__content").Body(
-												app.Text(fmt.Sprintf("%v/%v (%v)",
-													c.Nodes[i].Services[i2].PortNumber,
-													c.Nodes[i].Services[i2].TransportProtocol,
-													c.Nodes[i].Services[i2].ServiceName,
-												)),
+								app.If(
+									len(c.Nodes[i].Services) < 1,
+									app.Text("No services found"),
+								).Else(
+									app.Range(c.Nodes[i].Services).Slice(func(i2 int) app.UI {
+										return app.Li().Class("pf-c-label-group__list-item").Body(
+											app.Span().Class("pf-c-label").Body(
+												app.Span().Class("pf-c-label__content").Body(
+													app.Text(fmt.Sprintf("%v/%v (%v)",
+														c.Nodes[i].Services[i2].PortNumber,
+														c.Nodes[i].Services[i2].TransportProtocol,
+														c.Nodes[i].Services[i2].ServiceName,
+													)),
+												),
 											),
-										),
-									)
-								}),
+										)
+									}),
+								),
 							),
 						),
 					),
