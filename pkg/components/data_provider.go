@@ -71,7 +71,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 				break
 			}
 
-			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference)
+			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference.GetNetworkScanID())
 
 			nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(context.Background(), periodicNetworkScanReference)
 			if err != nil {
@@ -102,7 +102,36 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 					continue
 				}
 
-				log.Println(protoNode)
+				node := &models.Node{
+					PoweredOn:    protoNode.LucidNode.GetPoweredOn(),
+					Address:      protoNode.LucidNode.GetAddress(),
+					IPAddress:    protoNode.LucidNode.GetIPAddress(),
+					MACAddress:   protoNode.LucidNode.GetMACAddress(),
+					Organization: protoNode.LucidNode.GetOrganization(),
+					Registry:     protoNode.LucidNode.GetRegistry(),
+					Services:     []*models.Service{}, // TODO: Subscribe to service and add here
+					Vendor:       protoNode.LucidNode.GetVendor(),
+					Visible:      protoNode.LucidNode.GetVisible(),
+				}
+
+				log.Printf("received node %v from network scan %v\n", node.MACAddress, periodicNetworkScanReference.GetNetworkScanID())
+
+				existingIndex := -1
+				for i, oldNode := range c.nodes {
+					if oldNode.MACAddress == node.MACAddress {
+						existingIndex = i
+
+						break
+					}
+				}
+
+				if existingIndex != -1 {
+					c.nodes[existingIndex] = node
+				} else {
+					c.nodes = append(c.nodes, node)
+				}
+
+				c.Update()
 			}
 		}
 
