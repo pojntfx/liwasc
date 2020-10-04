@@ -16,7 +16,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
-	"github.com/robfig/cron"
+	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
@@ -70,7 +70,7 @@ func NewNetworkAndNodeScanService(
 }
 
 func (s *NetworkAndNodeScanService) Open() error {
-	if err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
+	if _, err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
 		go func() {
 			protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
 				NetworkScanTimeout: int64(s.periodicNetworkScanTimeout),
@@ -87,6 +87,8 @@ func (s *NetworkAndNodeScanService) Open() error {
 			dbPeriodicNetworkScan := &networkAndNodeScanModels.PeriodicNetworkScansNetworkScan{
 				NetworkScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
 			}
+
+			log.Printf("started periodic network scan %v\n", dbPeriodicNetworkScan.NetworkScanID)
 
 			if _, err := s.networkAndNodeScanDatabase.CreatePeriodicNetworkScan(dbPeriodicNetworkScan); err != nil {
 				log.Println("could not create network scan in DB", err)
@@ -114,6 +116,8 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not create network scan in DB: %v", err.Error())
 	}
+
+	log.Printf("starting network scan %v\n", networkScanID)
 
 	networkScanner := scanners.NewNetworkScanner(s.device)
 	if err, _ = networkScanner.Open(); err != nil {
@@ -151,6 +155,8 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 			// Network scan is done
 			if node == nil {
+				log.Printf("finished network scan %v\n", networkScanID)
+
 				break
 			}
 
@@ -176,12 +182,14 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 				break
 			}
 
-			_, err = s.startPortScan(dbNode.MacAddress, dbNode.IPAddress, networkScanID, scanTriggerMessage.GetNodeScanTimeout())
+			nodeScanID, err := s.startPortScan(dbNode.MacAddress, dbNode.IPAddress, networkScanID, scanTriggerMessage.GetNodeScanTimeout())
 			if err != nil {
 				log.Println("could not start node scan", err)
 
 				break
 			}
+
+			log.Printf("found node %v in network scan %v, started node scan %v\n", networkScanID, dbNode.MacAddress, nodeScanID)
 
 			networkScanMessenger.Broadcast(dbNode)
 		}
@@ -211,6 +219,8 @@ func (s *NetworkAndNodeScanService) TriggerNodeScan(ctx context.Context, nodeSca
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not get node from DB: %v", err.Error())
 	}
+
+	log.Printf("starting node scan %v\n", nodeScanID)
 
 	protoNodeScanReferenceMessage := &proto.NodeScanReferenceMessage{
 		MACAddress: node.MacAddress,
@@ -479,6 +489,8 @@ func (s *NetworkAndNodeScanService) SubscribeToNewPeriodicNetworkScans(_ *empty.
 }
 
 func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.NodeMetadataMessage, error) {
+	log.Printf("deleting node %v\n", nodeDeleteMessage.MACAddress)
+
 	dbNode, err := s.networkAndNodeScanDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not get delete node from DB: %v", err.Error())
@@ -548,6 +560,8 @@ func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress strin
 
 			// Port scan is done
 			if port == nil {
+				log.Printf("finished node scan %v for node %v in network scan %v\n", nodeScanID, nodeID, nodeScanID)
+
 				break
 			}
 
@@ -593,11 +607,14 @@ func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress strin
 					}
 				}
 
-				if _, err := s.networkAndNodeScanDatabase.UpsertService(dbService, nodeID, nodeScanID, networkScanID); err != nil {
-					log.Println("could not create node in DB", err)
+				serviceID, err := s.networkAndNodeScanDatabase.UpsertService(dbService, nodeID, nodeScanID, networkScanID)
+				if err != nil {
+					log.Println("could not create service in DB", err)
 
 					break
 				}
+
+				log.Printf("found service %v in node scan %v for node %v from network scan %v\n", serviceID, nodeScanID, nodeID, networkScanID)
 
 				nodeScanMessenger.Broadcast(dbService)
 			}
