@@ -31,3 +31,29 @@
 .x__table__col--vertical-center {
   vertical-align: middle !important;
 }
+
+.x__tooltip__wrapper {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 300ms linear;
+}
+
+.x__tooltip__wrapper__arrow {
+  top: inherit !important;
+  left: 50% !important;
+  transform: none;
+  z-index: 1000;
+}
+
+.x__tooltip__wrapper__content {
+  position: absolute;
+  width: 250px;
+  margin-left: calc(-250px / 2);
+  box-shadow: var(--pf-global--BoxShadow--md);
+  z-index: 1001;
+}
+
+.x__tooltip:hover .x__tooltip__wrapper {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
