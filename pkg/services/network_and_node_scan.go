@@ -457,15 +457,19 @@ func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReference
 func (s *NetworkAndNodeScanService) SubscribeToNewPeriodicNetworkScans(_ *empty.Empty, stream proto.NetworkAndNodeScanService_SubscribeToNewPeriodicNetworkScansServer) error {
 	dbNewestPeriodicNetworkScan, err := s.networkAndNodeScanDatabase.GetNewestPeriodicNetworkScan()
 	if err != nil {
-		return status.Errorf(codes.Unknown, "could not get get newest periodic network scan from DB: %v", err.Error())
+		if !strings.Contains(err.Error(), "sql: no rows in result set") {
+			return status.Errorf(codes.Unknown, "could not get newest periodic network scan from DB: %v", err.Error())
+		}
 	}
 
-	protoNetworkScanReferenceMessage := &proto.NetworkScanReferenceMessage{
-		NetworkScanID: dbNewestPeriodicNetworkScan.NetworkScanID,
-	}
+	if dbNewestPeriodicNetworkScan != nil {
+		protoNetworkScanReferenceMessage := &proto.NetworkScanReferenceMessage{
+			NetworkScanID: dbNewestPeriodicNetworkScan.NetworkScanID,
+		}
 
-	if err := stream.Send(protoNetworkScanReferenceMessage); err != nil {
-		return status.Errorf(codes.Unknown, "could not send network scan reference message to frontend: %v", err.Error())
+		if err := stream.Send(protoNetworkScanReferenceMessage); err != nil {
+			return status.Errorf(codes.Unknown, "could not send network scan reference message to frontend: %v", err.Error())
+		}
 	}
 
 	client, err := s.periodicScanMessenger.Sub()
