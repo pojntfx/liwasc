@@ -10,7 +10,7 @@ import (
 type ServiceInspectorComponent struct {
 	app.Compo
 
-	Service models.Service
+	Service *models.Service
 }
 
 func (c *ServiceInspectorComponent) Render() app.UI {

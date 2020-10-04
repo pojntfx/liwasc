@@ -5,7 +5,7 @@ type Node struct {
 	MACAddress   string
 	IPAddress    string
 	Vendor       string
-	Services     []Service
+	Services     []*Service
 	Registry     string
 	Organization string
 	Address      string
