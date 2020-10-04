@@ -28,7 +28,7 @@ func (c *NavbarComponent) Render() app.UI {
 		),
 		app.Div().Class("pf-c-page__header-tools").Body(
 			app.Div().Class("pf-c-page__header-tools-group").Body(
-				app.Div().Class("pf-c-page__header-tools-item ").Body(
+				app.Div().Class("pf-c-page__header-tools-item").Body(
 					&TooltipComponent{
 						Children: app.I().Class(fmt.Sprintf(
 							"fas %v %v",

@@ -14,7 +14,7 @@
   box-shadow: none;
 }
 
-.x__table__col--selectable--selected--first:before {
+.x__table__col--selectable--selected--first::before {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -52,13 +52,12 @@
   box-shadow: var(--pf-global--BoxShadow--md);
   z-index: 1001;
 }
-
 .x__tooltip:hover .x__tooltip__wrapper {
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-.x__icon--pulsating:after {
+.x__icon--pulsating::after {
   content: "";
   position: absolute;
   left: -1px;
