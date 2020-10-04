@@ -37,6 +37,9 @@ func main() {
 				Nodes: dataProviderChildrenProps.Nodes,
 
 				InspectorSearchValue: "",
+
+				Connected: dataProviderChildrenProps.Connected,
+				Scanning:  dataProviderChildrenProps.Scanning,
 			}
 		},
 	})

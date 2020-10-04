@@ -11,6 +11,8 @@ type ToolbarComponent struct {
 	Device      string
 	SearchValue string
 
+	Scanning bool
+
 	OnSearchChange func(string)
 	OnTriggerClick func(ctx app.Context, e app.Event)
 }
@@ -42,11 +44,23 @@ func (c *ToolbarComponent) Render() app.UI {
 				),
 				app.Div().Class("pf-c-divider pf-m-vertical pf-m-inset-md"),
 				app.Div().Class("pf-c-toolbar__item").Body(
-					app.Button().Class("pf-c-button pf-m-primary").Body(
-						app.Span().Class("pf-c-button__icon pf-m-start").Body(
-							app.I().Class("fas fa-rocket"),
+					app.Button().Class("pf-c-button pf-m-primary pf-u-display-flex pf-u-justify-content-center pf-u-align-items-center").Disabled(c.Scanning).Body(
+						app.If(c.Scanning,
+							app.Span().Class("pf-c-spinner pf-m-md pf-u-mr-sm").Body(
+								app.Span().Class("pf-c-spinner__clipper"),
+								app.Span().Class("pf-c-spinner__lead-ball"),
+								app.Span().Class("pf-c-spinner__tail-ball"),
+							),
+						).Else(
+							app.Span().Class("pf-c-button__icon pf-m-start").Body(
+								app.I().Class("fas fa-rocket"),
+							),
 						),
-						app.Text("Trigger Scan"),
+						app.If(c.Scanning,
+							app.Text("Scanning ..."),
+						).Else(
+							app.Text("Trigger Scan"),
+						),
 					).OnClick(c.OnTriggerClick),
 				),
 			),

@@ -12,6 +12,9 @@ import (
 
 type DataProviderChildrenProps struct {
 	Nodes []*models.Node
+
+	Connected bool
+	Scanning  bool
 }
 
 type DataProviderComponent struct {
@@ -25,7 +28,12 @@ type DataProviderComponent struct {
 }
 
 func (c *DataProviderComponent) Render() app.UI {
-	return c.Children(DataProviderChildrenProps{c.nodes})
+	return c.Children(DataProviderChildrenProps{
+		Nodes: c.nodes,
+
+		Connected: false,
+		Scanning:  true,
+	})
 }
 
 func (c *DataProviderComponent) OnMount(ctx app.Context) {
