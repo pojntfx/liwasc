@@ -71,30 +71,31 @@ func NewNetworkAndNodeScanService(
 
 func (s *NetworkAndNodeScanService) Open() error {
 	if err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
-		protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
-			NetworkScanTimeout: int64(s.periodicNetworkScanTimeout),
-			NodeScanTimeout:    int64(s.periodicNodeScanTimeout),
-		}
+		go func() {
+			protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
+				NetworkScanTimeout: int64(s.periodicNetworkScanTimeout),
+				NodeScanTimeout:    int64(s.periodicNodeScanTimeout),
+			}
 
-		protoNetworkScanReferenceMessage, err := s.TriggerNetworkScan(context.Background(), protoNetworkScanTriggerMessage)
-		if err != nil {
-			log.Println("could not trigger network scan", err)
+			protoNetworkScanReferenceMessage, err := s.TriggerNetworkScan(context.Background(), protoNetworkScanTriggerMessage)
+			if err != nil {
+				log.Println("could not trigger network scan", err)
 
-			return
-		}
+				return
+			}
 
-		dbPeriodicNetworkScan := &networkAndNodeScanModels.PeriodicNetworkScansNetworkScan{
-			NetworkScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
-		}
+			dbPeriodicNetworkScan := &networkAndNodeScanModels.PeriodicNetworkScansNetworkScan{
+				NetworkScanID: protoNetworkScanReferenceMessage.GetNetworkScanID(),
+			}
 
-		if _, err := s.networkAndNodeScanDatabase.CreatePeriodicNetworkScan(dbPeriodicNetworkScan); err != nil {
-			log.Println("could not create network scan in DB", err)
+			if _, err := s.networkAndNodeScanDatabase.CreatePeriodicNetworkScan(dbPeriodicNetworkScan); err != nil {
+				log.Println("could not create network scan in DB", err)
 
-			return
-		}
+				return
+			}
 
-		s.periodicScanMessenger.Broadcast(dbPeriodicNetworkScan.NetworkScanID)
-		// TODO: Add subscribe rpc for latest periodic scans; this RPC should fetch the latest scan ID from the append-only table, send the scan ID to the frontend, subscribe to the messenger and send all further ones to the latter as well
+			s.periodicScanMessenger.Broadcast(dbPeriodicNetworkScan.NetworkScanID)
+		}()
 	}); err != nil {
 		return err
 	}
