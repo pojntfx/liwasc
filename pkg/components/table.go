@@ -10,7 +10,7 @@ import (
 type TableComponent struct {
 	app.Compo
 
-	Nodes        []models.Node
+	Nodes        []*models.Node
 	SelectedNode int
 
 	OnRowClick    func(int)

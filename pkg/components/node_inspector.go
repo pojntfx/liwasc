@@ -10,7 +10,7 @@ import (
 type NodeInspectorComponent struct {
 	app.Compo
 
-	Node                 models.Node
+	Node                 *models.Node
 	ServicesAndPortsOpen bool
 	DetailsOpen          bool
 	SearchValue          string

@@ -18,7 +18,7 @@ type AppComponent struct {
 	Device          string
 	NodeSearchValue string
 
-	Nodes        []models.Node
+	Nodes        []*models.Node
 	SelectedNode int
 
 	InspectorOpen        bool
@@ -112,9 +112,9 @@ func (c *AppComponent) Render() app.UI {
 						Else(
 							app.Div().Body(
 								&NodeInspectorComponent{
-									Node: func() models.Node {
+									Node: func() *models.Node {
 										if c.SelectedNode == -1 {
-											return models.Node{}
+											return &models.Node{}
 										}
 
 										return c.Nodes[c.SelectedNode]
