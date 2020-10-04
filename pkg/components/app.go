@@ -10,7 +10,7 @@ import (
 type AppComponent struct {
 	app.Compo
 
-	UserMenuOpen bool
+	userMenuOpen bool
 	UserAvatar   string
 	UserName     string
 
@@ -19,21 +19,33 @@ type AppComponent struct {
 	NodeSearchValue string
 
 	Nodes        []*models.Node
-	SelectedNode int
+	selectedNode int
 
-	InspectorOpen        bool
-	ServicesAndPortsOpen bool
-	DetailsOpen          bool
+	inspectorOpen        bool
+	servicesAndPortsOpen bool
+	detailsOpen          bool
 
-	ServicesOpen         bool
-	SelectedService      int
+	servicesOpen         bool
+	selectedService      int
 	InspectorSearchValue string
 }
 
 func (c *AppComponent) Render() app.UI {
+	if c.Nodes == nil {
+		c.userMenuOpen = false
+		c.selectedNode = -1
+
+		c.inspectorOpen = false
+		c.servicesAndPortsOpen = true
+		c.detailsOpen = false
+
+		c.servicesOpen = false
+		c.selectedService = -1
+	}
+
 	return app.Div().Class("pf-c-page").Body(
 		&NavbarComponent{
-			UserMenuOpen: c.UserMenuOpen,
+			UserMenuOpen: c.userMenuOpen,
 			UserAvatar:   c.UserAvatar,
 			UserName:     c.UserName,
 
@@ -47,9 +59,9 @@ func (c *AppComponent) Render() app.UI {
 		app.Main().Class("pf-c-page__main").Body(
 			app.Section().Class("pf-c-page__main-section pf-m-no-padding").Body(
 				&DrawerComponent{
-					Open: c.InspectorOpen,
+					Open: c.inspectorOpen,
 					Title: app.If(
-						c.ServicesOpen,
+						c.servicesOpen,
 						app.Div().Body(
 							app.Button().Class("pf-u-mr-md pf-c-button pf-m-plain").Body(
 								app.I().Class("fas fa-arrow-left"),
@@ -57,20 +69,20 @@ func (c *AppComponent) Render() app.UI {
 								c.handleInspectorBackClick()
 							}),
 							app.B().Text(fmt.Sprintf("Service %v", func() string {
-								if c.SelectedService == -1 {
+								if c.selectedService == -1 {
 									return ""
 								}
 
-								return c.Nodes[c.SelectedNode].Services[c.SelectedService].ServiceName
+								return c.Nodes[c.selectedNode].Services[c.selectedService].ServiceName
 							}())),
 						),
 					).Else(
 						app.B().Text(fmt.Sprintf("Node %v", func() string {
-							if c.SelectedNode == -1 {
+							if c.selectedNode == -1 {
 								return ""
 							}
 
-							return c.Nodes[c.SelectedNode].MACAddress
+							return c.Nodes[c.selectedNode].MACAddress
 						}())),
 					),
 					Main: app.Div().Body(
@@ -88,7 +100,7 @@ func (c *AppComponent) Render() app.UI {
 						},
 						&TableComponent{
 							Nodes:        c.Nodes,
-							SelectedNode: c.SelectedNode,
+							SelectedNode: c.selectedNode,
 
 							OnRowClick: func(i int) {
 								c.handleRowClick(i)
@@ -98,14 +110,14 @@ func (c *AppComponent) Render() app.UI {
 							},
 						}),
 					Details: app.If(
-						c.ServicesOpen,
+						c.servicesOpen,
 						&ServiceInspectorComponent{
-							Service: func() models.Service {
-								if c.SelectedService == -1 {
-									return models.Service{}
+							Service: func() *models.Service {
+								if c.selectedService == -1 {
+									return &models.Service{}
 								}
 
-								return c.Nodes[c.SelectedNode].Services[c.SelectedService]
+								return c.Nodes[c.selectedNode].Services[c.selectedService]
 							}(),
 						},
 					).
@@ -113,14 +125,14 @@ func (c *AppComponent) Render() app.UI {
 							app.Div().Body(
 								&NodeInspectorComponent{
 									Node: func() *models.Node {
-										if c.SelectedNode == -1 {
+										if c.selectedNode == -1 {
 											return &models.Node{}
 										}
 
-										return c.Nodes[c.SelectedNode]
+										return c.Nodes[c.selectedNode]
 									}(),
-									ServicesAndPortsOpen: c.ServicesAndPortsOpen,
-									DetailsOpen:          c.DetailsOpen,
+									ServicesAndPortsOpen: c.servicesAndPortsOpen,
+									DetailsOpen:          c.detailsOpen,
 									SearchValue:          c.InspectorSearchValue,
 
 									OnServicesAndPortsToggle: func(ctx app.Context, e app.Event) {
@@ -142,34 +154,34 @@ func (c *AppComponent) Render() app.UI {
 						),
 					Actions: []app.UI{
 						app.If(
-							c.ServicesOpen,
+							c.servicesOpen,
 							app.Text(fmt.Sprintf("%v/%v",
 								func() int {
-									if c.SelectedService == -1 {
+									if c.selectedService == -1 {
 										return -1
 									}
 
-									return c.Nodes[c.SelectedNode].Services[c.SelectedService].PortNumber
+									return c.Nodes[c.selectedNode].Services[c.selectedService].PortNumber
 								}(),
 								func() string {
-									if c.SelectedService == -1 {
+									if c.selectedService == -1 {
 										return ""
 									}
 
-									return c.Nodes[c.SelectedNode].Services[c.SelectedService].TransportProtocol
+									return c.Nodes[c.selectedNode].Services[c.selectedService].TransportProtocol
 								}())),
 						).Else(
 							&OnOffSwitchComponent{
 								On: func() bool {
-									if c.SelectedNode == -1 {
+									if c.selectedNode == -1 {
 										return false
 									}
 
-									return c.Nodes[c.SelectedNode].PoweredOn
+									return c.Nodes[c.selectedNode].PoweredOn
 								}(),
 
 								OnToggleClick: func(ctx app.Context, e app.Event) {
-									c.handlePowerToggle(c.SelectedNode)
+									c.handlePowerToggle(c.selectedNode)
 								},
 							},
 						),
@@ -186,13 +198,13 @@ func (c *AppComponent) Render() app.UI {
 }
 
 func (c *AppComponent) handleUserMenuToggle() {
-	c.UserMenuOpen = !c.UserMenuOpen
+	c.userMenuOpen = !c.userMenuOpen
 
 	c.Update()
 }
 
 func (c *AppComponent) handleSignOutClick() {
-	c.UserMenuOpen = false
+	c.userMenuOpen = false
 
 	c.Update()
 }
@@ -208,13 +220,13 @@ func (c *AppComponent) handleNodeTriggerClick() {
 }
 
 func (c *AppComponent) handleRowClick(i int) {
-	if c.SelectedNode == i {
+	if c.selectedNode == i {
 		c.handleInspectorCloseClick()
 	} else {
-		c.InspectorOpen = true
-		c.ServicesOpen = false
-		c.SelectedNode = i
-		c.SelectedService = -1
+		c.inspectorOpen = true
+		c.servicesOpen = false
+		c.selectedNode = i
+		c.selectedService = -1
 	}
 
 	c.Update()
@@ -227,22 +239,22 @@ func (c *AppComponent) handlePowerToggle(i int) {
 }
 
 func (c *AppComponent) handleInspectorCloseClick() {
-	c.InspectorOpen = false
-	c.ServicesOpen = false
-	c.SelectedNode = -1
-	c.SelectedService = -1
+	c.inspectorOpen = false
+	c.servicesOpen = false
+	c.selectedNode = -1
+	c.selectedService = -1
 
 	c.Update()
 }
 
 func (c *AppComponent) handleServiceAndPortsToggle() {
-	c.ServicesAndPortsOpen = !c.ServicesAndPortsOpen
+	c.servicesAndPortsOpen = !c.servicesAndPortsOpen
 
 	c.Update()
 }
 
 func (c *AppComponent) handleDetailsToggle() {
-	c.DetailsOpen = !c.DetailsOpen
+	c.detailsOpen = !c.detailsOpen
 
 	c.Update()
 }
@@ -258,15 +270,15 @@ func (c *AppComponent) handleReScanClick() {
 }
 
 func (c *AppComponent) handleServiceClick(i int) {
-	c.SelectedService = i
-	c.ServicesOpen = true
+	c.selectedService = i
+	c.servicesOpen = true
 
 	c.Update()
 }
 
 func (c *AppComponent) handleInspectorBackClick() {
-	c.SelectedService = -1
-	c.ServicesOpen = false
+	c.selectedService = -1
+	c.servicesOpen = false
 
 	c.Update()
 }

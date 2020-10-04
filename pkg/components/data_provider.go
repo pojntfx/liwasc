@@ -59,22 +59,53 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 				Organization: protoNode.LucidNode.Organization,
 				Address:      protoNode.LucidNode.Address,
 				Visible:      protoNode.LucidNode.Visible,
-				Services: []models.Service{
-					{
-						ServiceName:             "echo",
-						PortNumber:              7,
-						TransportProtocol:       "tcp",
-						Description:             "Lorem dolor sit amet",
-						Assignee:                "Felicitas Pojtinger",
-						Contact:                 "felicitas@pojtinger.com",
-						RegistrationDate:        "2002-01-01",
-						ModificationDate:        "2002-02-02",
-						Reference:               "RFC1234",
-						ServiceCode:             "C241",
-						UnauthorizedUseReported: "Aliens have not registered their protocols running on this port!",
-						AssignmentNotes:         "Might glow in the dark.",
-					},
-				},
+				Services:     []*models.Service{},
+			}
+
+			if protoNode.NodeScanID != -1 {
+				go func() {
+					protoNodeScanReferenceMessage := &proto.NodeScanReferenceMessage{
+						NodeScanID: protoNode.NodeScanID,
+					}
+
+					stream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewOpenServices(context.Background(), protoNodeScanReferenceMessage)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					for {
+						protoService, err := stream.Recv()
+						if err != nil {
+							// All have been received
+							if strings.Contains(err.Error(), "EOF") {
+								return
+							}
+
+							log.Fatal(err)
+						}
+
+						service := &models.Service{
+							ServiceName:             protoService.ServiceName,
+							PortNumber:              int(protoService.PortNumber),
+							TransportProtocol:       protoService.TransportProtocol,
+							Description:             protoService.Description,
+							Assignee:                protoService.Assignee,
+							Contact:                 protoService.Contact,
+							RegistrationDate:        protoService.RegistrationDate,
+							ModificationDate:        protoService.ModificationDate,
+							Reference:               protoService.Reference,
+							ServiceCode:             protoService.ServiceCode,
+							UnauthorizedUseReported: protoService.UnauthorizedUseReported,
+							AssignmentNotes:         protoService.UnauthorizedUseReported,
+						}
+
+						newNode.Services = append(newNode.Services, service)
+
+						app.Dispatch(func() {
+							c.Update()
+						})
+					}
+				}()
 			}
 
 			exists := false
