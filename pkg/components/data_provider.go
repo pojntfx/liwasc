@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
@@ -22,7 +23,8 @@ type DataProviderChildrenProps struct {
 type DataProviderComponent struct {
 	app.Compo
 
-	nodes []*models.Node
+	nodes     []*models.Node
+	nodesLock *sync.Mutex
 
 	NetworkAndNodeScanServiceClient proto.NetworkAndNodeScanServiceClient
 	NodeWakeServiceClient           proto.NodeWakeServiceClient
@@ -42,6 +44,8 @@ func (c *DataProviderComponent) Render() app.UI {
 }
 
 func (c *DataProviderComponent) OnMount(ctx app.Context) {
+	c.nodesLock = &sync.Mutex{}
+
 	app.Dispatch(func() {
 		c.connected = true
 		c.scanning = false
@@ -117,20 +121,22 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 					log.Printf("received node %v from network scan %v\n", node.MACAddress, periodicNetworkScanReference.GetNetworkScanID())
 
-					existingIndex := -1
+					c.nodesLock.Lock()
+					existingNodeIndex := -1
 					for i, oldNode := range c.nodes {
 						if oldNode.MACAddress == node.MACAddress {
-							existingIndex = i
+							existingNodeIndex = i
 
 							break
 						}
 					}
 
-					if existingIndex != -1 {
-						c.nodes[existingIndex] = node
+					if existingNodeIndex != -1 {
+						c.nodes[existingNodeIndex] = node
 					} else {
 						c.nodes = append(c.nodes, node)
 					}
+					c.nodesLock.Unlock()
 
 					c.Update()
 
@@ -193,20 +199,11 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 							log.Printf("received service %v/%v from node scan %v\n", service.PortNumber, service.TransportProtocol, protoNodeScanReferenceMessage.GetNodeScanID())
 
-							existingIndex := -1
-							for i, oldService := range node.Services {
-								if oldService.PortNumber == service.PortNumber || oldService.TransportProtocol == service.TransportProtocol {
-									existingIndex = i
+							c.nodesLock.Lock()
 
-									break
-								}
-							}
+							node.Services = append(node.Services, service)
 
-							if existingIndex != -1 {
-								node.Services[existingIndex] = service
-							} else {
-								node.Services = append(node.Services, service)
-							}
+							c.nodesLock.Unlock()
 
 							c.Update()
 						}
