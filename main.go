@@ -4,11 +4,11 @@ import (
 	"flag"
 	"log"
 
+	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"github.com/pojntfx/liwasc/pkg/wakers"
-	"golang.org/x/sync/semaphore"
 )
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
 		serviceNamesPortNumbersDatabase,
 		ports2PacketsDatabase,
 		networkAndNodeScanDatabase,
-		semaphore.NewWeighted(int64(*maxConcurrentPortScans)),
+		concurrency.NewGoRoutineLimiter(int64(*maxConcurrentPortScans)),
 		*periodicScanCronExpression,
 		*periodicNetworkScanTimeout,
 		*periodicNodeScanTimeout,

@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pojntfx/liwasc/pkg/concurrency"
 	tcpShaker "github.com/tevino/tcp-shaker"
-	"golang.org/x/sync/semaphore"
 )
 
 type ScannedPort struct {
@@ -20,18 +20,18 @@ type ScannedPort struct {
 }
 
 type PortScanner struct {
-	target          string
-	startPort       int
-	endPort         int
-	timeout         time.Duration
-	protocols       []string
-	scannedPortChan chan *ScannedPort
-	lock            *semaphore.Weighted
-	packetGetter    func(port int) ([]byte, error)
+	target             string
+	startPort          int
+	endPort            int
+	timeout            time.Duration
+	protocols          []string
+	scannedPortChan    chan *ScannedPort
+	concurrencyLimiter *concurrency.GoRoutineLimiter
+	packetGetter       func(port int) ([]byte, error)
 }
 
-func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string, lock *semaphore.Weighted, packetGetter func(port int) ([]byte, error)) *PortScanner {
-	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort), lock, packetGetter}
+func NewPortScanner(target string, startPort int, endPort int, timeout time.Duration, protocols []string, concurrencyLimiter *concurrency.GoRoutineLimiter, packetGetter func(port int) ([]byte, error)) *PortScanner {
+	return &PortScanner{target, startPort, endPort, timeout, protocols, make(chan *ScannedPort), concurrencyLimiter, packetGetter}
 }
 
 func (s *PortScanner) Transmit() error {
@@ -42,18 +42,12 @@ func (s *PortScanner) Transmit() error {
 	var wg sync.WaitGroup
 	for port := s.startPort; port <= s.endPort; port++ {
 		for _, protocol := range s.protocols {
+			innerPort := port
+			innerProtocol := protocol
+
 			wg.Add(1)
 
-			if err := s.lock.Acquire(context.TODO(), 1); err != nil {
-				return err
-			}
-
-			go func(innerPort int, innerProtocol string) {
-				defer func() {
-					s.lock.Release(1)
-					wg.Done()
-				}()
-
+			s.concurrencyLimiter.Dispatch(func() {
 				raddr := net.JoinHostPort(s.target, fmt.Sprintf("%v", innerPort))
 
 				if innerProtocol == "udp" {
@@ -66,6 +60,8 @@ func (s *PortScanner) Transmit() error {
 					if conn != nil {
 						if err := conn.SetReadDeadline(time.Now().Add(s.timeout)); err != nil {
 							fatalErrorChan <- err
+
+							return
 						}
 
 						packet, err := s.packetGetter(innerPort)
@@ -74,11 +70,15 @@ func (s *PortScanner) Transmit() error {
 								packet = []byte{} // Unknown packet for port, use empty []byte{}
 							} else {
 								fatalErrorChan <- err
+
+								return
 							}
 						}
 
 						if _, err := conn.Write(packet); err != nil {
 							fatalErrorChan <- err
+
+							return
 						}
 
 						// Count every response that is at least 1 byte long as a "open port"
@@ -115,7 +115,9 @@ func (s *PortScanner) Transmit() error {
 						s.scannedPortChan <- &ScannedPort{s.target, innerPort, innerProtocol, true}
 					}
 				}
-			}(port, protocol)
+
+				wg.Done()
+			})
 		}
 	}
 

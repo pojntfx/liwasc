@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	cmap "github.com/orcaman/concurrent-map"
+	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
@@ -18,7 +19,6 @@ import (
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
-	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +33,7 @@ type NetworkAndNodeScanService struct {
 	networkAndNodeScanDatabase      *databases.NetworkAndNodeScanDatabase
 	networkScanMessengers           cmap.ConcurrentMap
 	nodeScanMessengers              cmap.ConcurrentMap
-	portScannerLock                 *semaphore.Weighted
+	portScannerConcurrencyLimiter   *concurrency.GoRoutineLimiter
 	periodicScanCronExpression      string
 	periodicNetworkScanTimeout      int
 	periodicNodeScanTimeout         int
@@ -47,7 +47,7 @@ func NewNetworkAndNodeScanService(
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
 	ports2PacketsDatabase *databases.Ports2PacketDatabase,
 	networkAndNodeScanDatabase *databases.NetworkAndNodeScanDatabase,
-	portScannerLock *semaphore.Weighted,
+	portScannerWorkpool *concurrency.GoRoutineLimiter,
 	periodicScanCronExpression string,
 	periodicNetworkScanTimeout int,
 	periodicNodeScanTimeout int,
@@ -60,7 +60,7 @@ func NewNetworkAndNodeScanService(
 		networkAndNodeScanDatabase:      networkAndNodeScanDatabase,
 		networkScanMessengers:           cmap.New(),
 		nodeScanMessengers:              cmap.New(),
-		portScannerLock:                 portScannerLock,
+		portScannerConcurrencyLimiter:   portScannerWorkpool,
 		periodicScanCronExpression:      periodicScanCronExpression,
 		periodicNetworkScanTimeout:      periodicNetworkScanTimeout,
 		periodicNodeScanTimeout:         periodicNodeScanTimeout,
@@ -523,7 +523,7 @@ func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMe
 func (s *NetworkAndNodeScanService) startPortScan(nodeID string, ipAddress string, networkScanID int64, timeout int64) (int64, error) {
 	// Scan for open ports for node
 	// TODO: This is very expensive. The port scanners should be coordinated to run sequentially so that CPU usage isn't that high.
-	portScanner := scanners.NewPortScanner(ipAddress, 0, math.MaxUint16, time.Millisecond*time.Duration(timeout), []string{"tcp", "udp"}, s.portScannerLock, func(port int) ([]byte, error) {
+	portScanner := scanners.NewPortScanner(ipAddress, 0, math.MaxUint16, time.Millisecond*time.Duration(timeout), []string{"tcp", "udp"}, s.portScannerConcurrencyLimiter, func(port int) ([]byte, error) {
 		packet, err := s.ports2PacketsDatabase.GetPacket(port)
 
 		if err != nil {
