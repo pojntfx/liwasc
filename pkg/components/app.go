@@ -98,8 +98,8 @@ func (c *AppComponent) Render() app.UI {
 					),
 					Main: app.Div().Body(
 						&ToolbarComponent{
-							Subnets:     []string{"10.0.0.0/9", "192.168.0.0/27"},
-							Device:      "eth0",
+							Subnets:     c.Subnets,
+							Device:      c.Device,
 							SearchValue: c.NodeSearchValue,
 
 							Scanning: c.Scanning,

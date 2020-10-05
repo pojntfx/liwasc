@@ -21,17 +21,19 @@ func main() {
 
 	networkAndNodeScanServiceClient := proto.NewNetworkAndNodeScanServiceClient(conn)
 	nodeWakeServiceClient := proto.NewNodeWakeServiceClient(conn)
+	metadataServiceClient := proto.NewMetadataServiceClient(conn)
 
 	app.Route("/", &components.DataProviderComponent{
 		NetworkAndNodeScanServiceClient: networkAndNodeScanServiceClient,
 		NodeWakeServiceClient:           nodeWakeServiceClient,
+		MetadataServiceClient:           metadataServiceClient,
 		Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
 			return &components.AppComponent{
 				UserAvatar: "https://www.gravatar.com/avatar/db856df33fa4f4bce441819f604c90d5",
 				UserName:   "Felix Pojtinger",
 
-				Subnets:         []string{"10.0.0.0/9", "192.168.0.0/27"},
-				Device:          "eth0",
+				Subnets:         dataProviderChildrenProps.Subnets,
+				Device:          dataProviderChildrenProps.Device,
 				NodeSearchValue: "",
 
 				Nodes: dataProviderChildrenProps.Nodes,

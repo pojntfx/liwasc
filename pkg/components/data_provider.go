@@ -18,6 +18,9 @@ type DataProviderChildrenProps struct {
 
 	Connected bool
 	Scanning  bool
+
+	Subnets []string
+	Device  string
 }
 
 type DataProviderComponent struct {
@@ -28,10 +31,14 @@ type DataProviderComponent struct {
 
 	NetworkAndNodeScanServiceClient proto.NetworkAndNodeScanServiceClient
 	NodeWakeServiceClient           proto.NodeWakeServiceClient
+	MetadataServiceClient           proto.MetadataServiceClient
 	Children                        func(DataProviderChildrenProps) app.UI
 
 	connected bool
 	scanning  bool
+
+	subnets []string
+	device  string
 }
 
 func (c *DataProviderComponent) Render() app.UI {
@@ -40,6 +47,9 @@ func (c *DataProviderComponent) Render() app.UI {
 
 		Connected: c.connected,
 		Scanning:  c.scanning,
+
+		Subnets: c.subnets,
+		Device:  c.device,
 	})
 }
 
@@ -52,6 +62,26 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 		c.Update()
 	})
+
+	go func() {
+		log.Println("getting metadata from service")
+
+		metadata, err := c.MetadataServiceClient.GetMetadata(context.Background(), &emptypb.Empty{})
+		if err != nil {
+			log.Println("could not get metadata", err)
+
+			c.invalidateConnection()
+
+			return
+		}
+
+		log.Printf("received metadata: %v\n", metadata)
+
+		c.subnets = metadata.GetSubnets()
+		c.device = metadata.GetDevice()
+
+		c.Update()
+	}()
 
 	go func() {
 		log.Println("subscribing to periodic background network scan IDs")
