@@ -6,6 +6,7 @@ import (
 
 	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
+	"github.com/pojntfx/liwasc/pkg/networking"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"github.com/pojntfx/liwasc/pkg/wakers"
@@ -59,11 +60,14 @@ func main() {
 		},
 		wakeOnLANWaker,
 	)
+	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
+	metadataService := services.NewMetadataService(interfaceInspector)
 	liwascServer := servers.NewLiwascServer(
 		*listenAddress,
 		*webSocketListenAddress,
 		networkAndNodeScanService,
 		nodeWakeService,
+		metadataService,
 	)
 
 	// Open instances
@@ -94,6 +98,12 @@ func main() {
 	go func() {
 		if err := networkAndNodeScanService.Open(); err != nil {
 			log.Fatal("could not open networkAndNodeScanService", err)
+		}
+	}()
+
+	go func() {
+		if err := metadataService.Open(); err != nil {
+			log.Fatal("could not open metadataService", err)
 		}
 	}()
 
