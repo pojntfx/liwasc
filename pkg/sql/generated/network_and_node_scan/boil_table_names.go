@@ -9,8 +9,6 @@ var TableNames = struct {
 	NodeNodeScansNetworkScans        string
 	NodeScans                        string
 	NodeScansServicesNodes           string
-	NodeWakes                        string
-	NodeWakesNodes                   string
 	Nodes                            string
 	PeriodicNetworkScansNetworkScans string
 	Services                         string
@@ -20,8 +18,6 @@ var TableNames = struct {
 	NodeNodeScansNetworkScans:        "node_node_scans_network_scans",
 	NodeScans:                        "node_scans",
 	NodeScansServicesNodes:           "node_scans_services_nodes",
-	NodeWakes:                        "node_wakes",
-	NodeWakesNodes:                   "node_wakes_nodes",
 	Nodes:                            "nodes",
 	PeriodicNetworkScansNetworkScans: "periodic_network_scans_network_scans",
 	Services:                         "services",
