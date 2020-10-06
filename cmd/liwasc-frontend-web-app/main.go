@@ -37,6 +37,11 @@ func main() {
 			LocalStoragePrefix: "liwasc",
 
 			Children: func(loginProviderChildrenProps components.OIDCLoginProviderChildrenProps) app.UI {
+				if loginProviderChildrenProps.OAuth2Token.AccessToken == "" || loginProviderChildrenProps.UserInfo.Email == "" {
+					return &components.LoadingPageComponent{
+						Message: "Logging you in ...",
+					}
+				}
 
 				if loginProviderChildrenProps.Error != nil {
 					return &components.FatalErrorPageComponent{
@@ -53,11 +58,6 @@ func main() {
 							).OnClick(func(ctx app.Context, e app.Event) { app.Reload() }),
 						},
 					}
-				}
-
-				// TODO: Add better error and login displays
-				if loginProviderChildrenProps.OAuth2Token.AccessToken == "" || loginProviderChildrenProps.UserInfo.Email == "" {
-					return app.Text("Logging you in ...")
 				}
 
 				return &components.DataProviderComponent{
