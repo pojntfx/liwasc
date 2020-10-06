@@ -84,3 +84,11 @@
 .x__icon--danger {
   color: var(--pf-global--danger-color--100);
 }
+
+.x__page--full {
+  min-width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

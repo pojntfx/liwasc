@@ -37,11 +37,25 @@ func main() {
 			LocalStoragePrefix: "liwasc",
 
 			Children: func(loginProviderChildrenProps components.OIDCLoginProviderChildrenProps) app.UI {
-				// TODO: Add better error and login displays
+
 				if loginProviderChildrenProps.Error != nil {
-					return app.Text(fmt.Sprintf("An error occurred: %v", err))
+					return &components.FatalErrorPageComponent{
+						Header:             "Oh no! A fatal error occured.",
+						Description:        "The following message might be of help; more details might be in the console:",
+						StackTraceLanguage: "Go Stacktrace",
+						StackTraceContent:  loginProviderChildrenProps.Error.Error(),
+						Actions: []app.UI{
+							app.Button().Class("pf-c-button pf-m-primary").Body(
+								app.Span().Class("pf-c-button__icon pf-m-start").Body(
+									app.I().Class("fas fa-sync-alt"),
+								),
+								app.Text("Restart liwasc"),
+							).OnClick(func(ctx app.Context, e app.Event) { app.Reload() }),
+						},
+					}
 				}
 
+				// TODO: Add better error and login displays
 				if loginProviderChildrenProps.OAuth2Token.AccessToken == "" || loginProviderChildrenProps.UserInfo.Email == "" {
 					return app.Text("Logging you in ...")
 				}

@@ -159,6 +159,9 @@ func (c *OIDCLoginProviderComponent) registerTokenRefresh() {
 		// Set new token in state
 		c.oauth2Token = *newToken
 
+		// Schedule the next refresh
+		c.registerTokenRefresh()
+
 		c.Update()
 	}()
 }
