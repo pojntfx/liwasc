@@ -14,6 +14,8 @@ type AppComponent struct {
 	UserAvatar   string
 	UserName     string
 
+	Logout func()
+
 	Subnets         []string
 	Device          string
 	NodeSearchValue string
@@ -220,6 +222,8 @@ func (c *AppComponent) handleSignOutClick() {
 	c.userMenuOpen = false
 
 	c.Update()
+
+	c.Logout()
 }
 
 func (c *AppComponent) handleNodeSearchChange(newSearchValue string) {

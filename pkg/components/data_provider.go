@@ -29,6 +29,8 @@ type DataProviderComponent struct {
 	nodes     []*models.Node
 	nodesLock *sync.Mutex
 
+	AccessToken string
+
 	NetworkAndNodeScanServiceClient proto.NetworkAndNodeScanServiceClient
 	NodeWakeServiceClient           proto.NodeWakeServiceClient
 	MetadataServiceClient           proto.MetadataServiceClient
@@ -42,6 +44,8 @@ type DataProviderComponent struct {
 }
 
 func (c *DataProviderComponent) Render() app.UI {
+	log.Println("got access token from login provider ", c.AccessToken)
+
 	return c.Children(DataProviderChildrenProps{
 		Nodes: c.nodes,
 
