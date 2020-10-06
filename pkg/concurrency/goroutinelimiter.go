@@ -5,15 +5,15 @@ import (
 )
 
 type GoRoutineLimiter struct {
-	maxGoRoutines     int64
-	currentGoRoutines int64
+	maxGoRoutines     int32
+	currentGoRoutines int32
 
-	slotChan chan int64
+	slotChan chan int32
 }
 
-func NewGoRoutineLimiter(max int64) *GoRoutineLimiter {
-	slotChan := make(chan int64, max)
-	for i := int64(0); i < max; i++ {
+func NewGoRoutineLimiter(max int32) *GoRoutineLimiter {
+	slotChan := make(chan int32, max)
+	for i := int32(0); i < max; i++ {
 		slotChan <- i
 	}
 
@@ -28,13 +28,13 @@ func NewGoRoutineLimiter(max int64) *GoRoutineLimiter {
 func (c *GoRoutineLimiter) Dispatch(dispatcher func()) {
 	slot := <-c.slotChan
 
-	atomic.AddInt64(&c.currentGoRoutines, 1)
+	atomic.AddInt32(&c.currentGoRoutines, 1)
 
 	go func() {
 		defer func() {
 			c.slotChan <- slot
 
-			atomic.AddInt64(&c.currentGoRoutines, -1)
+			atomic.AddInt32(&c.currentGoRoutines, -1)
 		}()
 
 		dispatcher()
