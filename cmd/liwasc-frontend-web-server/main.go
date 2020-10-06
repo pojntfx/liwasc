@@ -10,6 +10,10 @@ import (
 
 func main() {
 	listenAddress := flag.String("listenAddress", "0.0.0.0:15125", "Listen address")
+	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
+	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
+	oidcClientSecret := flag.String("oidcClientSecret", "myoidcclientid", "OIDC client secret")
+	oidcRedirectURL := flag.String("oidcRedirectURL", "http://example.com/", "OIDC redirect URL")
 
 	flag.Parse()
 
@@ -50,6 +54,12 @@ func main() {
 		},
 		ThemeColor: "#151515",
 		Title:      "liwasc",
+		Env: map[string]string{
+			"LIWASC_OIDC_ISSUER":        *oidcIssuer,
+			"LIWASC_OIDC_CLIENT_ID":     *oidcClientID,
+			"LIWASC_OIDC_CLIENT_SECRET": *oidcClientSecret,
+			"LIWASC_OIDC_REDIRECT_URL":  *oidcRedirectURL,
+		},
 	}
 
 	log.Println("Listening on", *listenAddress)
