@@ -3,7 +3,7 @@ package components
 import (
 	"context"
 	"fmt"
-	"log"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
@@ -105,12 +105,7 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 			return
 		}
 
-		if err := app.LocalStorage.Set(c.getKeyWithPrefix(oauth2TokenKey), oauth2Token); err != nil {
-			c.invalidateLogin(err)
-
-			return
-		}
-		if err := app.LocalStorage.Set(c.getKeyWithPrefix(userInfoKey), userInfo); err != nil {
+		if err := c.setStateToLocalStorage(*oauth2Token, *userInfo); err != nil {
 			c.invalidateLogin(err)
 
 			return
@@ -134,8 +129,38 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 	c.oauth2Token = oauth2Token
 	c.userInfo = userInfo
 
+	c.registerTokenRefresh()
+
 	return
-	// TODO: Check if expired; if so, refresh the access token with the refresh token; else return
+}
+
+func (c *OIDCLoginProviderComponent) registerTokenRefresh() {
+	go func() {
+		// Wait till token expires
+		time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
+
+		// Fetch new token
+		tokenSource := oauth2.StaticTokenSource(&c.oauth2Token)
+
+		newToken, err := tokenSource.Token()
+		if err != nil {
+			c.invalidateLogin(err)
+
+			return
+		}
+
+		// Set new token in local storage
+		if err := c.setStateToLocalStorage(*newToken, c.userInfo); err != nil {
+			c.invalidateLogin(err)
+
+			return
+		}
+
+		// Set new token in state
+		c.oauth2Token = *newToken
+
+		c.Update()
+	}()
 }
 
 func (c *OIDCLoginProviderComponent) handleLogout(withRedirect bool) {
@@ -162,9 +187,15 @@ func (c *OIDCLoginProviderComponent) getStateFromLocalStorage() (oauth2.Token, o
 	return oauth2Token, userInfo, nil
 }
 
-func (c *OIDCLoginProviderComponent) invalidateLogin(err error) {
-	log.Println("could not continue in login provider", err)
+func (c *OIDCLoginProviderComponent) setStateToLocalStorage(oauth2Token oauth2.Token, userInfo oidc.UserInfo) error {
+	if err := app.LocalStorage.Set(c.getKeyWithPrefix(oauth2TokenKey), oauth2Token); err != nil {
+		return err
+	}
 
+	return app.LocalStorage.Set(c.getKeyWithPrefix(userInfoKey), userInfo)
+}
+
+func (c *OIDCLoginProviderComponent) invalidateLogin(err error) {
 	c.err = err
 
 	c.handleLogout(false)
