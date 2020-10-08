@@ -3,4 +3,4 @@ build:
 	@go build -o liwasc-frontend-web-server cmd/liwasc-frontend-web-server/main.go
 
 run: build
-	@./liwasc-frontend-web-server -listenAddress=${LISTENADDRESS} -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcClientSecret=${OIDCCLIENTSECRET} -oidcRedirectURL=${OIDCREDIRECTURL}
+	@./liwasc-frontend-web-server -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcClientSecret=${OIDCCLIENTSECRET} -oidcRedirectURL=${OIDCREDIRECTURL}

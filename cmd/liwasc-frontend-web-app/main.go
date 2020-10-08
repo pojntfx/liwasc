@@ -61,7 +61,7 @@ func main() {
 				}
 
 				return &components.DataProviderComponent{
-					AccessToken: loginProviderChildrenProps.OAuth2Token.AccessToken,
+					IDToken: loginProviderChildrenProps.IDToken,
 
 					NetworkAndNodeScanServiceClient: networkAndNodeScanServiceClient,
 					NodeWakeServiceClient:           nodeWakeServiceClient,

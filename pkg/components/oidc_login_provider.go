@@ -12,12 +12,15 @@ import (
 )
 
 const (
-	oauth2TokenKey = "oauth2Token"
-	userInfoKey    = "userInfo"
+	oauth2TokenKey             = "oauth2Token"
+	idTokenKey                 = "idToken"
+	userInfoKey                = "userInfo"
+	AUTHORIZATION_METADATA_KEY = "X-Liwasc-Authorization"
 )
 
 type OIDCLoginProviderChildrenProps struct {
 	OAuth2Token oauth2.Token
+	IDToken     string
 	UserInfo    oidc.UserInfo
 	Error       error
 
@@ -39,6 +42,7 @@ type OIDCLoginProviderComponent struct {
 	Children func(OIDCLoginProviderChildrenProps) app.UI
 
 	oauth2Token oauth2.Token
+	idToken     string
 	userInfo    oidc.UserInfo
 	err         error
 }
@@ -49,6 +53,7 @@ func (c *OIDCLoginProviderComponent) Render() app.UI {
 	return c.Children(
 		OIDCLoginProviderChildrenProps{
 			OAuth2Token: c.oauth2Token,
+			IDToken:     c.idToken,
 			UserInfo:    c.userInfo,
 			Error:       c.err,
 			Logout:      func() { c.handleLogout(true) },
@@ -58,7 +63,7 @@ func (c *OIDCLoginProviderComponent) Render() app.UI {
 
 func (c *OIDCLoginProviderComponent) upsertLogin() {
 	// Fetch current info from local storage
-	oauth2Token, userInfo, err := c.getStateFromLocalStorage()
+	oauth2Token, idToken, userInfo, err := c.getStateFromLocalStorage()
 	if err != nil {
 		c.invalidateLogin(err)
 
@@ -86,7 +91,7 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 	if oauth2Token.AccessToken == "" || userInfo.Email == "" {
 		if app.Window().URL().Query().Get("state") == "" {
 			// If info could not be found in both local storage and the URL, login
-			app.Navigate(config.AuthCodeURL(c.RedirectURL))
+			app.Navigate(config.AuthCodeURL(c.RedirectURL, oauth2.AccessTypeOffline))
 
 			return
 		}
@@ -99,6 +104,13 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 			return
 		}
 
+		idToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			c.invalidateLogin(err)
+
+			return
+		}
+
 		userInfo, err := provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
 		if err != nil {
 			c.invalidateLogin(err)
@@ -106,13 +118,13 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 			return
 		}
 
-		if err := c.setStateToLocalStorage(*oauth2Token, *userInfo); err != nil {
+		if err := c.setStateToLocalStorage(*oauth2Token, idToken, *userInfo); err != nil {
 			c.invalidateLogin(err)
 
 			return
 		}
 
-		_, _, err = c.getStateFromLocalStorage()
+		_, _, _, err = c.getStateFromLocalStorage()
 		if err != nil {
 			c.invalidateLogin(err)
 
@@ -128,6 +140,7 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 
 	// Info could be found in local storage; set in state and update
 	c.oauth2Token = oauth2Token
+	c.idToken = idToken
 	c.userInfo = userInfo
 
 	c.registerTokenRefresh()
@@ -144,22 +157,30 @@ func (c *OIDCLoginProviderComponent) registerTokenRefresh() {
 			// Fetch new token
 			tokenSource := oauth2.StaticTokenSource(&c.oauth2Token)
 
-			newToken, err := tokenSource.Token()
+			newOAuth2Token, err := tokenSource.Token()
 			if err != nil {
 				c.invalidateLogin(err)
 
 				return
 			}
 
+			newIDToken, ok := newOAuth2Token.Extra("id_token").(string)
+			if !ok {
+				c.invalidateLogin(err)
+
+				return
+			}
+
 			// Set new token in local storage
-			if err := c.setStateToLocalStorage(*newToken, c.userInfo); err != nil {
+			if err := c.setStateToLocalStorage(*newOAuth2Token, newIDToken, c.userInfo); err != nil {
 				c.invalidateLogin(err)
 
 				return
 			}
 
 			// Set new token in state
-			c.oauth2Token = *newToken
+			c.oauth2Token = *newOAuth2Token
+			c.idToken = newIDToken
 
 			c.Update()
 		}
@@ -177,21 +198,29 @@ func (c *OIDCLoginProviderComponent) handleLogout(withRedirect bool) {
 	}
 }
 
-func (c *OIDCLoginProviderComponent) getStateFromLocalStorage() (oauth2.Token, oidc.UserInfo, error) {
+func (c *OIDCLoginProviderComponent) getStateFromLocalStorage() (oauth2.Token, string, oidc.UserInfo, error) {
 	oauth2Token := oauth2.Token{}
+	idToken := ""
 	userInfo := oidc.UserInfo{}
 	if err := app.LocalStorage.Get(c.getKeyWithPrefix(oauth2TokenKey), &oauth2Token); err != nil {
-		return oauth2.Token{}, oidc.UserInfo{}, err
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
+	}
+	if err := app.LocalStorage.Get(c.getKeyWithPrefix(idTokenKey), &idToken); err != nil {
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}
 	if err := app.LocalStorage.Get(c.getKeyWithPrefix(userInfoKey), &userInfo); err != nil {
-		return oauth2.Token{}, oidc.UserInfo{}, err
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}
 
-	return oauth2Token, userInfo, nil
+	return oauth2Token, idToken, userInfo, nil
 }
 
-func (c *OIDCLoginProviderComponent) setStateToLocalStorage(oauth2Token oauth2.Token, userInfo oidc.UserInfo) error {
+func (c *OIDCLoginProviderComponent) setStateToLocalStorage(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo) error {
 	if err := app.LocalStorage.Set(c.getKeyWithPrefix(oauth2TokenKey), oauth2Token); err != nil {
+		return err
+	}
+
+	if err := app.LocalStorage.Set(c.getKeyWithPrefix(idTokenKey), idToken); err != nil {
 		return err
 	}
 
