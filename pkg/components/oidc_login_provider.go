@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/coreos/go-oidc"
@@ -199,6 +200,8 @@ func (c *OIDCLoginProviderComponent) setStateToLocalStorage(oauth2Token oauth2.T
 }
 
 func (c *OIDCLoginProviderComponent) invalidateLogin(err error) {
+	log.Println("could not login", err)
+
 	c.err = err
 
 	c.handleLogout(false)
