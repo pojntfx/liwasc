@@ -9,6 +9,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/networking"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 )
 
@@ -26,6 +27,8 @@ func main() {
 	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/5 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
 	periodicNetworkScanTimeout := flag.Int("periodicNetworkScanTimeout", 10000, "Time in milliseconds to wait for node discoveries in the periodic network scans.")
 	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 100, "Time in milliseconds to wait for a response per port in the periodic node scans.")
+	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
+	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
 
 	flag.Parse()
 
@@ -35,6 +38,8 @@ func main() {
 	nodeWakeDatabase := databases.NewNodeWakeDatabase(*nodeWakeDatabasePath)
 	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
 	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath)
+	oidcValidator := validators.NewOIDCValidator(*oidcIssuer, *oidcClientID)
+	contextValidator := validators.NewContextValidator(services.AUTHORIZATION_METADATA_KEY, oidcValidator)
 	networkAndNodeScanService := services.NewNetworkAndNodeScanService(
 		*deviceName,
 		mac2VendorDatabase,
@@ -45,6 +50,7 @@ func main() {
 		*periodicScanCronExpression,
 		*periodicNetworkScanTimeout,
 		*periodicNodeScanTimeout,
+		contextValidator,
 	)
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
@@ -59,9 +65,11 @@ func main() {
 			return node.IPAddress, nil
 		},
 		wakeOnLANWaker,
+		contextValidator,
 	)
 	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
-	metadataService := services.NewMetadataService(interfaceInspector)
+
+	metadataService := services.NewMetadataService(interfaceInspector, contextValidator)
 	liwascServer := servers.NewLiwascServer(
 		*listenAddress,
 		*webSocketListenAddress,
@@ -85,6 +93,10 @@ func main() {
 
 	if err := networkAndNodeScanDatabase.Open(); err != nil {
 		log.Fatal("could not open networkAndNodeScanDatabase", err)
+	}
+
+	if err := oidcValidator.Open(); err != nil {
+		log.Fatal("could not open oidcValidator", err)
 	}
 
 	if err := nodeWakeDatabase.Open(); err != nil {

@@ -10,6 +10,7 @@ import (
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	nodeWakeModels "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
@@ -24,6 +25,7 @@ type NodeWakeService struct {
 	nodeWakeMessengers cmap.ConcurrentMap
 	getIPAddress       func(string) (string, error)
 	wakeOnLANWaker     *wakers.WakeOnLANWaker
+	contextValidator   *validators.ContextValidator
 }
 
 func NewNodeWakeService(
@@ -31,6 +33,7 @@ func NewNodeWakeService(
 	nodeWakeDatabase *databases.NodeWakeDatabase,
 	getIPAddress func(string) (string, error),
 	wakeOnLANWaker *wakers.WakeOnLANWaker,
+	contextValidator *validators.ContextValidator,
 ) *NodeWakeService {
 	return &NodeWakeService{
 		device:             device,
@@ -38,10 +41,17 @@ func NewNodeWakeService(
 		nodeWakeMessengers: cmap.New(),
 		getIPAddress:       getIPAddress,
 		wakeOnLANWaker:     wakeOnLANWaker,
+		contextValidator:   contextValidator,
 	}
 }
 
 func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMessage *proto.NodeWakeTriggerMessage) (*proto.NodeWakeReferenceMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	nodeWake := &nodeWakeModels.NodeWake{
 		Done: 0,
 	}
@@ -144,6 +154,12 @@ func (s *NodeWakeService) TriggerNodeWake(ctx context.Context, nodeWakeTriggerMe
 }
 
 func (s *NodeWakeService) SubscribeToNodeWakeUp(nodeWakeReferenceMessage *proto.NodeWakeReferenceMessage, stream proto.NodeWakeService_SubscribeToNodeWakeUpServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	nodeWakeID := nodeWakeReferenceMessage.GetNodeWakeID()
 	if nodeWakeID == -1 {
 		newestNodeWakeID, err := s.nodeWakeDatabase.GetNewestNodeWakeIDForNodeID(nodeWakeReferenceMessage.GetMACAddress())

@@ -17,6 +17,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/sql/generated/mac2vendor"
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
@@ -39,6 +40,7 @@ type NetworkAndNodeScanService struct {
 	periodicNodeScanTimeout         int
 	cron                            *cron.Cron
 	periodicScanMessenger           *messenger.Messenger
+	contextValidator                *validators.ContextValidator
 }
 
 func NewNetworkAndNodeScanService(
@@ -51,6 +53,7 @@ func NewNetworkAndNodeScanService(
 	periodicScanCronExpression string,
 	periodicNetworkScanTimeout int,
 	periodicNodeScanTimeout int,
+	contextValidator *validators.ContextValidator,
 ) *NetworkAndNodeScanService {
 	return &NetworkAndNodeScanService{
 		device:                          device,
@@ -66,6 +69,7 @@ func NewNetworkAndNodeScanService(
 		periodicNodeScanTimeout:         periodicNodeScanTimeout,
 		cron:                            cron.New(),
 		periodicScanMessenger:           messenger.New(0, true),
+		contextValidator:                contextValidator,
 	}
 }
 
@@ -108,6 +112,12 @@ func (s *NetworkAndNodeScanService) Open() error {
 }
 
 func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scanTriggerMessage *proto.NetworkScanTriggerMessage) (*proto.NetworkScanReferenceMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	// Create a scan
 	networkScan := &networkAndNodeScanModels.NetworkScan{
 		Done: 0,
@@ -210,6 +220,12 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 }
 
 func (s *NetworkAndNodeScanService) TriggerNodeScan(ctx context.Context, nodeScanTriggerMessage *proto.NodeScanTriggerMessage) (*proto.NodeScanReferenceMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	node, err := s.networkAndNodeScanDatabase.GetNode(nodeScanTriggerMessage.GetMACAddress())
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
@@ -231,6 +247,12 @@ func (s *NetworkAndNodeScanService) TriggerNodeScan(ctx context.Context, nodeSca
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *proto.NetworkScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewNodesServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	allNodes, err := s.networkAndNodeScanDatabase.GetAllNodes()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "could not get nodes from DB: %v", err.Error())
@@ -371,6 +393,12 @@ func (s *NetworkAndNodeScanService) SubscribeToNewNodes(scanReferenceMessage *pr
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReferenceMessage *proto.NodeScanReferenceMessage, stream proto.NetworkAndNodeScanService_SubscribeToNewOpenServicesServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	nodeScanID := nodeScanReferenceMessage.GetNodeScanID()
 	if nodeScanID == -1 {
 		newestNodeScanID, err := s.networkAndNodeScanDatabase.GetNewestNodeScanIDForNodeID(nodeScanReferenceMessage.GetMACAddress())
@@ -455,6 +483,12 @@ func (s *NetworkAndNodeScanService) SubscribeToNewOpenServices(nodeScanReference
 }
 
 func (s *NetworkAndNodeScanService) SubscribeToNewPeriodicNetworkScans(_ *empty.Empty, stream proto.NetworkAndNodeScanService_SubscribeToNewPeriodicNetworkScansServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	dbNewestPeriodicNetworkScan, err := s.networkAndNodeScanDatabase.GetNewestPeriodicNetworkScan()
 	if err != nil {
 		if !strings.Contains(err.Error(), "sql: no rows in result set") {
@@ -493,6 +527,12 @@ func (s *NetworkAndNodeScanService) SubscribeToNewPeriodicNetworkScans(_ *empty.
 }
 
 func (s *NetworkAndNodeScanService) DeleteNode(ctx context.Context, nodeDeleteMessage *proto.NodeDeleteMessage) (*proto.NodeMetadataMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	log.Printf("deleting node %v\n", nodeDeleteMessage.MACAddress)
 
 	dbNode, err := s.networkAndNodeScanDatabase.DeleteNode(nodeDeleteMessage.GetMACAddress())
