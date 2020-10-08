@@ -137,33 +137,32 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 
 func (c *OIDCLoginProviderComponent) registerTokenRefresh() {
 	go func() {
-		// Wait till token expires
-		time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
+		for {
+			// Wait till token expires
+			time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
 
-		// Fetch new token
-		tokenSource := oauth2.StaticTokenSource(&c.oauth2Token)
+			// Fetch new token
+			tokenSource := oauth2.StaticTokenSource(&c.oauth2Token)
 
-		newToken, err := tokenSource.Token()
-		if err != nil {
-			c.invalidateLogin(err)
+			newToken, err := tokenSource.Token()
+			if err != nil {
+				c.invalidateLogin(err)
 
-			return
+				return
+			}
+
+			// Set new token in local storage
+			if err := c.setStateToLocalStorage(*newToken, c.userInfo); err != nil {
+				c.invalidateLogin(err)
+
+				return
+			}
+
+			// Set new token in state
+			c.oauth2Token = *newToken
+
+			c.Update()
 		}
-
-		// Set new token in local storage
-		if err := c.setStateToLocalStorage(*newToken, c.userInfo); err != nil {
-			c.invalidateLogin(err)
-
-			return
-		}
-
-		// Set new token in state
-		c.oauth2Token = *newToken
-
-		// Schedule the next refresh
-		c.registerTokenRefresh()
-
-		c.Update()
 	}()
 }
 
