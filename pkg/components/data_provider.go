@@ -10,6 +10,7 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -29,7 +30,7 @@ type DataProviderComponent struct {
 	nodes     []*models.Node
 	nodesLock *sync.Mutex
 
-	AccessToken string
+	IDToken string
 
 	NetworkAndNodeScanServiceClient proto.NetworkAndNodeScanServiceClient
 	NodeWakeServiceClient           proto.NodeWakeServiceClient
@@ -44,8 +45,6 @@ type DataProviderComponent struct {
 }
 
 func (c *DataProviderComponent) Render() app.UI {
-	log.Println("got access token from login provider ", c.AccessToken)
-
 	return c.Children(DataProviderChildrenProps{
 		Nodes: c.nodes,
 
@@ -70,7 +69,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 	go func() {
 		log.Println("getting metadata from service")
 
-		metadata, err := c.MetadataServiceClient.GetMetadata(context.Background(), &emptypb.Empty{})
+		metadata, err := c.MetadataServiceClient.GetMetadata(c.getAuthenticatedContext(), &emptypb.Empty{})
 		if err != nil {
 			log.Println("could not get metadata", err)
 
@@ -90,7 +89,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 	go func() {
 		log.Println("subscribing to periodic background network scan IDs")
 
-		periodicBackgroundNetworkScanStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewPeriodicNetworkScans(context.Background(), &emptypb.Empty{})
+		periodicBackgroundNetworkScanStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewPeriodicNetworkScans(c.getAuthenticatedContext(), &emptypb.Empty{})
 		if err != nil {
 			log.Println("could not subscribe to periodic background network scan IDs", err)
 
@@ -111,7 +110,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference.GetNetworkScanID())
 
-			nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(context.Background(), periodicNetworkScanReference)
+			nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(c.getAuthenticatedContext(), periodicNetworkScanReference)
 			if err != nil {
 				log.Println("could not subscribe to network scan, retrying in 5s", err)
 
@@ -186,7 +185,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 					log.Printf("subscribing to services for node %v and node scan %v\n", node.MACAddress, protoNode.GetNodeScanID())
 
-					serviceStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewOpenServices(context.Background(), protoNodeScanReferenceMessage)
+					serviceStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewOpenServices(c.getAuthenticatedContext(), protoNodeScanReferenceMessage)
 					if err != nil {
 						log.Println("could not subscribe to node scan, retrying in 5s", err)
 
@@ -255,4 +254,8 @@ func (c *DataProviderComponent) invalidateConnection() {
 
 		c.Update()
 	})
+}
+
+func (c *DataProviderComponent) getAuthenticatedContext() context.Context {
+	return metadata.AppendToOutgoingContext(context.Background(), AUTHORIZATION_METADATA_KEY, c.IDToken)
 }
