@@ -110,9 +110,92 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference.GetNetworkScanID())
 
-			nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(c.getAuthenticatedContext(), periodicNetworkScanReference)
-			if err != nil {
+			if err := c.subscribeToNetworkScan(periodicNetworkScanReference); err != nil {
 				log.Println("could not subscribe to network scan, retrying in 5s", err)
+
+				c.invalidateConnection()
+
+				time.Sleep(time.Second * 5)
+
+				continue
+			}
+		}
+	}()
+}
+
+func (c *DataProviderComponent) subscribeToNetworkScan(networkScanReference *proto.NetworkScanReferenceMessage) error {
+	nodeStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewNodes(c.getAuthenticatedContext(), networkScanReference)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			protoNode, err := nodeStream.Recv()
+			if err != nil {
+				if strings.Contains(err.Error(), "EOF") {
+					log.Printf("network scan %v done, subscribing to next periodic background network scan\n", networkScanReference.GetNetworkScanID())
+
+					break
+				}
+
+				log.Printf("could not receive node from network scan %v, retrying in 5s: %v\n", networkScanReference.GetNetworkScanID(), err)
+
+				c.invalidateConnection()
+
+				time.Sleep(time.Second * 5)
+
+				continue
+			}
+
+			node := &models.Node{
+				PoweredOn:    protoNode.LucidNode.GetPoweredOn(),
+				Address:      protoNode.LucidNode.GetAddress(),
+				IPAddress:    protoNode.LucidNode.GetIPAddress(),
+				MACAddress:   protoNode.LucidNode.GetMACAddress(),
+				Organization: protoNode.LucidNode.GetOrganization(),
+				Registry:     protoNode.LucidNode.GetRegistry(),
+				Services:     []*models.Service{},
+				Vendor:       protoNode.LucidNode.GetVendor(),
+				Visible:      protoNode.LucidNode.GetVisible(),
+			}
+
+			log.Printf("received node %v from network scan %v\n", node.MACAddress, networkScanReference.GetNetworkScanID())
+
+			c.nodesLock.Lock()
+			existingNodeIndex := -1
+			for i, oldNode := range c.nodes {
+				if oldNode.MACAddress == node.MACAddress {
+					existingNodeIndex = i
+
+					break
+				}
+			}
+
+			if existingNodeIndex != -1 {
+				c.nodes[existingNodeIndex] = node
+			} else {
+				c.nodes = append(c.nodes, node)
+			}
+			c.nodesLock.Unlock()
+
+			c.Update()
+
+			protoNodeScanReferenceMessage := &proto.NodeScanReferenceMessage{
+				NodeScanID: protoNode.GetNodeScanID(),
+			}
+
+			if protoNode.GetNodeScanID() == -1 {
+				log.Printf("node %v did not specify a node scan ID, skipping\n", node.MACAddress)
+
+				continue
+			}
+
+			log.Printf("subscribing to services for node %v and node scan %v\n", node.MACAddress, protoNode.GetNodeScanID())
+
+			serviceStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewOpenServices(c.getAuthenticatedContext(), protoNodeScanReferenceMessage)
+			if err != nil {
+				log.Println("could not subscribe to node scan, retrying in 5s", err)
 
 				c.invalidateConnection()
 
@@ -123,15 +206,15 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 			go func() {
 				for {
-					protoNode, err := nodeStream.Recv()
+					protoService, err := serviceStream.Recv()
 					if err != nil {
 						if strings.Contains(err.Error(), "EOF") {
-							log.Printf("network scan %v done, subscribing to next periodic background network scan\n", periodicNetworkScanReference.GetNetworkScanID())
+							log.Printf("node scan %v done\n", protoNodeScanReferenceMessage.GetNodeScanID())
 
 							break
 						}
 
-						log.Printf("could not receive node from network scan %v, retrying in 5s: %v\n", periodicNetworkScanReference.GetNetworkScanID(), err)
+						log.Printf("could not receive service for node scan %v, retrying in 5s: %v\n", protoNodeScanReferenceMessage.GetNodeScanID(), err)
 
 						c.invalidateConnection()
 
@@ -140,111 +223,37 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 						continue
 					}
 
-					node := &models.Node{
-						PoweredOn:    protoNode.LucidNode.GetPoweredOn(),
-						Address:      protoNode.LucidNode.GetAddress(),
-						IPAddress:    protoNode.LucidNode.GetIPAddress(),
-						MACAddress:   protoNode.LucidNode.GetMACAddress(),
-						Organization: protoNode.LucidNode.GetOrganization(),
-						Registry:     protoNode.LucidNode.GetRegistry(),
-						Services:     []*models.Service{},
-						Vendor:       protoNode.LucidNode.GetVendor(),
-						Visible:      protoNode.LucidNode.GetVisible(),
+					service := &models.Service{
+						Assignee:                protoService.GetAssignee(),
+						AssignmentNotes:         protoService.GetAssignmentNotes(),
+						Contact:                 protoService.GetContact(),
+						Description:             protoService.GetDescription(),
+						ModificationDate:        protoService.GetModificationDate(),
+						PortNumber:              int(protoService.GetPortNumber()),
+						Reference:               protoService.GetReference(),
+						RegistrationDate:        protoService.GetRegistrationDate(),
+						ServiceCode:             protoService.GetServiceCode(),
+						ServiceName:             protoService.GetServiceName(),
+						TransportProtocol:       protoService.GetTransportProtocol(),
+						UnauthorizedUseReported: protoService.GetUnauthorizedUseReported(),
 					}
 
-					log.Printf("received node %v from network scan %v\n", node.MACAddress, periodicNetworkScanReference.GetNetworkScanID())
+					log.Printf("received service %v/%v from node scan %v\n", service.PortNumber, service.TransportProtocol, protoNodeScanReferenceMessage.GetNodeScanID())
 
 					c.nodesLock.Lock()
-					existingNodeIndex := -1
-					for i, oldNode := range c.nodes {
-						if oldNode.MACAddress == node.MACAddress {
-							existingNodeIndex = i
 
-							break
-						}
-					}
+					node.Services = append(node.Services, service)
 
-					if existingNodeIndex != -1 {
-						c.nodes[existingNodeIndex] = node
-					} else {
-						c.nodes = append(c.nodes, node)
-					}
 					c.nodesLock.Unlock()
 
 					c.Update()
-
-					protoNodeScanReferenceMessage := &proto.NodeScanReferenceMessage{
-						NodeScanID: protoNode.GetNodeScanID(),
-					}
-
-					if protoNode.GetNodeScanID() == -1 {
-						log.Printf("node %v did not specify a node scan ID, skipping\n", node.MACAddress)
-
-						continue
-					}
-
-					log.Printf("subscribing to services for node %v and node scan %v\n", node.MACAddress, protoNode.GetNodeScanID())
-
-					serviceStream, err := c.NetworkAndNodeScanServiceClient.SubscribeToNewOpenServices(c.getAuthenticatedContext(), protoNodeScanReferenceMessage)
-					if err != nil {
-						log.Println("could not subscribe to node scan, retrying in 5s", err)
-
-						c.invalidateConnection()
-
-						time.Sleep(time.Second * 5)
-
-						continue
-					}
-
-					go func() {
-						for {
-							protoService, err := serviceStream.Recv()
-							if err != nil {
-								if strings.Contains(err.Error(), "EOF") {
-									log.Printf("node scan %v done\n", protoNodeScanReferenceMessage.GetNodeScanID())
-
-									break
-								}
-
-								log.Printf("could not receive service for node scan %v, retrying in 5s: %v\n", protoNodeScanReferenceMessage.GetNodeScanID(), err)
-
-								c.invalidateConnection()
-
-								time.Sleep(time.Second * 5)
-
-								continue
-							}
-
-							service := &models.Service{
-								Assignee:                protoService.GetAssignee(),
-								AssignmentNotes:         protoService.GetAssignmentNotes(),
-								Contact:                 protoService.GetContact(),
-								Description:             protoService.GetDescription(),
-								ModificationDate:        protoService.GetModificationDate(),
-								PortNumber:              int(protoService.GetPortNumber()),
-								Reference:               protoService.GetReference(),
-								RegistrationDate:        protoService.GetRegistrationDate(),
-								ServiceCode:             protoService.GetServiceCode(),
-								ServiceName:             protoService.GetServiceName(),
-								TransportProtocol:       protoService.GetTransportProtocol(),
-								UnauthorizedUseReported: protoService.GetUnauthorizedUseReported(),
-							}
-
-							log.Printf("received service %v/%v from node scan %v\n", service.PortNumber, service.TransportProtocol, protoNodeScanReferenceMessage.GetNodeScanID())
-
-							c.nodesLock.Lock()
-
-							node.Services = append(node.Services, service)
-
-							c.nodesLock.Unlock()
-
-							c.Update()
-						}
-					}()
 				}
+
 			}()
 		}
 	}()
+
+	return nil
 }
 
 func (c *DataProviderComponent) invalidateConnection() {
