@@ -30,12 +30,11 @@ type OIDCLoginProviderChildrenProps struct {
 type OIDCLoginProviderComponent struct {
 	app.Compo
 
-	Issuer       string
-	ClientID     string
-	ClientSecret string
-	RedirectURL  string
-	HomePath     string
-	Scopes       []string
+	Issuer      string
+	ClientID    string
+	RedirectURL string
+	HomePath    string
+	Scopes      []string
 
 	LocalStoragePrefix string
 
@@ -81,11 +80,10 @@ func (c *OIDCLoginProviderComponent) upsertLogin() {
 	}
 
 	config := oauth2.Config{
-		ClientID:     c.ClientID,
-		ClientSecret: c.ClientSecret,
-		Endpoint:     provider.Endpoint(),
-		RedirectURL:  c.RedirectURL,
-		Scopes:       append([]string{oidc.ScopeOpenID}, c.Scopes...),
+		ClientID:    c.ClientID,
+		Endpoint:    provider.Endpoint(),
+		RedirectURL: c.RedirectURL,
+		Scopes:      append([]string{oidc.ScopeOpenID}, c.Scopes...),
 	}
 
 	if oauth2Token.AccessToken == "" || userInfo.Email == "" {

@@ -27,12 +27,11 @@ func main() {
 
 	app.Route("/",
 		&components.OIDCLoginProviderComponent{
-			Issuer:       app.Getenv("LIWASC_OIDC_ISSUER"),
-			ClientID:     app.Getenv("LIWASC_OIDC_CLIENT_ID"),
-			ClientSecret: app.Getenv("LIWASC_OIDC_CLIENT_SECRET"),
-			RedirectURL:  app.Getenv("LIWASC_OIDC_REDIRECT_URL"),
-			HomePath:     "/",
-			Scopes:       []string{"profile", "email"},
+			Issuer:      app.Getenv("LIWASC_OIDC_ISSUER"),
+			ClientID:    app.Getenv("LIWASC_OIDC_CLIENT_ID"),
+			RedirectURL: app.Getenv("LIWASC_OIDC_REDIRECT_URL"),
+			HomePath:    "/",
+			Scopes:      []string{"profile", "email"},
 
 			LocalStoragePrefix: "liwasc",
 
