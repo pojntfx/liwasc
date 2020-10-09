@@ -150,7 +150,9 @@ func (c *OIDCLoginProviderComponent) registerTokenRefresh() {
 	go func() {
 		for {
 			// Wait till token expires
-			time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
+			if c.oauth2Token.Expiry.After(time.Now()) {
+				time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
+			}
 
 			// Fetch new token
 			tokenSource := oauth2.StaticTokenSource(&c.oauth2Token)
