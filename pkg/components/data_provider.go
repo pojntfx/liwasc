@@ -22,6 +22,8 @@ type DataProviderChildrenProps struct {
 
 	Subnets []string
 	Device  string
+
+	TriggerNetworkScan func(*proto.NetworkScanTriggerMessage)
 }
 
 type DataProviderComponent struct {
@@ -42,6 +44,8 @@ type DataProviderComponent struct {
 
 	subnets []string
 	device  string
+
+	nodesToScan sync.WaitGroup
 }
 
 func (c *DataProviderComponent) Render() app.UI {
@@ -53,6 +57,8 @@ func (c *DataProviderComponent) Render() app.UI {
 
 		Subnets: c.subnets,
 		Device:  c.device,
+
+		TriggerNetworkScan: c.triggerNetworkScan,
 	})
 }
 
@@ -110,6 +116,8 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 			log.Printf("subscribing to periodic background network scan %v\n", periodicNetworkScanReference.GetNetworkScanID())
 
+			c.clearNodesToScan()
+
 			if err := c.subscribeToNetworkScan(periodicNetworkScanReference); err != nil {
 				log.Println("could not subscribe to network scan, retrying in 5s", err)
 
@@ -121,6 +129,41 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 			}
 		}
 	}()
+}
+
+func (c *DataProviderComponent) triggerNetworkScan(networkScanMessage *proto.NetworkScanTriggerMessage) {
+	log.Println("triggering network scan")
+
+	networkScanReferenceMessage, err := c.NetworkAndNodeScanServiceClient.TriggerNetworkScan(c.getAuthenticatedContext(), networkScanMessage)
+	if err != nil {
+		log.Println("could not trigger network scan", err)
+
+		c.invalidateConnection()
+
+		return
+	}
+
+	app.Dispatch(func() {
+		c.scanning = true
+	})
+	c.Update()
+
+	c.clearNodesToScan()
+
+	if err := c.subscribeToNetworkScan(networkScanReferenceMessage); err != nil {
+		log.Printf("could not subscribe to network scan %v: %v\n", networkScanReferenceMessage.GetNetworkScanID(), err)
+
+		c.invalidateConnection()
+
+		return
+	}
+}
+
+func (c *DataProviderComponent) clearNodesToScan() {
+	// Clear the waitgroup
+	for !func() bool { c.nodesToScan.Wait(); return true }() {
+		c.nodesToScan.Done()
+	}
 }
 
 func (c *DataProviderComponent) subscribeToNetworkScan(networkScanReference *proto.NetworkScanReferenceMessage) error {
@@ -136,6 +179,15 @@ func (c *DataProviderComponent) subscribeToNetworkScan(networkScanReference *pro
 				if strings.Contains(err.Error(), "EOF") {
 					log.Printf("network scan %v done, subscribing to next periodic background network scan\n", networkScanReference.GetNetworkScanID())
 
+					go func() {
+						c.nodesToScan.Wait()
+
+						app.Dispatch(func() {
+							c.scanning = false
+						})
+						c.Update()
+					}()
+
 					break
 				}
 
@@ -147,6 +199,8 @@ func (c *DataProviderComponent) subscribeToNetworkScan(networkScanReference *pro
 
 				continue
 			}
+
+			c.nodesToScan.Add(1)
 
 			node := &models.Node{
 				PoweredOn:    protoNode.LucidNode.GetPoweredOn(),
@@ -210,6 +264,8 @@ func (c *DataProviderComponent) subscribeToNetworkScan(networkScanReference *pro
 					if err != nil {
 						if strings.Contains(err.Error(), "EOF") {
 							log.Printf("node scan %v done\n", protoNodeScanReferenceMessage.GetNodeScanID())
+
+							c.nodesToScan.Done()
 
 							break
 						}

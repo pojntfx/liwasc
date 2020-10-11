@@ -82,6 +82,15 @@ func main() {
 
 							Connected: dataProviderChildrenProps.Connected,
 							Scanning:  dataProviderChildrenProps.Scanning,
+
+							TriggerNetworkScan: func() {
+								protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
+									NetworkScanTimeout: 1000,
+									NodeScanTimeout:    500,
+								}
+
+								dataProviderChildrenProps.TriggerNetworkScan(protoNetworkScanTriggerMessage)
+							},
 						}
 					},
 				}
