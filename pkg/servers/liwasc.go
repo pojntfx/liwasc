@@ -12,11 +12,12 @@ import (
 )
 
 type LiwascServer struct {
-	listenAddress             string
-	webSocketListenAddress    string
-	networkAndNodeScanService *services.NetworkAndNodeScanService
-	nodeWakeService           *services.NodeWakeService
-	metadataService           *services.MetadataService
+	listenAddress                string
+	webSocketListenAddress       string
+	networkAndNodeScanService    *services.NetworkAndNodeScanService
+	nodeWakeService              *services.NodeWakeService
+	metadataService              *services.MetadataService
+	networkAndNodeScanNeoService *services.NetworkAndNodeScanNeoService
 }
 
 func NewLiwascServer(
@@ -25,6 +26,7 @@ func NewLiwascServer(
 	networkAndNodeScanService *services.NetworkAndNodeScanService,
 	nodeWakeService *services.NodeWakeService,
 	metadataService *services.MetadataService,
+	networkAndNodeScanNeoService *services.NetworkAndNodeScanNeoService,
 ) *LiwascServer {
 	return &LiwascServer{
 		listenAddress,
@@ -32,6 +34,7 @@ func NewLiwascServer(
 		networkAndNodeScanService,
 		nodeWakeService,
 		metadataService,
+		networkAndNodeScanNeoService,
 	}
 }
 
@@ -53,6 +56,7 @@ func (s *LiwascServer) ListenAndServe() error {
 	proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
 	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 	proto.RegisterMetadataServiceServer(server, s.metadataService)
+	proto.RegisterNetworkAndNodeScanNeoServiceServer(server, s.networkAndNodeScanNeoService)
 
 	doneChan := make(chan struct{})
 	errChan := make(chan error)
