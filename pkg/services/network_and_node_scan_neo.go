@@ -156,7 +156,7 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 						// Handle port
 						if port.Open {
 							go func() {
-								log.Printf("found open service %v/%v for node %v for network scan %v\n", port.Port, port.Protocol, dbNode.ID, dbNetworkScan.ID)
+								log.Printf("found open port %v/%v for node %v for network scan %v\n", port.Port, port.Protocol, dbNode.ID, dbNetworkScan.ID)
 
 								// Create service
 								dbService := &models.Service{
