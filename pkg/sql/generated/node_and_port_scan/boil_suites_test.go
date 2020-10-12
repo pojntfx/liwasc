@@ -12,99 +12,99 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScans)
 	t.Run("NodeScans", testNodeScans)
 	t.Run("Nodes", testNodes)
-	t.Run("Services", testServices)
+	t.Run("PortScans", testPortScans)
+	t.Run("Ports", testPorts)
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansDelete)
 	t.Run("NodeScans", testNodeScansDelete)
 	t.Run("Nodes", testNodesDelete)
-	t.Run("Services", testServicesDelete)
+	t.Run("PortScans", testPortScansDelete)
+	t.Run("Ports", testPortsDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansQueryDeleteAll)
 	t.Run("NodeScans", testNodeScansQueryDeleteAll)
 	t.Run("Nodes", testNodesQueryDeleteAll)
-	t.Run("Services", testServicesQueryDeleteAll)
+	t.Run("PortScans", testPortScansQueryDeleteAll)
+	t.Run("Ports", testPortsQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansSliceDeleteAll)
 	t.Run("NodeScans", testNodeScansSliceDeleteAll)
 	t.Run("Nodes", testNodesSliceDeleteAll)
-	t.Run("Services", testServicesSliceDeleteAll)
+	t.Run("PortScans", testPortScansSliceDeleteAll)
+	t.Run("Ports", testPortsSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansExists)
 	t.Run("NodeScans", testNodeScansExists)
 	t.Run("Nodes", testNodesExists)
-	t.Run("Services", testServicesExists)
+	t.Run("PortScans", testPortScansExists)
+	t.Run("Ports", testPortsExists)
 }
 
 func TestFind(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansFind)
 	t.Run("NodeScans", testNodeScansFind)
 	t.Run("Nodes", testNodesFind)
-	t.Run("Services", testServicesFind)
+	t.Run("PortScans", testPortScansFind)
+	t.Run("Ports", testPortsFind)
 }
 
 func TestBind(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansBind)
 	t.Run("NodeScans", testNodeScansBind)
 	t.Run("Nodes", testNodesBind)
-	t.Run("Services", testServicesBind)
+	t.Run("PortScans", testPortScansBind)
+	t.Run("Ports", testPortsBind)
 }
 
 func TestOne(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansOne)
 	t.Run("NodeScans", testNodeScansOne)
 	t.Run("Nodes", testNodesOne)
-	t.Run("Services", testServicesOne)
+	t.Run("PortScans", testPortScansOne)
+	t.Run("Ports", testPortsOne)
 }
 
 func TestAll(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansAll)
 	t.Run("NodeScans", testNodeScansAll)
 	t.Run("Nodes", testNodesAll)
-	t.Run("Services", testServicesAll)
+	t.Run("PortScans", testPortScansAll)
+	t.Run("Ports", testPortsAll)
 }
 
 func TestCount(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansCount)
 	t.Run("NodeScans", testNodeScansCount)
 	t.Run("Nodes", testNodesCount)
-	t.Run("Services", testServicesCount)
+	t.Run("PortScans", testPortScansCount)
+	t.Run("Ports", testPortsCount)
 }
 
 func TestHooks(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansHooks)
 	t.Run("NodeScans", testNodeScansHooks)
 	t.Run("Nodes", testNodesHooks)
-	t.Run("Services", testServicesHooks)
+	t.Run("PortScans", testPortScansHooks)
+	t.Run("Ports", testPortsHooks)
 }
 
 func TestInsert(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansInsert)
-	t.Run("NetworkScans", testNetworkScansInsertWhitelist)
 	t.Run("NodeScans", testNodeScansInsert)
 	t.Run("NodeScans", testNodeScansInsertWhitelist)
 	t.Run("Nodes", testNodesInsert)
 	t.Run("Nodes", testNodesInsertWhitelist)
-	t.Run("Services", testServicesInsert)
-	t.Run("Services", testServicesInsertWhitelist)
+	t.Run("PortScans", testPortScansInsert)
+	t.Run("PortScans", testPortScansInsertWhitelist)
+	t.Run("Ports", testPortsInsert)
+	t.Run("Ports", testPortsInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
-	t.Run("NodeScanToNodeUsingNode", testNodeScanToOneNodeUsingNode)
-	t.Run("NodeToNetworkScanUsingNetworkScan", testNodeToOneNetworkScanUsingNetworkScan)
-	t.Run("ServiceToNodeScanUsingNodeScan", testServiceToOneNodeScanUsingNodeScan)
+	t.Run("NodeToNodeScanUsingNodeScan", testNodeToOneNodeScanUsingNodeScan)
+	t.Run("PortScanToNodeUsingNode", testPortScanToOneNodeUsingNode)
+	t.Run("PortToPortScanUsingPortScan", testPortToOnePortScanUsingPortScan)
 }
 
 // TestOneToOne tests cannot be run in parallel
@@ -114,17 +114,17 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
-	t.Run("NetworkScanToNodes", testNetworkScanToManyNodes)
-	t.Run("NodeScanToServices", testNodeScanToManyServices)
-	t.Run("NodeToNodeScans", testNodeToManyNodeScans)
+	t.Run("NodeScanToNodes", testNodeScanToManyNodes)
+	t.Run("NodeToPortScans", testNodeToManyPortScans)
+	t.Run("PortScanToPorts", testPortScanToManyPorts)
 }
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
-	t.Run("NodeScanToNodeUsingNodeScans", testNodeScanToOneSetOpNodeUsingNode)
-	t.Run("NodeToNetworkScanUsingNodes", testNodeToOneSetOpNetworkScanUsingNetworkScan)
-	t.Run("ServiceToNodeScanUsingServices", testServiceToOneSetOpNodeScanUsingNodeScan)
+	t.Run("NodeToNodeScanUsingNodes", testNodeToOneSetOpNodeScanUsingNodeScan)
+	t.Run("PortScanToNodeUsingPortScans", testPortScanToOneSetOpNodeUsingNode)
+	t.Run("PortToPortScanUsingPorts", testPortToOneSetOpPortScanUsingPortScan)
 }
 
 // TestToOneRemove tests cannot be run in parallel
@@ -142,9 +142,9 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
-	t.Run("NetworkScanToNodes", testNetworkScanToManyAddOpNodes)
-	t.Run("NodeScanToServices", testNodeScanToManyAddOpServices)
-	t.Run("NodeToNodeScans", testNodeToManyAddOpNodeScans)
+	t.Run("NodeScanToNodes", testNodeScanToManyAddOpNodes)
+	t.Run("NodeToPortScans", testNodeToManyAddOpPortScans)
+	t.Run("PortScanToPorts", testPortScanToManyAddOpPorts)
 }
 
 // TestToManySet tests cannot be run in parallel
@@ -156,36 +156,36 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansReload)
 	t.Run("NodeScans", testNodeScansReload)
 	t.Run("Nodes", testNodesReload)
-	t.Run("Services", testServicesReload)
+	t.Run("PortScans", testPortScansReload)
+	t.Run("Ports", testPortsReload)
 }
 
 func TestReloadAll(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansReloadAll)
 	t.Run("NodeScans", testNodeScansReloadAll)
 	t.Run("Nodes", testNodesReloadAll)
-	t.Run("Services", testServicesReloadAll)
+	t.Run("PortScans", testPortScansReloadAll)
+	t.Run("Ports", testPortsReloadAll)
 }
 
 func TestSelect(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansSelect)
 	t.Run("NodeScans", testNodeScansSelect)
 	t.Run("Nodes", testNodesSelect)
-	t.Run("Services", testServicesSelect)
+	t.Run("PortScans", testPortScansSelect)
+	t.Run("Ports", testPortsSelect)
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansUpdate)
 	t.Run("NodeScans", testNodeScansUpdate)
 	t.Run("Nodes", testNodesUpdate)
-	t.Run("Services", testServicesUpdate)
+	t.Run("PortScans", testPortScansUpdate)
+	t.Run("Ports", testPortsUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
-	t.Run("NetworkScans", testNetworkScansSliceUpdateAll)
 	t.Run("NodeScans", testNodeScansSliceUpdateAll)
 	t.Run("Nodes", testNodesSliceUpdateAll)
-	t.Run("Services", testServicesSliceUpdateAll)
+	t.Run("PortScans", testPortScansSliceUpdateAll)
+	t.Run("Ports", testPortsSliceUpdateAll)
 }

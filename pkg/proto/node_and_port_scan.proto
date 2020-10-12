@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package com.pojtinger.felix.liwasc.neo;
+
+option go_package = "github.com/pojntfx/liwasc/pkg/proto";
+
+service NodeAndPortScanNeoService {
+  rpc StartNodeScan(NodeScanStartNeoMessage)
+      returns (NodeScanReferenceNeoMessage);
+}
+
+message NodeScanStartNeoMessage {
+  int64 NodeScanTimeout = 1;
+  int64 PortScanTimeout = 2;
+}
+
+message NodeScanReferenceNeoMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  bool Done = 3;
+}

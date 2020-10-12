@@ -12,12 +12,12 @@ import (
 )
 
 type LiwascServer struct {
-	listenAddress                string
-	webSocketListenAddress       string
-	networkAndNodeScanService    *services.NetworkAndNodeScanService
-	nodeWakeService              *services.NodeWakeService
-	metadataService              *services.MetadataService
-	networkAndNodeScanNeoService *services.NetworkAndNodeScanNeoService
+	listenAddress             string
+	webSocketListenAddress    string
+	networkAndNodeScanService *services.NetworkAndNodeScanService
+	nodeWakeService           *services.NodeWakeService
+	metadataService           *services.MetadataService
+	nodeAndPortScanService    *services.NodeAndPortScanPortService
 }
 
 func NewLiwascServer(
@@ -26,7 +26,7 @@ func NewLiwascServer(
 	networkAndNodeScanService *services.NetworkAndNodeScanService,
 	nodeWakeService *services.NodeWakeService,
 	metadataService *services.MetadataService,
-	networkAndNodeScanNeoService *services.NetworkAndNodeScanNeoService,
+	nodeAndPortScanService *services.NodeAndPortScanPortService,
 ) *LiwascServer {
 	return &LiwascServer{
 		listenAddress,
@@ -34,7 +34,7 @@ func NewLiwascServer(
 		networkAndNodeScanService,
 		nodeWakeService,
 		metadataService,
-		networkAndNodeScanNeoService,
+		nodeAndPortScanService,
 	}
 }
 
@@ -56,7 +56,7 @@ func (s *LiwascServer) ListenAndServe() error {
 	proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
 	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 	proto.RegisterMetadataServiceServer(server, s.metadataService)
-	proto.RegisterNetworkAndNodeScanNeoServiceServer(server, s.networkAndNodeScanNeoService)
+	proto.RegisterNodeAndPortScanNeoServiceServer(server, s.nodeAndPortScanService)
 
 	doneChan := make(chan struct{})
 	errChan := make(chan error)

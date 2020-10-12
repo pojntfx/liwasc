@@ -19,7 +19,7 @@ type DiscoveredNode struct {
 	MACAddress net.HardwareAddr
 }
 
-type NetworkScanner struct {
+type NodeScanner struct {
 	deviceName         string
 	handle             *pcap.Handle
 	ipv4addresses      []*net.IPNet
@@ -27,11 +27,11 @@ type NetworkScanner struct {
 	discoveredNodeChan chan *DiscoveredNode
 }
 
-func NewNetworkScanner(device string) *NetworkScanner {
-	return &NetworkScanner{device, nil, nil, nil, make(chan *DiscoveredNode)}
+func NewNodeScanner(device string) *NodeScanner {
+	return &NodeScanner{device, nil, nil, nil, make(chan *DiscoveredNode)}
 }
 
-func (s *NetworkScanner) Open() ([]*net.IPNet, error) {
+func (s *NodeScanner) Open() ([]*net.IPNet, error) {
 	iface, err := net.InterfaceByName(s.deviceName)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (s *NetworkScanner) Open() ([]*net.IPNet, error) {
 	return s.ipv4addresses, nil
 }
 
-func (s *NetworkScanner) Receive(ctx context.Context) error {
+func (s *NodeScanner) Receive(ctx context.Context) error {
 	in := gopacket.NewPacketSource(s.handle, layers.LayerTypeEthernet).Packets()
 
 	for {
@@ -97,7 +97,7 @@ func (s *NetworkScanner) Receive(ctx context.Context) error {
 	}
 }
 
-func (s *NetworkScanner) Transmit() error {
+func (s *NodeScanner) Transmit() error {
 	eth := layers.Ethernet{
 		SrcMAC:       s.iface.HardwareAddr,
 		DstMAC:       net.HardwareAddr{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, // Broadcast
@@ -133,7 +133,7 @@ func (s *NetworkScanner) Transmit() error {
 	return nil
 }
 
-func (s *NetworkScanner) Read() *DiscoveredNode {
+func (s *NodeScanner) Read() *DiscoveredNode {
 	node := <-s.discoveredNodeChan
 
 	return node

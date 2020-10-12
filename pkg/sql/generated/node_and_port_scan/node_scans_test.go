@@ -494,14 +494,14 @@ func testNodeScansInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testNodeScanToManyServices(t *testing.T) {
+func testNodeScanToManyNodes(t *testing.T) {
 	var err error
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
 	var a NodeScan
-	var b, c Service
+	var b, c Node
 
 	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, nodeScanDBTypes, true, nodeScanColumnsWithDefault...); err != nil {
@@ -512,10 +512,10 @@ func testNodeScanToManyServices(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = randomize.Struct(seed, &b, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &b, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &c, serviceDBTypes, false, serviceColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &c, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -529,7 +529,7 @@ func testNodeScanToManyServices(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check, err := a.Services().All(ctx, tx)
+	check, err := a.Nodes().All(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -552,18 +552,18 @@ func testNodeScanToManyServices(t *testing.T) {
 	}
 
 	slice := NodeScanSlice{&a}
-	if err = a.L.LoadServices(ctx, tx, false, (*[]*NodeScan)(&slice), nil); err != nil {
+	if err = a.L.LoadNodes(ctx, tx, false, (*[]*NodeScan)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.Services); got != 2 {
+	if got := len(a.R.Nodes); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.Services = nil
-	if err = a.L.LoadServices(ctx, tx, true, &a, nil); err != nil {
+	a.R.Nodes = nil
+	if err = a.L.LoadNodes(ctx, tx, true, &a, nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.Services); got != 2 {
+	if got := len(a.R.Nodes); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
@@ -572,7 +572,7 @@ func testNodeScanToManyServices(t *testing.T) {
 	}
 }
 
-func testNodeScanToManyAddOpServices(t *testing.T) {
+func testNodeScanToManyAddOpNodes(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
@@ -580,15 +580,15 @@ func testNodeScanToManyAddOpServices(t *testing.T) {
 	defer func() { _ = tx.Rollback() }()
 
 	var a NodeScan
-	var b, c, d, e Service
+	var b, c, d, e Node
 
 	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, nodeScanDBTypes, false, strmangle.SetComplement(nodeScanPrimaryKeyColumns, nodeScanColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	foreigners := []*Service{&b, &c, &d, &e}
+	foreigners := []*Node{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, serviceDBTypes, false, strmangle.SetComplement(servicePrimaryKeyColumns, serviceColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -603,13 +603,13 @@ func testNodeScanToManyAddOpServices(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*Service{
+	foreignersSplitByInsertion := [][]*Node{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddServices(ctx, tx, i != 0, x...)
+		err = a.AddNodes(ctx, tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -631,127 +631,19 @@ func testNodeScanToManyAddOpServices(t *testing.T) {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.Services[i*2] != first {
+		if a.R.Nodes[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.Services[i*2+1] != second {
+		if a.R.Nodes[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.Services().Count(ctx, tx)
+		count, err := a.Nodes().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if want := int64((i + 1) * 2); count != want {
 			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testNodeScanToOneNodeUsingNode(t *testing.T) {
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var local NodeScan
-	var foreign Node
-
-	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, nodeScanDBTypes, false, nodeScanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeScan struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &foreign, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
-	}
-
-	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	local.NodeID = foreign.ID
-	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.Node().One(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := NodeScanSlice{&local}
-	if err = local.L.LoadNode(ctx, tx, false, (*[]*NodeScan)(&slice), nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Node == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Node = nil
-	if err = local.L.LoadNode(ctx, tx, true, &local, nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Node == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
-func testNodeScanToOneSetOpNodeUsingNode(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a NodeScan
-	var b, c Node
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, nodeScanDBTypes, false, strmangle.SetComplement(nodeScanPrimaryKeyColumns, nodeScanColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Node{&b, &c} {
-		err = a.SetNode(ctx, tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Node != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.NodeScans[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.NodeID != x.ID {
-			t.Error("foreign key was wrong value", a.NodeID)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.NodeID))
-		reflect.Indirect(reflect.ValueOf(&a.NodeID)).Set(zero)
-
-		if err = a.Reload(ctx, tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.NodeID != x.ID {
-			t.Error("foreign key was wrong value", a.NodeID, x.ID)
 		}
 	}
 }
@@ -830,7 +722,7 @@ func testNodeScansSelect(t *testing.T) {
 }
 
 var (
-	nodeScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`, `NodeID`: `INTEGER`}
+	nodeScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`}
 	_               = bytes.MinRead
 )
 

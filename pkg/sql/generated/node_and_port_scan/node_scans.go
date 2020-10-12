@@ -20,17 +20,17 @@ import (
 	"github.com/volatiletech/sqlboiler/strmangle"
 )
 
-// NetworkScan is an object representing the database table.
-type NetworkScan struct {
+// NodeScan is an object representing the database table.
+type NodeScan struct {
 	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	Done      int64     `boil:"done" json:"done" toml:"done" yaml:"done"`
 
-	R *networkScanR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L networkScanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *nodeScanR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L nodeScanL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var NetworkScanColumns = struct {
+var NodeScanColumns = struct {
 	ID        string
 	CreatedAt string
 	Done      string
@@ -79,66 +79,66 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
-var NetworkScanWhere = struct {
+var NodeScanWhere = struct {
 	ID        whereHelperint64
 	CreatedAt whereHelpertime_Time
 	Done      whereHelperint64
 }{
-	ID:        whereHelperint64{field: "\"network_scans\".\"id\""},
-	CreatedAt: whereHelpertime_Time{field: "\"network_scans\".\"created_at\""},
-	Done:      whereHelperint64{field: "\"network_scans\".\"done\""},
+	ID:        whereHelperint64{field: "\"node_scans\".\"id\""},
+	CreatedAt: whereHelpertime_Time{field: "\"node_scans\".\"created_at\""},
+	Done:      whereHelperint64{field: "\"node_scans\".\"done\""},
 }
 
-// NetworkScanRels is where relationship names are stored.
-var NetworkScanRels = struct {
+// NodeScanRels is where relationship names are stored.
+var NodeScanRels = struct {
 	Nodes string
 }{
 	Nodes: "Nodes",
 }
 
-// networkScanR is where relationships are stored.
-type networkScanR struct {
+// nodeScanR is where relationships are stored.
+type nodeScanR struct {
 	Nodes NodeSlice
 }
 
 // NewStruct creates a new relationship struct
-func (*networkScanR) NewStruct() *networkScanR {
-	return &networkScanR{}
+func (*nodeScanR) NewStruct() *nodeScanR {
+	return &nodeScanR{}
 }
 
-// networkScanL is where Load methods for each relationship are stored.
-type networkScanL struct{}
+// nodeScanL is where Load methods for each relationship are stored.
+type nodeScanL struct{}
 
 var (
-	networkScanAllColumns            = []string{"id", "created_at", "done"}
-	networkScanColumnsWithoutDefault = []string{"created_at", "done"}
-	networkScanColumnsWithDefault    = []string{"id"}
-	networkScanPrimaryKeyColumns     = []string{"id"}
+	nodeScanAllColumns            = []string{"id", "created_at", "done"}
+	nodeScanColumnsWithoutDefault = []string{"created_at", "done"}
+	nodeScanColumnsWithDefault    = []string{"id"}
+	nodeScanPrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// NetworkScanSlice is an alias for a slice of pointers to NetworkScan.
-	// This should generally be used opposed to []NetworkScan.
-	NetworkScanSlice []*NetworkScan
-	// NetworkScanHook is the signature for custom NetworkScan hook methods
-	NetworkScanHook func(context.Context, boil.ContextExecutor, *NetworkScan) error
+	// NodeScanSlice is an alias for a slice of pointers to NodeScan.
+	// This should generally be used opposed to []NodeScan.
+	NodeScanSlice []*NodeScan
+	// NodeScanHook is the signature for custom NodeScan hook methods
+	NodeScanHook func(context.Context, boil.ContextExecutor, *NodeScan) error
 
-	networkScanQuery struct {
+	nodeScanQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	networkScanType                 = reflect.TypeOf(&NetworkScan{})
-	networkScanMapping              = queries.MakeStructMapping(networkScanType)
-	networkScanPrimaryKeyMapping, _ = queries.BindMapping(networkScanType, networkScanMapping, networkScanPrimaryKeyColumns)
-	networkScanInsertCacheMut       sync.RWMutex
-	networkScanInsertCache          = make(map[string]insertCache)
-	networkScanUpdateCacheMut       sync.RWMutex
-	networkScanUpdateCache          = make(map[string]updateCache)
-	networkScanUpsertCacheMut       sync.RWMutex
-	networkScanUpsertCache          = make(map[string]insertCache)
+	nodeScanType                 = reflect.TypeOf(&NodeScan{})
+	nodeScanMapping              = queries.MakeStructMapping(nodeScanType)
+	nodeScanPrimaryKeyMapping, _ = queries.BindMapping(nodeScanType, nodeScanMapping, nodeScanPrimaryKeyColumns)
+	nodeScanInsertCacheMut       sync.RWMutex
+	nodeScanInsertCache          = make(map[string]insertCache)
+	nodeScanUpdateCacheMut       sync.RWMutex
+	nodeScanUpdateCache          = make(map[string]updateCache)
+	nodeScanUpsertCacheMut       sync.RWMutex
+	nodeScanUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -149,24 +149,24 @@ var (
 	_ = qmhelper.Where
 )
 
-var networkScanBeforeInsertHooks []NetworkScanHook
-var networkScanBeforeUpdateHooks []NetworkScanHook
-var networkScanBeforeDeleteHooks []NetworkScanHook
-var networkScanBeforeUpsertHooks []NetworkScanHook
+var nodeScanBeforeInsertHooks []NodeScanHook
+var nodeScanBeforeUpdateHooks []NodeScanHook
+var nodeScanBeforeDeleteHooks []NodeScanHook
+var nodeScanBeforeUpsertHooks []NodeScanHook
 
-var networkScanAfterInsertHooks []NetworkScanHook
-var networkScanAfterSelectHooks []NetworkScanHook
-var networkScanAfterUpdateHooks []NetworkScanHook
-var networkScanAfterDeleteHooks []NetworkScanHook
-var networkScanAfterUpsertHooks []NetworkScanHook
+var nodeScanAfterInsertHooks []NodeScanHook
+var nodeScanAfterSelectHooks []NodeScanHook
+var nodeScanAfterUpdateHooks []NodeScanHook
+var nodeScanAfterDeleteHooks []NodeScanHook
+var nodeScanAfterUpsertHooks []NodeScanHook
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *NetworkScan) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanBeforeInsertHooks {
+	for _, hook := range nodeScanBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -176,12 +176,12 @@ func (o *NetworkScan) doBeforeInsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *NetworkScan) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanBeforeUpdateHooks {
+	for _, hook := range nodeScanBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -191,12 +191,12 @@ func (o *NetworkScan) doBeforeUpdateHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *NetworkScan) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanBeforeDeleteHooks {
+	for _, hook := range nodeScanBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -206,12 +206,12 @@ func (o *NetworkScan) doBeforeDeleteHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *NetworkScan) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanBeforeUpsertHooks {
+	for _, hook := range nodeScanBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -221,12 +221,12 @@ func (o *NetworkScan) doBeforeUpsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *NetworkScan) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanAfterInsertHooks {
+	for _, hook := range nodeScanAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -236,12 +236,12 @@ func (o *NetworkScan) doAfterInsertHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *NetworkScan) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanAfterSelectHooks {
+	for _, hook := range nodeScanAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -251,12 +251,12 @@ func (o *NetworkScan) doAfterSelectHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *NetworkScan) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanAfterUpdateHooks {
+	for _, hook := range nodeScanAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -266,12 +266,12 @@ func (o *NetworkScan) doAfterUpdateHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *NetworkScan) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanAfterDeleteHooks {
+	for _, hook := range nodeScanAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -281,12 +281,12 @@ func (o *NetworkScan) doAfterDeleteHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *NetworkScan) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeScan) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range networkScanAfterUpsertHooks {
+	for _, hook := range nodeScanAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -295,33 +295,33 @@ func (o *NetworkScan) doAfterUpsertHooks(ctx context.Context, exec boil.ContextE
 	return nil
 }
 
-// AddNetworkScanHook registers your hook function for all future operations.
-func AddNetworkScanHook(hookPoint boil.HookPoint, networkScanHook NetworkScanHook) {
+// AddNodeScanHook registers your hook function for all future operations.
+func AddNodeScanHook(hookPoint boil.HookPoint, nodeScanHook NodeScanHook) {
 	switch hookPoint {
 	case boil.BeforeInsertHook:
-		networkScanBeforeInsertHooks = append(networkScanBeforeInsertHooks, networkScanHook)
+		nodeScanBeforeInsertHooks = append(nodeScanBeforeInsertHooks, nodeScanHook)
 	case boil.BeforeUpdateHook:
-		networkScanBeforeUpdateHooks = append(networkScanBeforeUpdateHooks, networkScanHook)
+		nodeScanBeforeUpdateHooks = append(nodeScanBeforeUpdateHooks, nodeScanHook)
 	case boil.BeforeDeleteHook:
-		networkScanBeforeDeleteHooks = append(networkScanBeforeDeleteHooks, networkScanHook)
+		nodeScanBeforeDeleteHooks = append(nodeScanBeforeDeleteHooks, nodeScanHook)
 	case boil.BeforeUpsertHook:
-		networkScanBeforeUpsertHooks = append(networkScanBeforeUpsertHooks, networkScanHook)
+		nodeScanBeforeUpsertHooks = append(nodeScanBeforeUpsertHooks, nodeScanHook)
 	case boil.AfterInsertHook:
-		networkScanAfterInsertHooks = append(networkScanAfterInsertHooks, networkScanHook)
+		nodeScanAfterInsertHooks = append(nodeScanAfterInsertHooks, nodeScanHook)
 	case boil.AfterSelectHook:
-		networkScanAfterSelectHooks = append(networkScanAfterSelectHooks, networkScanHook)
+		nodeScanAfterSelectHooks = append(nodeScanAfterSelectHooks, nodeScanHook)
 	case boil.AfterUpdateHook:
-		networkScanAfterUpdateHooks = append(networkScanAfterUpdateHooks, networkScanHook)
+		nodeScanAfterUpdateHooks = append(nodeScanAfterUpdateHooks, nodeScanHook)
 	case boil.AfterDeleteHook:
-		networkScanAfterDeleteHooks = append(networkScanAfterDeleteHooks, networkScanHook)
+		nodeScanAfterDeleteHooks = append(nodeScanAfterDeleteHooks, nodeScanHook)
 	case boil.AfterUpsertHook:
-		networkScanAfterUpsertHooks = append(networkScanAfterUpsertHooks, networkScanHook)
+		nodeScanAfterUpsertHooks = append(nodeScanAfterUpsertHooks, nodeScanHook)
 	}
 }
 
-// One returns a single networkScan record from the query.
-func (q networkScanQuery) One(ctx context.Context, exec boil.ContextExecutor) (*NetworkScan, error) {
-	o := &NetworkScan{}
+// One returns a single nodeScan record from the query.
+func (q nodeScanQuery) One(ctx context.Context, exec boil.ContextExecutor) (*NodeScan, error) {
+	o := &NodeScan{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -330,7 +330,7 @@ func (q networkScanQuery) One(ctx context.Context, exec boil.ContextExecutor) (*
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for network_scans")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for node_scans")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -340,16 +340,16 @@ func (q networkScanQuery) One(ctx context.Context, exec boil.ContextExecutor) (*
 	return o, nil
 }
 
-// All returns all NetworkScan records from the query.
-func (q networkScanQuery) All(ctx context.Context, exec boil.ContextExecutor) (NetworkScanSlice, error) {
-	var o []*NetworkScan
+// All returns all NodeScan records from the query.
+func (q nodeScanQuery) All(ctx context.Context, exec boil.ContextExecutor) (NodeScanSlice, error) {
+	var o []*NodeScan
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to NetworkScan slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to NodeScan slice")
 	}
 
-	if len(networkScanAfterSelectHooks) != 0 {
+	if len(nodeScanAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -360,8 +360,8 @@ func (q networkScanQuery) All(ctx context.Context, exec boil.ContextExecutor) (N
 	return o, nil
 }
 
-// Count returns the count of all NetworkScan records in the query.
-func (q networkScanQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all NodeScan records in the query.
+func (q nodeScanQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -369,14 +369,14 @@ func (q networkScanQuery) Count(ctx context.Context, exec boil.ContextExecutor) 
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count network_scans rows")
+		return 0, errors.Wrap(err, "models: failed to count node_scans rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q networkScanQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q nodeScanQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -385,21 +385,21 @@ func (q networkScanQuery) Exists(ctx context.Context, exec boil.ContextExecutor)
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if network_scans exists")
+		return false, errors.Wrap(err, "models: failed to check if node_scans exists")
 	}
 
 	return count > 0, nil
 }
 
 // Nodes retrieves all the node's Nodes with an executor.
-func (o *NetworkScan) Nodes(mods ...qm.QueryMod) nodeQuery {
+func (o *NodeScan) Nodes(mods ...qm.QueryMod) nodeQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"nodes\".\"network_scan_id\"=?", o.ID),
+		qm.Where("\"nodes\".\"node_scan_id\"=?", o.ID),
 	)
 
 	query := Nodes(queryMods...)
@@ -414,27 +414,27 @@ func (o *NetworkScan) Nodes(mods ...qm.QueryMod) nodeQuery {
 
 // LoadNodes allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (networkScanL) LoadNodes(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNetworkScan interface{}, mods queries.Applicator) error {
-	var slice []*NetworkScan
-	var object *NetworkScan
+func (nodeScanL) LoadNodes(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNodeScan interface{}, mods queries.Applicator) error {
+	var slice []*NodeScan
+	var object *NodeScan
 
 	if singular {
-		object = maybeNetworkScan.(*NetworkScan)
+		object = maybeNodeScan.(*NodeScan)
 	} else {
-		slice = *maybeNetworkScan.(*[]*NetworkScan)
+		slice = *maybeNodeScan.(*[]*NodeScan)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &networkScanR{}
+			object.R = &nodeScanR{}
 		}
 		args = append(args, object.ID)
 	} else {
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &networkScanR{}
+				obj.R = &nodeScanR{}
 			}
 
 			for _, a := range args {
@@ -451,7 +451,7 @@ func (networkScanL) LoadNodes(ctx context.Context, e boil.ContextExecutor, singu
 		return nil
 	}
 
-	query := NewQuery(qm.From(`nodes`), qm.WhereIn(`nodes.network_scan_id in ?`, args...))
+	query := NewQuery(qm.From(`nodes`), qm.WhereIn(`nodes.node_scan_id in ?`, args...))
 	if mods != nil {
 		mods.Apply(query)
 	}
@@ -486,19 +486,19 @@ func (networkScanL) LoadNodes(ctx context.Context, e boil.ContextExecutor, singu
 			if foreign.R == nil {
 				foreign.R = &nodeR{}
 			}
-			foreign.R.NetworkScan = object
+			foreign.R.NodeScan = object
 		}
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.NetworkScanID {
+			if local.ID == foreign.NodeScanID {
 				local.R.Nodes = append(local.R.Nodes, foreign)
 				if foreign.R == nil {
 					foreign.R = &nodeR{}
 				}
-				foreign.R.NetworkScan = local
+				foreign.R.NodeScan = local
 				break
 			}
 		}
@@ -508,21 +508,21 @@ func (networkScanL) LoadNodes(ctx context.Context, e boil.ContextExecutor, singu
 }
 
 // AddNodes adds the given related objects to the existing relationships
-// of the network_scan, optionally inserting them as new records.
+// of the node_scan, optionally inserting them as new records.
 // Appends related to o.R.Nodes.
-// Sets related.R.NetworkScan appropriately.
-func (o *NetworkScan) AddNodes(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Node) error {
+// Sets related.R.NodeScan appropriately.
+func (o *NodeScan) AddNodes(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Node) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.NetworkScanID = o.ID
+			rel.NodeScanID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
 				"UPDATE \"nodes\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 0, []string{"network_scan_id"}),
+				strmangle.SetParamNames("\"", "\"", 0, []string{"node_scan_id"}),
 				strmangle.WhereClause("\"", "\"", 0, nodePrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
@@ -536,12 +536,12 @@ func (o *NetworkScan) AddNodes(ctx context.Context, exec boil.ContextExecutor, i
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.NetworkScanID = o.ID
+			rel.NodeScanID = o.ID
 		}
 	}
 
 	if o.R == nil {
-		o.R = &networkScanR{
+		o.R = &nodeScanR{
 			Nodes: related,
 		}
 	} else {
@@ -551,52 +551,52 @@ func (o *NetworkScan) AddNodes(ctx context.Context, exec boil.ContextExecutor, i
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &nodeR{
-				NetworkScan: o,
+				NodeScan: o,
 			}
 		} else {
-			rel.R.NetworkScan = o
+			rel.R.NodeScan = o
 		}
 	}
 	return nil
 }
 
-// NetworkScans retrieves all the records using an executor.
-func NetworkScans(mods ...qm.QueryMod) networkScanQuery {
-	mods = append(mods, qm.From("\"network_scans\""))
-	return networkScanQuery{NewQuery(mods...)}
+// NodeScans retrieves all the records using an executor.
+func NodeScans(mods ...qm.QueryMod) nodeScanQuery {
+	mods = append(mods, qm.From("\"node_scans\""))
+	return nodeScanQuery{NewQuery(mods...)}
 }
 
-// FindNetworkScan retrieves a single record by ID with an executor.
+// FindNodeScan retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindNetworkScan(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*NetworkScan, error) {
-	networkScanObj := &NetworkScan{}
+func FindNodeScan(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*NodeScan, error) {
+	nodeScanObj := &NodeScan{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"network_scans\" where \"id\"=?", sel,
+		"select %s from \"node_scans\" where \"id\"=?", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, networkScanObj)
+	err := q.Bind(ctx, exec, nodeScanObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from network_scans")
+		return nil, errors.Wrap(err, "models: unable to select from node_scans")
 	}
 
-	return networkScanObj, nil
+	return nodeScanObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *NetworkScan) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *NodeScan) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no network_scans provided for insertion")
+		return errors.New("models: no node_scans provided for insertion")
 	}
 
 	var err error
@@ -612,39 +612,39 @@ func (o *NetworkScan) Insert(ctx context.Context, exec boil.ContextExecutor, col
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(networkScanColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(nodeScanColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	networkScanInsertCacheMut.RLock()
-	cache, cached := networkScanInsertCache[key]
-	networkScanInsertCacheMut.RUnlock()
+	nodeScanInsertCacheMut.RLock()
+	cache, cached := nodeScanInsertCache[key]
+	nodeScanInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			networkScanAllColumns,
-			networkScanColumnsWithDefault,
-			networkScanColumnsWithoutDefault,
+			nodeScanAllColumns,
+			nodeScanColumnsWithDefault,
+			nodeScanColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(networkScanType, networkScanMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(nodeScanType, nodeScanMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(networkScanType, networkScanMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(nodeScanType, nodeScanMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"network_scans\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"node_scans\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"network_scans\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"node_scans\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT \"%s\" FROM \"network_scans\" WHERE %s", strings.Join(returnColumns, "\",\""), strmangle.WhereClause("\"", "\"", 0, networkScanPrimaryKeyColumns))
+			cache.retQuery = fmt.Sprintf("SELECT \"%s\" FROM \"node_scans\" WHERE %s", strings.Join(returnColumns, "\",\""), strmangle.WhereClause("\"", "\"", 0, nodeScanPrimaryKeyColumns))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -661,7 +661,7 @@ func (o *NetworkScan) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	result, err := exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into network_scans")
+		return errors.Wrap(err, "models: unable to insert into node_scans")
 	}
 
 	var lastID int64
@@ -677,7 +677,7 @@ func (o *NetworkScan) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	}
 
 	o.ID = int64(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == networkScanMapping["id"] {
+	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == nodeScanMapping["id"] {
 		goto CacheNoHooks
 	}
 
@@ -692,50 +692,50 @@ func (o *NetworkScan) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to populate default values for network_scans")
+		return errors.Wrap(err, "models: unable to populate default values for node_scans")
 	}
 
 CacheNoHooks:
 	if !cached {
-		networkScanInsertCacheMut.Lock()
-		networkScanInsertCache[key] = cache
-		networkScanInsertCacheMut.Unlock()
+		nodeScanInsertCacheMut.Lock()
+		nodeScanInsertCache[key] = cache
+		nodeScanInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// Update uses an executor to update the NetworkScan.
+// Update uses an executor to update the NodeScan.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *NetworkScan) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *NodeScan) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	networkScanUpdateCacheMut.RLock()
-	cache, cached := networkScanUpdateCache[key]
-	networkScanUpdateCacheMut.RUnlock()
+	nodeScanUpdateCacheMut.RLock()
+	cache, cached := nodeScanUpdateCache[key]
+	nodeScanUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			networkScanAllColumns,
-			networkScanPrimaryKeyColumns,
+			nodeScanAllColumns,
+			nodeScanPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("models: unable to update network_scans, could not build whitelist")
+			return 0, errors.New("models: unable to update node_scans, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"network_scans\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"node_scans\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 0, wl),
-			strmangle.WhereClause("\"", "\"", 0, networkScanPrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", 0, nodeScanPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(networkScanType, networkScanMapping, append(wl, networkScanPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(nodeScanType, nodeScanMapping, append(wl, nodeScanPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -751,42 +751,42 @@ func (o *NetworkScan) Update(ctx context.Context, exec boil.ContextExecutor, col
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update network_scans row")
+		return 0, errors.Wrap(err, "models: unable to update node_scans row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by update for network_scans")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by update for node_scans")
 	}
 
 	if !cached {
-		networkScanUpdateCacheMut.Lock()
-		networkScanUpdateCache[key] = cache
-		networkScanUpdateCacheMut.Unlock()
+		nodeScanUpdateCacheMut.Lock()
+		nodeScanUpdateCache[key] = cache
+		nodeScanUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q networkScanQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q nodeScanQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all for network_scans")
+		return 0, errors.Wrap(err, "models: unable to update all for node_scans")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for network_scans")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for node_scans")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o NetworkScanSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o NodeScanSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -808,13 +808,13 @@ func (o NetworkScanSlice) UpdateAll(ctx context.Context, exec boil.ContextExecut
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), networkScanPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeScanPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"network_scans\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"node_scans\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, networkScanPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeScanPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -823,29 +823,29 @@ func (o NetworkScanSlice) UpdateAll(ctx context.Context, exec boil.ContextExecut
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all in networkScan slice")
+		return 0, errors.Wrap(err, "models: unable to update all in nodeScan slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all networkScan")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all nodeScan")
 	}
 	return rowsAff, nil
 }
 
-// Delete deletes a single NetworkScan record with an executor.
+// Delete deletes a single NodeScan record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *NetworkScan) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *NodeScan) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("models: no NetworkScan provided for delete")
+		return 0, errors.New("models: no NodeScan provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), networkScanPrimaryKeyMapping)
-	sql := "DELETE FROM \"network_scans\" WHERE \"id\"=?"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), nodeScanPrimaryKeyMapping)
+	sql := "DELETE FROM \"node_scans\" WHERE \"id\"=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -854,12 +854,12 @@ func (o *NetworkScan) Delete(ctx context.Context, exec boil.ContextExecutor) (in
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete from network_scans")
+		return 0, errors.Wrap(err, "models: unable to delete from node_scans")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for network_scans")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for node_scans")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -870,33 +870,33 @@ func (o *NetworkScan) Delete(ctx context.Context, exec boil.ContextExecutor) (in
 }
 
 // DeleteAll deletes all matching rows.
-func (q networkScanQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q nodeScanQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("models: no networkScanQuery provided for delete all")
+		return 0, errors.New("models: no nodeScanQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from network_scans")
+		return 0, errors.Wrap(err, "models: unable to delete all from node_scans")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for network_scans")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_scans")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o NetworkScanSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o NodeScanSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(networkScanBeforeDeleteHooks) != 0 {
+	if len(nodeScanBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -906,12 +906,12 @@ func (o NetworkScanSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), networkScanPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeScanPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"network_scans\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, networkScanPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"node_scans\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeScanPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -920,15 +920,15 @@ func (o NetworkScanSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from networkScan slice")
+		return 0, errors.Wrap(err, "models: unable to delete all from nodeScan slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for network_scans")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_scans")
 	}
 
-	if len(networkScanAfterDeleteHooks) != 0 {
+	if len(nodeScanAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -941,8 +941,8 @@ func (o NetworkScanSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *NetworkScan) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindNetworkScan(ctx, exec, o.ID)
+func (o *NodeScan) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindNodeScan(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -953,26 +953,26 @@ func (o *NetworkScan) Reload(ctx context.Context, exec boil.ContextExecutor) err
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *NetworkScanSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *NodeScanSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := NetworkScanSlice{}
+	slice := NodeScanSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), networkScanPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeScanPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"network_scans\".* FROM \"network_scans\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, networkScanPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"node_scans\".* FROM \"node_scans\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeScanPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in NetworkScanSlice")
+		return errors.Wrap(err, "models: unable to reload all in NodeScanSlice")
 	}
 
 	*o = slice
@@ -980,10 +980,10 @@ func (o *NetworkScanSlice) ReloadAll(ctx context.Context, exec boil.ContextExecu
 	return nil
 }
 
-// NetworkScanExists checks if the NetworkScan row exists.
-func NetworkScanExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+// NodeScanExists checks if the NodeScan row exists.
+func NodeScanExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"network_scans\" where \"id\"=? limit 1)"
+	sql := "select exists(select 1 from \"node_scans\" where \"id\"=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -994,7 +994,7 @@ func NetworkScanExists(ctx context.Context, exec boil.ContextExecutor, iD int64)
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if network_scans exists")
+		return false, errors.Wrap(err, "models: unable to check if node_scans exists")
 	}
 
 	return exists, nil

@@ -129,7 +129,7 @@ func (s *NetworkAndNodeScanService) TriggerNetworkScan(ctx context.Context, scan
 
 	log.Printf("starting network scan %v\n", networkScanID)
 
-	networkScanner := scanners.NewNetworkScanner(s.device)
+	networkScanner := scanners.NewNodeScanner(s.device)
 	if _, err = networkScanner.Open(); err != nil {
 		return nil, status.Errorf(codes.Unknown, "could not open network scanner: %v", err.Error())
 	}

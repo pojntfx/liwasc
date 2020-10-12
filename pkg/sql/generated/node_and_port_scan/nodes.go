@@ -22,25 +22,25 @@ import (
 
 // Node is an object representing the database table.
 type Node struct {
-	ID            int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	MacAddress    string    `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
-	NetworkScanID int64     `boil:"network_scan_id" json:"network_scan_id" toml:"network_scan_id" yaml:"network_scan_id"`
+	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	MacAddress string    `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
+	NodeScanID int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
 
 	R *nodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L nodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var NodeColumns = struct {
-	ID            string
-	CreatedAt     string
-	MacAddress    string
-	NetworkScanID string
+	ID         string
+	CreatedAt  string
+	MacAddress string
+	NodeScanID string
 }{
-	ID:            "id",
-	CreatedAt:     "created_at",
-	MacAddress:    "mac_address",
-	NetworkScanID: "network_scan_id",
+	ID:         "id",
+	CreatedAt:  "created_at",
+	MacAddress: "mac_address",
+	NodeScanID: "node_scan_id",
 }
 
 // Generated where
@@ -62,30 +62,30 @@ func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 }
 
 var NodeWhere = struct {
-	ID            whereHelperint64
-	CreatedAt     whereHelpertime_Time
-	MacAddress    whereHelperstring
-	NetworkScanID whereHelperint64
+	ID         whereHelperint64
+	CreatedAt  whereHelpertime_Time
+	MacAddress whereHelperstring
+	NodeScanID whereHelperint64
 }{
-	ID:            whereHelperint64{field: "\"nodes\".\"id\""},
-	CreatedAt:     whereHelpertime_Time{field: "\"nodes\".\"created_at\""},
-	MacAddress:    whereHelperstring{field: "\"nodes\".\"mac_address\""},
-	NetworkScanID: whereHelperint64{field: "\"nodes\".\"network_scan_id\""},
+	ID:         whereHelperint64{field: "\"nodes\".\"id\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"nodes\".\"created_at\""},
+	MacAddress: whereHelperstring{field: "\"nodes\".\"mac_address\""},
+	NodeScanID: whereHelperint64{field: "\"nodes\".\"node_scan_id\""},
 }
 
 // NodeRels is where relationship names are stored.
 var NodeRels = struct {
-	NetworkScan string
-	NodeScans   string
+	NodeScan  string
+	PortScans string
 }{
-	NetworkScan: "NetworkScan",
-	NodeScans:   "NodeScans",
+	NodeScan:  "NodeScan",
+	PortScans: "PortScans",
 }
 
 // nodeR is where relationships are stored.
 type nodeR struct {
-	NetworkScan *NetworkScan
-	NodeScans   NodeScanSlice
+	NodeScan  *NodeScan
+	PortScans PortScanSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -97,8 +97,8 @@ func (*nodeR) NewStruct() *nodeR {
 type nodeL struct{}
 
 var (
-	nodeAllColumns            = []string{"id", "created_at", "mac_address", "network_scan_id"}
-	nodeColumnsWithoutDefault = []string{"created_at", "mac_address", "network_scan_id"}
+	nodeAllColumns            = []string{"id", "created_at", "mac_address", "node_scan_id"}
+	nodeColumnsWithoutDefault = []string{"created_at", "mac_address", "node_scan_id"}
 	nodeColumnsWithDefault    = []string{"id"}
 	nodePrimaryKeyColumns     = []string{"id"}
 )
@@ -378,44 +378,44 @@ func (q nodeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
-// NetworkScan pointed to by the foreign key.
-func (o *Node) NetworkScan(mods ...qm.QueryMod) networkScanQuery {
+// NodeScan pointed to by the foreign key.
+func (o *Node) NodeScan(mods ...qm.QueryMod) nodeScanQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.NetworkScanID),
+		qm.Where("\"id\" = ?", o.NodeScanID),
 	}
 
 	queryMods = append(queryMods, mods...)
 
-	query := NetworkScans(queryMods...)
-	queries.SetFrom(query.Query, "\"network_scans\"")
+	query := NodeScans(queryMods...)
+	queries.SetFrom(query.Query, "\"node_scans\"")
 
 	return query
 }
 
-// NodeScans retrieves all the node_scan's NodeScans with an executor.
-func (o *Node) NodeScans(mods ...qm.QueryMod) nodeScanQuery {
+// PortScans retrieves all the port_scan's PortScans with an executor.
+func (o *Node) PortScans(mods ...qm.QueryMod) portScanQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"node_scans\".\"node_id\"=?", o.ID),
+		qm.Where("\"port_scans\".\"node_id\"=?", o.ID),
 	)
 
-	query := NodeScans(queryMods...)
-	queries.SetFrom(query.Query, "\"node_scans\"")
+	query := PortScans(queryMods...)
+	queries.SetFrom(query.Query, "\"port_scans\"")
 
 	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"node_scans\".*"})
+		queries.SetSelect(query.Query, []string{"\"port_scans\".*"})
 	}
 
 	return query
 }
 
-// LoadNetworkScan allows an eager lookup of values, cached into the
+// LoadNodeScan allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNode interface{}, mods queries.Applicator) error {
+func (nodeL) LoadNodeScan(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNode interface{}, mods queries.Applicator) error {
 	var slice []*Node
 	var object *Node
 
@@ -430,7 +430,7 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 		if object.R == nil {
 			object.R = &nodeR{}
 		}
-		args = append(args, object.NetworkScanID)
+		args = append(args, object.NodeScanID)
 
 	} else {
 	Outer:
@@ -440,12 +440,12 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 			}
 
 			for _, a := range args {
-				if a == obj.NetworkScanID {
+				if a == obj.NodeScanID {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.NetworkScanID)
+			args = append(args, obj.NodeScanID)
 
 		}
 	}
@@ -454,26 +454,26 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 		return nil
 	}
 
-	query := NewQuery(qm.From(`network_scans`), qm.WhereIn(`network_scans.id in ?`, args...))
+	query := NewQuery(qm.From(`node_scans`), qm.WhereIn(`node_scans.id in ?`, args...))
 	if mods != nil {
 		mods.Apply(query)
 	}
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load NetworkScan")
+		return errors.Wrap(err, "failed to eager load NodeScan")
 	}
 
-	var resultSlice []*NetworkScan
+	var resultSlice []*NodeScan
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice NetworkScan")
+		return errors.Wrap(err, "failed to bind eager loaded slice NodeScan")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for network_scans")
+		return errors.Wrap(err, "failed to close results of eager load for node_scans")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for network_scans")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for node_scans")
 	}
 
 	if len(nodeAfterSelectHooks) != 0 {
@@ -490,9 +490,9 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 
 	if singular {
 		foreign := resultSlice[0]
-		object.R.NetworkScan = foreign
+		object.R.NodeScan = foreign
 		if foreign.R == nil {
-			foreign.R = &networkScanR{}
+			foreign.R = &nodeScanR{}
 		}
 		foreign.R.Nodes = append(foreign.R.Nodes, object)
 		return nil
@@ -500,10 +500,10 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.NetworkScanID == foreign.ID {
-				local.R.NetworkScan = foreign
+			if local.NodeScanID == foreign.ID {
+				local.R.NodeScan = foreign
 				if foreign.R == nil {
-					foreign.R = &networkScanR{}
+					foreign.R = &nodeScanR{}
 				}
 				foreign.R.Nodes = append(foreign.R.Nodes, local)
 				break
@@ -514,9 +514,9 @@ func (nodeL) LoadNetworkScan(ctx context.Context, e boil.ContextExecutor, singul
 	return nil
 }
 
-// LoadNodeScans allows an eager lookup of values, cached into the
+// LoadPortScans allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (nodeL) LoadNodeScans(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNode interface{}, mods queries.Applicator) error {
+func (nodeL) LoadPortScans(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNode interface{}, mods queries.Applicator) error {
 	var slice []*Node
 	var object *Node
 
@@ -553,29 +553,29 @@ func (nodeL) LoadNodeScans(ctx context.Context, e boil.ContextExecutor, singular
 		return nil
 	}
 
-	query := NewQuery(qm.From(`node_scans`), qm.WhereIn(`node_scans.node_id in ?`, args...))
+	query := NewQuery(qm.From(`port_scans`), qm.WhereIn(`port_scans.node_id in ?`, args...))
 	if mods != nil {
 		mods.Apply(query)
 	}
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load node_scans")
+		return errors.Wrap(err, "failed to eager load port_scans")
 	}
 
-	var resultSlice []*NodeScan
+	var resultSlice []*PortScan
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice node_scans")
+		return errors.Wrap(err, "failed to bind eager loaded slice port_scans")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on node_scans")
+		return errors.Wrap(err, "failed to close results in eager load on port_scans")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for node_scans")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for port_scans")
 	}
 
-	if len(nodeScanAfterSelectHooks) != 0 {
+	if len(portScanAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -583,10 +583,10 @@ func (nodeL) LoadNodeScans(ctx context.Context, e boil.ContextExecutor, singular
 		}
 	}
 	if singular {
-		object.R.NodeScans = resultSlice
+		object.R.PortScans = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &nodeScanR{}
+				foreign.R = &portScanR{}
 			}
 			foreign.R.Node = object
 		}
@@ -596,9 +596,9 @@ func (nodeL) LoadNodeScans(ctx context.Context, e boil.ContextExecutor, singular
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.NodeID {
-				local.R.NodeScans = append(local.R.NodeScans, foreign)
+				local.R.PortScans = append(local.R.PortScans, foreign)
 				if foreign.R == nil {
-					foreign.R = &nodeScanR{}
+					foreign.R = &portScanR{}
 				}
 				foreign.R.Node = local
 				break
@@ -609,10 +609,10 @@ func (nodeL) LoadNodeScans(ctx context.Context, e boil.ContextExecutor, singular
 	return nil
 }
 
-// SetNetworkScan of the node to the related item.
-// Sets o.R.NetworkScan to related.
+// SetNodeScan of the node to the related item.
+// Sets o.R.NodeScan to related.
 // Adds o to related.R.Nodes.
-func (o *Node) SetNetworkScan(ctx context.Context, exec boil.ContextExecutor, insert bool, related *NetworkScan) error {
+func (o *Node) SetNodeScan(ctx context.Context, exec boil.ContextExecutor, insert bool, related *NodeScan) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -622,7 +622,7 @@ func (o *Node) SetNetworkScan(ctx context.Context, exec boil.ContextExecutor, in
 
 	updateQuery := fmt.Sprintf(
 		"UPDATE \"nodes\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 0, []string{"network_scan_id"}),
+		strmangle.SetParamNames("\"", "\"", 0, []string{"node_scan_id"}),
 		strmangle.WhereClause("\"", "\"", 0, nodePrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
@@ -636,17 +636,17 @@ func (o *Node) SetNetworkScan(ctx context.Context, exec boil.ContextExecutor, in
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.NetworkScanID = related.ID
+	o.NodeScanID = related.ID
 	if o.R == nil {
 		o.R = &nodeR{
-			NetworkScan: related,
+			NodeScan: related,
 		}
 	} else {
-		o.R.NetworkScan = related
+		o.R.NodeScan = related
 	}
 
 	if related.R == nil {
-		related.R = &networkScanR{
+		related.R = &nodeScanR{
 			Nodes: NodeSlice{o},
 		}
 	} else {
@@ -656,11 +656,11 @@ func (o *Node) SetNetworkScan(ctx context.Context, exec boil.ContextExecutor, in
 	return nil
 }
 
-// AddNodeScans adds the given related objects to the existing relationships
+// AddPortScans adds the given related objects to the existing relationships
 // of the node, optionally inserting them as new records.
-// Appends related to o.R.NodeScans.
+// Appends related to o.R.PortScans.
 // Sets related.R.Node appropriately.
-func (o *Node) AddNodeScans(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*NodeScan) error {
+func (o *Node) AddPortScans(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PortScan) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -670,9 +670,9 @@ func (o *Node) AddNodeScans(ctx context.Context, exec boil.ContextExecutor, inse
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"node_scans\" SET %s WHERE %s",
+				"UPDATE \"port_scans\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 0, []string{"node_id"}),
-				strmangle.WhereClause("\"", "\"", 0, nodeScanPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 0, portScanPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -691,15 +691,15 @@ func (o *Node) AddNodeScans(ctx context.Context, exec boil.ContextExecutor, inse
 
 	if o.R == nil {
 		o.R = &nodeR{
-			NodeScans: related,
+			PortScans: related,
 		}
 	} else {
-		o.R.NodeScans = append(o.R.NodeScans, related...)
+		o.R.PortScans = append(o.R.PortScans, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &nodeScanR{
+			rel.R = &portScanR{
 				Node: o,
 			}
 		} else {
