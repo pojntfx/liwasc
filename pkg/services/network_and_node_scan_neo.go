@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"math"
 	"time"
 
 	"github.com/pojntfx/liwasc/pkg/concurrency"
@@ -41,17 +42,16 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 	// Create network scan in DB
 	dbNetworkScan := &models.NetworkScan{}
 	if err := s.networkAndNodeScanNeoDatabase.CreateNetworkScan(dbNetworkScan); err != nil {
-		log.Println("could not create network scan in DB", err)
+		log.Printf("could not create network scan %v in DB: %v\n", dbNetworkScan.ID, err)
 
 		return nil, status.Errorf(codes.Unknown, "could not create network scan in DB")
 	}
 
-	// Create network scanner
+	// Create and open network scanner
 	networkScanner := scanners.NewNetworkScanner(s.device)
-
 	networks, err := networkScanner.Open()
 	if err != nil {
-		log.Println("could not open network scanner", err)
+		log.Printf("could not open network scanner for network scan %v: %v\n", dbNetworkScan.ID, err)
 
 		return nil, status.Errorf(codes.Unknown, "could not open network scanner")
 	}
@@ -59,14 +59,14 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 	// Start network scan
 	log.Printf("starting network scan %v for networks: %v\n", dbNetworkScan.ID, networks)
 
-	// Transmit
+	// Transmit network scan
 	go func() {
 		if err := networkScanner.Transmit(); err != nil {
-			log.Printf("could not transmit for network scan %v\n", dbNetworkScan.ID)
+			log.Printf("could not transmit for network scan %v: %v\n", dbNetworkScan.ID, err)
 		}
 	}()
 
-	// Receive
+	// Receive network scan
 	go func() {
 		receiveCtx, cancel := context.WithTimeout(
 			context.Background(),
@@ -75,26 +75,101 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 		defer cancel()
 
 		if err := networkScanner.Receive(receiveCtx); err != nil {
-			log.Printf("could not receive for network scan %v\n", dbNetworkScan.ID)
+			log.Printf("could not receive for network scan %v: %v\n", dbNetworkScan.ID, err)
 		}
 	}()
 
-	// Read
+	// Read network scan
 	go func() {
 		for {
 			node := networkScanner.Read()
+			// Network scan is done
 			if node == nil {
 				log.Printf("network scan %v is done\n", dbNetworkScan.ID)
 
 				break
 			}
 
-			log.Println(node)
+			// Handle node
+			go func() {
+				// Create node
+				dbNode := &models.Node{
+					NetworkScanID: dbNetworkScan.ID,
+					MacAddress:    node.MACAddress.String(),
+				}
+
+				if err := s.networkAndNodeScanNeoDatabase.CreateNode(dbNode); err != nil {
+					log.Printf("could not create node %v for network scan %v in DB: %v\n", dbNode.ID, dbNetworkScan.ID, err)
+
+					return
+				}
+
+				// Create node scan in DB
+				dbNodeScan := &models.NodeScan{}
+				if err := s.networkAndNodeScanNeoDatabase.CreateNodeScan(dbNodeScan); err != nil {
+					log.Printf("could not create node scan %v for network scan %v in DB: %v\n", dbNodeScan.ID, dbNetworkScan.ID, err)
+
+					return
+				}
+
+				// Create node scanner
+				nodeScanner := scanners.NewPortScanner(
+					node.IPAddress.String(),
+					0,
+					math.MaxInt16,
+					time.Millisecond*time.Duration(networkScanNeoStartMessage.GetNodeScanTimeout()),
+					[]string{"tcp", "udp"},
+					s.portScannerConcurrencyLimiter,
+					func(port int) ([]byte, error) {
+						packet, err := s.ports2packetsDatabase.GetPacket(port)
+						if err != nil {
+							return nil, err
+						}
+
+						return packet.Packet, nil
+					},
+				)
+
+				// Start node scan
+				log.Printf("starting node scan %v for network scan: %v\n", dbNodeScan.ID, dbNetworkScan.ID)
+
+				// Transmit node scan
+				go func() {
+					if err := nodeScanner.Transmit(); err != nil {
+						log.Printf("could not transmit for node scan %v for network scan %v: %v\n", dbNodeScan.ID, dbNetworkScan.ID, err)
+					}
+				}()
+
+				// Read node scan
+				go func() {
+					for {
+						port := nodeScanner.Read()
+						// Node scan is done
+						if port == nil {
+							log.Printf("node scan %v for network scan %v is done\n", dbNodeScan.ID, dbNetworkScan.ID)
+
+							break
+						}
+
+						// Handle port
+						if port.Open {
+							go func() {
+								log.Printf("found open port %v/%v for node %v for network scan %v\n", port.Port, port.Protocol, dbNode.ID, dbNetworkScan.ID)
+							}()
+						}
+					}
+
+					dbNodeScan.Done = 1
+					if err := s.networkAndNodeScanNeoDatabase.UpdateNodeScan(dbNodeScan); err != nil {
+						log.Printf("could not update node scan %v in DB: %v\n", dbNodeScan.ID, err)
+					}
+				}()
+			}()
 		}
 
 		dbNetworkScan.Done = 1
 		if err := s.networkAndNodeScanNeoDatabase.UpdateNetworkScan(dbNetworkScan); err != nil {
-			log.Println("could not create network scan in DB", err)
+			log.Printf("could not update network scan %v in DB: %v\n", dbNetworkScan.ID, err)
 		}
 	}()
 
