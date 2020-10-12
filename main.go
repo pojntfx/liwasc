@@ -18,6 +18,7 @@ func main() {
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
 	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database. Download from https://mac2vendor.com/articles/download")
 	networkAndNodeScanDatabasePath := flag.String("networkAndNodeScanDatabasePath", "/var/liwasc/network_and_node_scan.sqlite", "Path to the persistence database for the network and node scan service.")
+	networkAndNodeScanNeoDatabasePath := flag.String("networkAndNodeScanNeoDatabasePath", "/var/liwasc/network_and_node_scan_neo.sqlite", "Path to the persistence database for the network and node scan neo service.")
 	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/liwasc/node_wake.sqlite", "Path to the persistence database for the node wake service.")
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
@@ -35,6 +36,7 @@ func main() {
 	// Create instances
 	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*mac2vendorDatabasePath)
 	networkAndNodeScanDatabase := databases.NewNetworkAndNodeScanDatabase(*networkAndNodeScanDatabasePath)
+	networkAndNodeScanNeoDatabase := databases.NewNetworkAndNodeScanNeoDatabase(*networkAndNodeScanNeoDatabasePath)
 	nodeWakeDatabase := databases.NewNodeWakeDatabase(*nodeWakeDatabasePath)
 	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
 	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath)
@@ -51,6 +53,12 @@ func main() {
 		*periodicNetworkScanTimeout,
 		*periodicNodeScanTimeout,
 		contextValidator,
+	)
+	networkAndNodeScanNeoService := services.NewNetworkAndNodeScanNeoService(
+		*deviceName,
+		ports2PacketsDatabase,
+		networkAndNodeScanNeoDatabase,
+		concurrency.NewGoRoutineLimiter(int32(*maxConcurrentPortScans)),
 	)
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
@@ -76,6 +84,7 @@ func main() {
 		networkAndNodeScanService,
 		nodeWakeService,
 		metadataService,
+		networkAndNodeScanNeoService,
 	)
 
 	// Open instances
@@ -93,6 +102,10 @@ func main() {
 
 	if err := networkAndNodeScanDatabase.Open(); err != nil {
 		log.Fatal("could not open networkAndNodeScanDatabase", err)
+	}
+
+	if err := networkAndNodeScanNeoDatabase.Open(); err != nil {
+		log.Fatal("could not open networkAndNodeScanNeoDatabase", err)
 	}
 
 	if err := oidcValidator.Open(); err != nil {
