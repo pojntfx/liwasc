@@ -31,16 +31,16 @@ func NewNetworkScanner(device string) *NetworkScanner {
 	return &NetworkScanner{device, nil, nil, nil, make(chan *DiscoveredNode)}
 }
 
-func (s *NetworkScanner) Open() (error, []*net.IPNet) {
+func (s *NetworkScanner) Open() ([]*net.IPNet, error) {
 	iface, err := net.InterfaceByName(s.deviceName)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	s.iface = iface
 
 	addresses, err := iface.Addrs()
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	for _, ipv4address := range addresses {
@@ -56,16 +56,16 @@ func (s *NetworkScanner) Open() (error, []*net.IPNet) {
 
 	port, err := freeport.GetFreePort()
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	handle, err := pcap.OpenLive(iface.Name, int32(port), true, pcap.BlockForever)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	s.handle = handle
 
-	return nil, s.ipv4addresses
+	return s.ipv4addresses, nil
 }
 
 func (s *NetworkScanner) Receive(ctx context.Context) error {
