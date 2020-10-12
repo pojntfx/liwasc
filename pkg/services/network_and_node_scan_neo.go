@@ -109,7 +109,7 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 					NodeID: dbNode.ID,
 				}
 				if err := s.networkAndNodeScanNeoDatabase.CreateNodeScan(dbNodeScan); err != nil {
-					log.Printf("could not create node scan %v for network scan %v in DB: %v\n", dbNodeScan.ID, dbNetworkScan.ID, err)
+					log.Printf("could not create node scan %v for node %v for network scan %v in DB: %v\n", dbNodeScan.ID, dbNode.ID, dbNetworkScan.ID, err)
 
 					return
 				}
@@ -133,12 +133,12 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 				)
 
 				// Start node scan
-				log.Printf("starting node scan %v for network scan: %v\n", dbNodeScan.ID, dbNetworkScan.ID)
+				log.Printf("starting node scan %v for node %v for network scan: %v\n", dbNodeScan.ID, dbNode.ID, dbNetworkScan.ID)
 
 				// Transmit node scan
 				go func() {
 					if err := nodeScanner.Transmit(); err != nil {
-						log.Printf("could not transmit for node scan %v for network scan %v: %v\n", dbNodeScan.ID, dbNetworkScan.ID, err)
+						log.Printf("could not transmit for node scan %v for node %v for network scan %v: %v\n", dbNodeScan.ID, dbNode.ID, dbNetworkScan.ID, err)
 					}
 				}()
 
@@ -156,7 +156,20 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 						// Handle port
 						if port.Open {
 							go func() {
-								log.Printf("found open port %v/%v for node %v for network scan %v\n", port.Port, port.Protocol, dbNode.ID, dbNetworkScan.ID)
+								log.Printf("found open service %v/%v for node %v for network scan %v\n", port.Port, port.Protocol, dbNode.ID, dbNetworkScan.ID)
+
+								// Create service
+								dbService := &models.Service{
+									NodeScanID:        dbNode.ID,
+									PortNumber:        int64(port.Port),
+									TransportProtocol: port.Protocol,
+								}
+
+								if err := s.networkAndNodeScanNeoDatabase.CreateService(dbService); err != nil {
+									log.Printf("could not create service %v for node scan %v for node %v for network scan %v in DB: %v\n", dbService.ID, dbNodeScan.ID, dbNode.ID, dbNetworkScan.ID, err)
+
+									return
+								}
 							}()
 						}
 					}
