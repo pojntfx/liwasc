@@ -99,11 +99,15 @@ func (s *PortScanner) Transmit() error {
 					ctx, stopChecker := context.WithCancel(context.Background())
 					defer stopChecker()
 
-					go func() {
+					s.concurrencyLimiter.Add()
+
+					go func(concurrencyLimiter *concurrency.GoRoutineLimiter) {
 						if err := c.CheckingLoop(ctx); err != nil {
 							nonFatalErrorChan <- err
 						}
-					}()
+
+						concurrencyLimiter.Done()
+					}(s.concurrencyLimiter)
 
 					<-c.WaitReady()
 

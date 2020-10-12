@@ -40,3 +40,11 @@ func (c *GoRoutineLimiter) Dispatch(dispatcher func()) {
 		dispatcher()
 	}()
 }
+
+func (c *GoRoutineLimiter) Add() {
+	atomic.AddInt32(&c.currentGoRoutines, 1)
+}
+
+func (c *GoRoutineLimiter) Done() {
+	atomic.AddInt32(&c.currentGoRoutines, -1)
+}
