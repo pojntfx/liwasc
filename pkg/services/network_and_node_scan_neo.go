@@ -105,7 +105,9 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, net
 				}
 
 				// Create node scan in DB
-				dbNodeScan := &models.NodeScan{}
+				dbNodeScan := &models.NodeScan{
+					NodeID: dbNode.ID,
+				}
 				if err := s.networkAndNodeScanNeoDatabase.CreateNodeScan(dbNodeScan); err != nil {
 					log.Printf("could not create node scan %v for network scan %v in DB: %v\n", dbNodeScan.ID, dbNetworkScan.ID, err)
 
