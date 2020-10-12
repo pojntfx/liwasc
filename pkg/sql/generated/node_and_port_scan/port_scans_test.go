@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testNodes(t *testing.T) {
+func testPortScans(t *testing.T) {
 	t.Parallel()
 
-	query := Nodes()
+	query := PortScans()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testNodesDelete(t *testing.T) {
+func testPortScansDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testNodesDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testNodesDelete(t *testing.T) {
 	}
 }
 
-func testNodesQueryDeleteAll(t *testing.T) {
+func testPortScansQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testNodesQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Nodes().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := PortScans().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testNodesQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodesSliceDeleteAll(t *testing.T) {
+func testPortScansSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testNodesSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeSlice{o}
+	slice := PortScanSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testNodesSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testNodesSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodesExists(t *testing.T) {
+func testPortScansExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testNodesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := NodeExists(ctx, tx, o.ID)
+	e, err := PortScanExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if Node exists: %s", err)
+		t.Errorf("Unable to check if PortScan exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected NodeExists to return true, but got false.")
+		t.Errorf("Expected PortScanExists to return true, but got false.")
 	}
 }
 
-func testNodesFind(t *testing.T) {
+func testPortScansFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testNodesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	nodeFound, err := FindNode(ctx, tx, o.ID)
+	portScanFound, err := FindPortScan(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if nodeFound == nil {
+	if portScanFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testNodesBind(t *testing.T) {
+func testPortScansBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testNodesBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Nodes().Bind(ctx, tx, o); err != nil {
+	if err = PortScans().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodesOne(t *testing.T) {
+func testPortScansOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testNodesOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Nodes().One(ctx, tx); err != nil {
+	if x, err := PortScans().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testNodesAll(t *testing.T) {
+func testPortScansAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	nodeOne := &Node{}
-	nodeTwo := &Node{}
-	if err = randomize.Struct(seed, nodeOne, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	portScanOne := &PortScan{}
+	portScanTwo := &PortScan{}
+	if err = randomize.Struct(seed, portScanOne, portScanDBTypes, false, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeTwo, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err = randomize.Struct(seed, portScanTwo, portScanDBTypes, false, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = portScanOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = portScanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Nodes().All(ctx, tx)
+	slice, err := PortScans().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testNodesAll(t *testing.T) {
 	}
 }
 
-func testNodesCount(t *testing.T) {
+func testPortScansCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	nodeOne := &Node{}
-	nodeTwo := &Node{}
-	if err = randomize.Struct(seed, nodeOne, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	portScanOne := &PortScan{}
+	portScanTwo := &PortScan{}
+	if err = randomize.Struct(seed, portScanOne, portScanDBTypes, false, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeTwo, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err = randomize.Struct(seed, portScanTwo, portScanDBTypes, false, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = portScanOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = portScanTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testNodesCount(t *testing.T) {
 	}
 }
 
-func nodeBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func nodeAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Node) error {
-	*o = Node{}
+func portScanAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *PortScan) error {
+	*o = PortScan{}
 	return nil
 }
 
-func testNodesHooks(t *testing.T) {
+func testPortScansHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &Node{}
-	o := &Node{}
+	empty := &PortScan{}
+	o := &PortScan{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, nodeDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Node object: %s", err)
+	if err = randomize.Struct(seed, o, portScanDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize PortScan object: %s", err)
 	}
 
-	AddNodeHook(boil.BeforeInsertHook, nodeBeforeInsertHook)
+	AddPortScanHook(boil.BeforeInsertHook, portScanBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeBeforeInsertHooks = []NodeHook{}
+	portScanBeforeInsertHooks = []PortScanHook{}
 
-	AddNodeHook(boil.AfterInsertHook, nodeAfterInsertHook)
+	AddPortScanHook(boil.AfterInsertHook, portScanAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeAfterInsertHooks = []NodeHook{}
+	portScanAfterInsertHooks = []PortScanHook{}
 
-	AddNodeHook(boil.AfterSelectHook, nodeAfterSelectHook)
+	AddPortScanHook(boil.AfterSelectHook, portScanAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	nodeAfterSelectHooks = []NodeHook{}
+	portScanAfterSelectHooks = []PortScanHook{}
 
-	AddNodeHook(boil.BeforeUpdateHook, nodeBeforeUpdateHook)
+	AddPortScanHook(boil.BeforeUpdateHook, portScanBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeBeforeUpdateHooks = []NodeHook{}
+	portScanBeforeUpdateHooks = []PortScanHook{}
 
-	AddNodeHook(boil.AfterUpdateHook, nodeAfterUpdateHook)
+	AddPortScanHook(boil.AfterUpdateHook, portScanAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeAfterUpdateHooks = []NodeHook{}
+	portScanAfterUpdateHooks = []PortScanHook{}
 
-	AddNodeHook(boil.BeforeDeleteHook, nodeBeforeDeleteHook)
+	AddPortScanHook(boil.BeforeDeleteHook, portScanBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeBeforeDeleteHooks = []NodeHook{}
+	portScanBeforeDeleteHooks = []PortScanHook{}
 
-	AddNodeHook(boil.AfterDeleteHook, nodeAfterDeleteHook)
+	AddPortScanHook(boil.AfterDeleteHook, portScanAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeAfterDeleteHooks = []NodeHook{}
+	portScanAfterDeleteHooks = []PortScanHook{}
 
-	AddNodeHook(boil.BeforeUpsertHook, nodeBeforeUpsertHook)
+	AddPortScanHook(boil.BeforeUpsertHook, portScanBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeBeforeUpsertHooks = []NodeHook{}
+	portScanBeforeUpsertHooks = []PortScanHook{}
 
-	AddNodeHook(boil.AfterUpsertHook, nodeAfterUpsertHook)
+	AddPortScanHook(boil.AfterUpsertHook, portScanAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeAfterUpsertHooks = []NodeHook{}
+	portScanAfterUpsertHooks = []PortScanHook{}
 }
 
-func testNodesInsert(t *testing.T) {
+func testPortScansInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testNodesInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testNodesInsert(t *testing.T) {
 	}
 }
 
-func testNodesInsertWhitelist(t *testing.T) {
+func testPortScansInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(nodeColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(portScanColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,33 +494,33 @@ func testNodesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testNodeToManyNodeScans(t *testing.T) {
+func testPortScanToManyPorts(t *testing.T) {
 	var err error
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Node
-	var b, c NodeScan
+	var a PortScan
+	var b, c Port
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err = randomize.Struct(seed, &a, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = randomize.Struct(seed, &b, nodeScanDBTypes, false, nodeScanColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &b, portDBTypes, false, portColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &c, nodeScanDBTypes, false, nodeScanColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &c, portDBTypes, false, portColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
 
-	b.NodeID = a.ID
-	c.NodeID = a.ID
+	b.PortScanID = a.ID
+	c.PortScanID = a.ID
 
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
@@ -529,17 +529,17 @@ func testNodeToManyNodeScans(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check, err := a.NodeScans().All(ctx, tx)
+	check, err := a.Ports().All(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if v.NodeID == b.NodeID {
+		if v.PortScanID == b.PortScanID {
 			bFound = true
 		}
-		if v.NodeID == c.NodeID {
+		if v.PortScanID == c.PortScanID {
 			cFound = true
 		}
 	}
@@ -551,19 +551,19 @@ func testNodeToManyNodeScans(t *testing.T) {
 		t.Error("expected to find c")
 	}
 
-	slice := NodeSlice{&a}
-	if err = a.L.LoadNodeScans(ctx, tx, false, (*[]*Node)(&slice), nil); err != nil {
+	slice := PortScanSlice{&a}
+	if err = a.L.LoadPorts(ctx, tx, false, (*[]*PortScan)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.NodeScans); got != 2 {
+	if got := len(a.R.Ports); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.NodeScans = nil
-	if err = a.L.LoadNodeScans(ctx, tx, true, &a, nil); err != nil {
+	a.R.Ports = nil
+	if err = a.L.LoadPorts(ctx, tx, true, &a, nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.NodeScans); got != 2 {
+	if got := len(a.R.Ports); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
@@ -572,23 +572,23 @@ func testNodeToManyNodeScans(t *testing.T) {
 	}
 }
 
-func testNodeToManyAddOpNodeScans(t *testing.T) {
+func testPortScanToManyAddOpPorts(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Node
-	var b, c, d, e NodeScan
+	var a PortScan
+	var b, c, d, e Port
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &a, portScanDBTypes, false, strmangle.SetComplement(portScanPrimaryKeyColumns, portScanColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	foreigners := []*NodeScan{&b, &c, &d, &e}
+	foreigners := []*Port{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, nodeScanDBTypes, false, strmangle.SetComplement(nodeScanPrimaryKeyColumns, nodeScanColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, portDBTypes, false, strmangle.SetComplement(portPrimaryKeyColumns, portColumnsWithoutDefault)...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -603,13 +603,13 @@ func testNodeToManyAddOpNodeScans(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*NodeScan{
+	foreignersSplitByInsertion := [][]*Port{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddNodeScans(ctx, tx, i != 0, x...)
+		err = a.AddPorts(ctx, tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -617,28 +617,28 @@ func testNodeToManyAddOpNodeScans(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if a.ID != first.NodeID {
-			t.Error("foreign key was wrong value", a.ID, first.NodeID)
+		if a.ID != first.PortScanID {
+			t.Error("foreign key was wrong value", a.ID, first.PortScanID)
 		}
-		if a.ID != second.NodeID {
-			t.Error("foreign key was wrong value", a.ID, second.NodeID)
+		if a.ID != second.PortScanID {
+			t.Error("foreign key was wrong value", a.ID, second.PortScanID)
 		}
 
-		if first.R.Node != &a {
+		if first.R.PortScan != &a {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
-		if second.R.Node != &a {
+		if second.R.PortScan != &a {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.NodeScans[i*2] != first {
+		if a.R.Ports[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.NodeScans[i*2+1] != second {
+		if a.R.Ports[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.NodeScans().Count(ctx, tx)
+		count, err := a.Ports().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -647,32 +647,32 @@ func testNodeToManyAddOpNodeScans(t *testing.T) {
 		}
 	}
 }
-func testNodeToOneNetworkScanUsingNetworkScan(t *testing.T) {
+func testPortScanToOneNodeUsingNode(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var local Node
-	var foreign NetworkScan
+	var local PortScan
+	var foreign Node
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err := randomize.Struct(seed, &local, portScanDBTypes, false, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &foreign, networkScanDBTypes, false, networkScanColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NetworkScan struct: %s", err)
+	if err := randomize.Struct(seed, &foreign, nodeDBTypes, false, nodeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Node struct: %s", err)
 	}
 
 	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	local.NetworkScanID = foreign.ID
+	local.NodeID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	check, err := local.NetworkScan().One(ctx, tx)
+	check, err := local.Node().One(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -681,41 +681,41 @@ func testNodeToOneNetworkScanUsingNetworkScan(t *testing.T) {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
-	slice := NodeSlice{&local}
-	if err = local.L.LoadNetworkScan(ctx, tx, false, (*[]*Node)(&slice), nil); err != nil {
+	slice := PortScanSlice{&local}
+	if err = local.L.LoadNode(ctx, tx, false, (*[]*PortScan)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.NetworkScan == nil {
+	if local.R.Node == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
-	local.R.NetworkScan = nil
-	if err = local.L.LoadNetworkScan(ctx, tx, true, &local, nil); err != nil {
+	local.R.Node = nil
+	if err = local.L.LoadNode(ctx, tx, true, &local, nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.NetworkScan == nil {
+	if local.R.Node == nil {
 		t.Error("struct should have been eager loaded")
 	}
 }
 
-func testNodeToOneSetOpNetworkScanUsingNetworkScan(t *testing.T) {
+func testPortScanToOneSetOpNodeUsingNode(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Node
-	var b, c NetworkScan
+	var a PortScan
+	var b, c Node
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &a, portScanDBTypes, false, strmangle.SetComplement(portScanPrimaryKeyColumns, portScanColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &b, networkScanDBTypes, false, strmangle.SetComplement(networkScanPrimaryKeyColumns, networkScanColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &b, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &c, networkScanDBTypes, false, strmangle.SetComplement(networkScanPrimaryKeyColumns, networkScanColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &c, nodeDBTypes, false, strmangle.SetComplement(nodePrimaryKeyColumns, nodeColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -726,44 +726,44 @@ func testNodeToOneSetOpNetworkScanUsingNetworkScan(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*NetworkScan{&b, &c} {
-		err = a.SetNetworkScan(ctx, tx, i != 0, x)
+	for i, x := range []*Node{&b, &c} {
+		err = a.SetNode(ctx, tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.NetworkScan != x {
+		if a.R.Node != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.Nodes[0] != &a {
+		if x.R.PortScans[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.NetworkScanID != x.ID {
-			t.Error("foreign key was wrong value", a.NetworkScanID)
+		if a.NodeID != x.ID {
+			t.Error("foreign key was wrong value", a.NodeID)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.NetworkScanID))
-		reflect.Indirect(reflect.ValueOf(&a.NetworkScanID)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.NodeID))
+		reflect.Indirect(reflect.ValueOf(&a.NodeID)).Set(zero)
 
 		if err = a.Reload(ctx, tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.NetworkScanID != x.ID {
-			t.Error("foreign key was wrong value", a.NetworkScanID, x.ID)
+		if a.NodeID != x.ID {
+			t.Error("foreign key was wrong value", a.NodeID, x.ID)
 		}
 	}
 }
 
-func testNodesReload(t *testing.T) {
+func testPortScansReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -778,14 +778,14 @@ func testNodesReload(t *testing.T) {
 	}
 }
 
-func testNodesReloadAll(t *testing.T) {
+func testPortScansReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -795,21 +795,21 @@ func testNodesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeSlice{o}
+	slice := PortScanSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodesSelect(t *testing.T) {
+func testPortScansSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -819,7 +819,7 @@ func testNodesSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Nodes().All(ctx, tx)
+	slice, err := PortScans().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -830,25 +830,25 @@ func testNodesSelect(t *testing.T) {
 }
 
 var (
-	nodeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `MacAddress`: `TEXT`, `NetworkScanID`: `INTEGER`}
-	_           = bytes.MinRead
+	portScanDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`, `NodeID`: `INTEGER`}
+	_               = bytes.MinRead
 )
 
-func testNodesUpdate(t *testing.T) {
+func testPortScansUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(nodePrimaryKeyColumns) {
+	if 0 == len(portScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(nodeAllColumns) == len(nodePrimaryKeyColumns) {
+	if len(portScanAllColumns) == len(portScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -858,7 +858,7 @@ func testNodesUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -867,8 +867,8 @@ func testNodesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -878,18 +878,18 @@ func testNodesUpdate(t *testing.T) {
 	}
 }
 
-func testNodesSliceUpdateAll(t *testing.T) {
+func testPortScansSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(nodeAllColumns) == len(nodePrimaryKeyColumns) {
+	if len(portScanAllColumns) == len(portScanPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Node{}
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	o := &PortScan{}
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -899,7 +899,7 @@ func testNodesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Nodes().Count(ctx, tx)
+	count, err := PortScans().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -908,18 +908,18 @@ func testNodesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeDBTypes, true, nodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Node struct: %s", err)
+	if err = randomize.Struct(seed, o, portScanDBTypes, true, portScanPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize PortScan struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(nodeAllColumns, nodePrimaryKeyColumns) {
-		fields = nodeAllColumns
+	if strmangle.StringSliceMatch(portScanAllColumns, portScanPrimaryKeyColumns) {
+		fields = portScanAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			nodeAllColumns,
-			nodePrimaryKeyColumns,
+			portScanAllColumns,
+			portScanPrimaryKeyColumns,
 		)
 	}
 
@@ -937,7 +937,7 @@ func testNodesSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := NodeSlice{o}
+	slice := PortScanSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
