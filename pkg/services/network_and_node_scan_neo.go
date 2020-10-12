@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
@@ -36,15 +37,13 @@ func NewNetworkAndNodeScanNeoService(
 	}
 }
 
-func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, NetworkScanNeoStartMessage *proto.NetworkScanNeoStartMessage) (*proto.NetworkScanNeoReferenceMessage, error) {
+func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, networkScanNeoStartMessage *proto.NetworkScanNeoStartMessage) (*proto.NetworkScanNeoReferenceMessage, error) {
 	// Create network scan in DB
 	dbNetworkScan := &models.NetworkScan{}
 	if err := s.networkAndNodeScanNeoDatabase.CreateNetworkScan(dbNetworkScan); err != nil {
-		if err != nil {
-			log.Println("could not create network scan in DB", err)
+		log.Println("could not create network scan in DB", err)
 
-			return nil, status.Errorf(codes.Unknown, "could not create network scan in DB")
-		}
+		return nil, status.Errorf(codes.Unknown, "could not create network scan in DB")
 	}
 
 	// Create network scanner
@@ -59,6 +58,45 @@ func (s *NetworkAndNodeScanNeoService) StartNetworkScan(ctx context.Context, Net
 
 	// Start network scan
 	log.Printf("starting network scan %v for networks: %v\n", dbNetworkScan.ID, networks)
+
+	// Transmit
+	go func() {
+		if err := networkScanner.Transmit(); err != nil {
+			log.Printf("could not transmit for network scan %v\n", dbNetworkScan.ID)
+		}
+	}()
+
+	// Receive
+	go func() {
+		receiveCtx, cancel := context.WithTimeout(
+			context.Background(),
+			time.Millisecond*time.Duration(networkScanNeoStartMessage.GetNetworkScanTimeout()),
+		)
+		defer cancel()
+
+		if err := networkScanner.Receive(receiveCtx); err != nil {
+			log.Printf("could not receive for network scan %v\n", dbNetworkScan.ID)
+		}
+	}()
+
+	// Read
+	go func() {
+		for {
+			node := networkScanner.Read()
+			if node == nil {
+				log.Printf("network scan %v is done\n", dbNetworkScan.ID)
+
+				break
+			}
+
+			log.Println(node)
+		}
+
+		dbNetworkScan.Done = 1
+		if err := s.networkAndNodeScanNeoDatabase.UpdateNetworkScan(dbNetworkScan); err != nil {
+			log.Println("could not create network scan in DB", err)
+		}
+	}()
 
 	// Return reference to network scan
 	protoNetworkScanReferenceMessage := &proto.NetworkScanNeoReferenceMessage{
