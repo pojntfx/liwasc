@@ -71,3 +71,15 @@ func (d *NetworkAndNodeScanNeoDatabase) LookbackForNodes() (models.NodeSlice, er
 
 	return uniqueNodes, nil
 }
+
+func (d *NetworkAndNodeScanNeoDatabase) UpdateNetworkScan(networkScan *models.NetworkScan) error {
+	_, err := networkScan.Update(context.Background(), d.db, boil.Infer())
+
+	return err
+}
+
+func (d *NetworkAndNodeScanNeoDatabase) UpdateNodeScan(nodeScan *models.NodeScan) error {
+	_, err := nodeScan.Update(context.Background(), d.db, boil.Infer())
+
+	return err
+}
