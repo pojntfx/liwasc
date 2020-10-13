@@ -112,6 +112,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 				dbNode := &models.Node{
 					NodeScanID: dbNodeScan.ID,
 					MacAddress: node.MACAddress.String(),
+					IPAddress:  node.IPAddress.String(),
 				}
 
 				if err := s.nodeAndPortScanDatabase.CreateNode(dbNode); err != nil {

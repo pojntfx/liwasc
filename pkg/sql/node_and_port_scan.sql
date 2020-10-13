@@ -13,6 +13,7 @@ create table nodes (
     id integer not null primary key,
     created_at date not null,
     mac_address text not null,
+    ip_address text not null,
     node_scan_id integer not null,
     foreign key (node_scan_id) references node_scans(id)
 );
