@@ -25,6 +25,7 @@ type Node struct {
 	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	MacAddress string    `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
+	IPAddress  string    `boil:"ip_address" json:"ip_address" toml:"ip_address" yaml:"ip_address"`
 	NodeScanID int64     `boil:"node_scan_id" json:"node_scan_id" toml:"node_scan_id" yaml:"node_scan_id"`
 
 	R *nodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -35,11 +36,13 @@ var NodeColumns = struct {
 	ID         string
 	CreatedAt  string
 	MacAddress string
+	IPAddress  string
 	NodeScanID string
 }{
 	ID:         "id",
 	CreatedAt:  "created_at",
 	MacAddress: "mac_address",
+	IPAddress:  "ip_address",
 	NodeScanID: "node_scan_id",
 }
 
@@ -65,11 +68,13 @@ var NodeWhere = struct {
 	ID         whereHelperint64
 	CreatedAt  whereHelpertime_Time
 	MacAddress whereHelperstring
+	IPAddress  whereHelperstring
 	NodeScanID whereHelperint64
 }{
 	ID:         whereHelperint64{field: "\"nodes\".\"id\""},
 	CreatedAt:  whereHelpertime_Time{field: "\"nodes\".\"created_at\""},
 	MacAddress: whereHelperstring{field: "\"nodes\".\"mac_address\""},
+	IPAddress:  whereHelperstring{field: "\"nodes\".\"ip_address\""},
 	NodeScanID: whereHelperint64{field: "\"nodes\".\"node_scan_id\""},
 }
 
@@ -97,8 +102,8 @@ func (*nodeR) NewStruct() *nodeR {
 type nodeL struct{}
 
 var (
-	nodeAllColumns            = []string{"id", "created_at", "mac_address", "node_scan_id"}
-	nodeColumnsWithoutDefault = []string{"created_at", "mac_address", "node_scan_id"}
+	nodeAllColumns            = []string{"id", "created_at", "mac_address", "ip_address", "node_scan_id"}
+	nodeColumnsWithoutDefault = []string{"created_at", "mac_address", "ip_address", "node_scan_id"}
 	nodeColumnsWithDefault    = []string{"id"}
 	nodePrimaryKeyColumns     = []string{"id"}
 )
