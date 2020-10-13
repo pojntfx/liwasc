@@ -29,9 +29,10 @@ message NodeScanNeoMessage {
 message NodeNeoMessage {
   int64 ID = 1;
   string CreatedAt = 2;
-  string MACAddress = 3;
-  string IPAddress = 4;
-  int64 NodeScanID = 5;
+  int64 Priority = 3;
+  string MACAddress = 4;
+  string IPAddress = 5;
+  int64 NodeScanID = 6;
 }
 
 message PortScanNeoMessage {
@@ -44,7 +45,8 @@ message PortScanNeoMessage {
 message PortNeoMessage {
   int64 ID = 1;
   string CreatedAt = 2;
-  int64 PortNumber = 3;
-  string TransportProtocol = 4;
-  int64 PortScanID = 5;
+  int64 Priority = 3;
+  int64 PortNumber = 4;
+  string TransportProtocol = 5;
+  int64 PortScanID = 6;
 }
