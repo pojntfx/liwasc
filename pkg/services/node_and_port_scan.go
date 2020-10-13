@@ -11,6 +11,7 @@ import (
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
+	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -18,10 +19,17 @@ import (
 type NodeAndPortScanPortService struct {
 	proto.UnimplementedNodeAndPortScanNeoServiceServer
 
-	device                        string
-	ports2packetsDatabase         *databases.Ports2PacketDatabase
-	nodeAndPortScanDatabase       *databases.NodeAndPortScanDatabase
+	device string
+
+	ports2packetsDatabase   *databases.Ports2PacketDatabase
+	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase
+
 	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter
+
+	nodeScanMessenger *messenger.Messenger
+	nodeMessenger     *messenger.Messenger
+	portScanMessenger *messenger.Messenger
+	portMessenger     *messenger.Messenger
 }
 
 func NewNodeAndPortScanPortService(
@@ -31,21 +39,29 @@ func NewNodeAndPortScanPortService(
 	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter,
 ) *NodeAndPortScanPortService {
 	return &NodeAndPortScanPortService{
-		device:                        device,
-		ports2packetsDatabase:         ports2packetsDatabase,
-		nodeAndPortScanDatabase:       nodeAndPortScanDatabase,
+		device: device,
+
+		ports2packetsDatabase:   ports2packetsDatabase,
+		nodeAndPortScanDatabase: nodeAndPortScanDatabase,
+
 		portScannerConcurrencyLimiter: portScannerConcurrencyLimiter,
+
+		nodeScanMessenger: messenger.New(0, true),
+		nodeMessenger:     messenger.New(0, true),
+		portScanMessenger: messenger.New(0, true),
+		portMessenger:     messenger.New(0, true),
 	}
 }
 
 func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanReferenceNeoMessage, error) {
-	// Create node scan in DB
+	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
 		log.Printf("could not create node scan %v in DB: %v\n", dbNodeScan.ID, err)
 
 		return nil, status.Errorf(codes.Unknown, "could not create node scan in DB")
 	}
+	s.nodeScanMessenger.Broadcast(dbNodeScan)
 
 	// Create and open node scanner
 	nodeScanner := scanners.NewNodeScanner(s.device)
@@ -104,7 +120,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 					return
 				}
 
-				// Create port scan in DB
+				// Create and broadcast port scan in DB
 				dbPortScan := &models.PortScan{
 					NodeID: dbNode.ID,
 				}
@@ -113,6 +129,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 
 					return
 				}
+				s.portScanMessenger.Broadcast(dbPortScan)
 
 				// Create port scanner
 				portscanner := scanners.NewPortScanner(
@@ -158,34 +175,38 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 							go func() {
 								log.Printf("found open port %v/%v for port scan %v for node %v for node scan %v\n", port.Port, port.Protocol, dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
 
-								// Create port
+								// Create and broadcast port in DB
 								dbPort := &models.Port{
 									PortScanID:        dbNode.ID,
 									PortNumber:        int64(port.Port),
 									TransportProtocol: port.Protocol,
 								}
-
 								if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
 									log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 
 									return
 								}
+								s.portMessenger.Broadcast(dbPort)
 							}()
 						}
 					}
 
+					// Set port scan to done
 					dbPortScan.Done = 1
 					if err := s.nodeAndPortScanDatabase.UpdatePortScan(dbPortScan); err != nil {
 						log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 					}
+					s.portScanMessenger.Broadcast(dbPortScan)
 				}()
 			}()
 		}
 
+		// Set node scan to done
 		dbNodeScan.Done = 1
 		if err := s.nodeAndPortScanDatabase.UpdateNodeScan(dbNodeScan); err != nil {
 			log.Printf("could not update node scan %v in DB: %v\n", dbNodeScan.ID, err)
 		}
+		s.nodeScanMessenger.Broadcast(dbNodeScan)
 	}()
 
 	// Return reference to node scan
