@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
@@ -224,4 +225,36 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 	}
 
 	return protoNodeScanMessage, nil
+}
+
+func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanNeoService_SubscribeToNodeScansServer) error {
+	// Get node scans from database
+	dbNodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
+	if err != nil {
+		log.Printf("could not get node scans from DB: %v\n", err)
+
+		return status.Errorf(codes.Unknown, "could not get node scans from DB")
+	}
+
+	for _, dbNodeScan := range dbNodeScans {
+		protoNodeScan := &proto.NodeScanNeoMessage{
+			CreatedAt: dbNodeScan.CreatedAt.String(),
+			Done: func() bool {
+				if dbNodeScan.Done == 1 {
+					return true
+				}
+
+				return false
+			}(),
+			ID: dbNodeScan.ID,
+		}
+
+		if err := stream.Send(protoNodeScan); err != nil {
+			log.Printf("could send node scan %v to client: %v\n", protoNodeScan.ID, err)
+
+			return status.Errorf(codes.Unknown, "could send node scan to client")
+		}
+	}
+
+	return nil
 }

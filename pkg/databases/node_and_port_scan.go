@@ -50,6 +50,10 @@ func (d *NodeAndPortScanDatabase) CreatePort(port *models.Port) error {
 	return port.Insert(context.Background(), d.db, boil.Infer())
 }
 
+func (d *NodeAndPortScanDatabase) GetNodeScans() (models.NodeScanSlice, error) {
+	return models.NodeScans().All(context.Background(), d.db)
+}
+
 func (d *NodeAndPortScanDatabase) GetNodeScan(id int64) (*models.NodeScan, error) {
 	return models.FindNodeScan(context.Background(), d.db, id)
 }
