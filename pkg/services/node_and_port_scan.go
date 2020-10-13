@@ -53,7 +53,7 @@ func NewNodeAndPortScanPortService(
 	}
 }
 
-func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanReferenceNeoMessage, error) {
+func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
@@ -211,7 +211,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 	}()
 
 	// Return reference to node scan
-	protoNodeScanReferenceMessage := &proto.NodeScanReferenceNeoMessage{
+	protoNodeScanMessage := &proto.NodeScanNeoMessage{
 		ID:        dbNodeScan.ID,
 		CreatedAt: dbNodeScan.CreatedAt.String(),
 		Done: func() bool {
@@ -223,5 +223,5 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 		}(),
 	}
 
-	return protoNodeScanReferenceMessage, nil
+	return protoNodeScanMessage, nil
 }
