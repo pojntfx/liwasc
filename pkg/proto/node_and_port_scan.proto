@@ -2,11 +2,17 @@ syntax = "proto3";
 
 package com.pojtinger.felicitas.liwasc.neo;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NodeAndPortScanNeoService {
-  rpc StartNodeScan(NodeScanStartNeoMessage)
-      returns (NodeScanReferenceNeoMessage);
+  rpc StartNodeScan(NodeScanStartNeoMessage) returns (NodeScanNeoMessage);
+  rpc SubscribeToNodeScans(google.protobuf.Empty)
+      returns (stream NodeScanNeoMessage);
+  rpc SubscribeToNodes(NodeScanNeoMessage) returns (stream NodeNeoMessage);
+  rpc SubscribeToPortScans(NodeNeoMessage) returns (stream PortScanNeoMessage);
+  rpc SubscribeToPorts(PortScanNeoMessage) returns (stream PortNeoMessage);
 }
 
 message NodeScanStartNeoMessage {
@@ -14,8 +20,31 @@ message NodeScanStartNeoMessage {
   int64 PortScanTimeout = 2;
 }
 
-message NodeScanReferenceNeoMessage {
+message NodeScanNeoMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;
+}
+
+message NodeNeoMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  string MACAddress = 3;
+  string IPAddress = 4;
+  int64 NodeScanID = 5;
+}
+
+message PortScanNeoMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  bool Done = 3;
+  int64 NodeID = 4;
+}
+
+message PortNeoMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  int64 PortNumber = 3;
+  string TransportProtocol = 4;
+  int64 PortScanID = 5;
 }
