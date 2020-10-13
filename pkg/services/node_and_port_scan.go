@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -228,33 +229,75 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 }
 
 func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanNeoService_SubscribeToNodeScansServer) error {
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	// Get node scans from messenger
+	go func() {
+		dbNodeScans, err := s.nodeScanMessenger.Sub()
+		if err != nil {
+			log.Printf("could not get node scans from messenger: %v\n", err)
+
+			return
+		}
+
+		for dbNodeScan := range dbNodeScans {
+			protoNodeScan := &proto.NodeScanNeoMessage{
+				CreatedAt: dbNodeScan.(*models.NodeScan).CreatedAt.String(),
+				Done: func() bool {
+					if dbNodeScan.(*models.NodeScan).Done == 1 {
+						return true
+					}
+
+					return false
+				}(),
+				ID: dbNodeScan.(*models.NodeScan).ID,
+			}
+
+			if err := stream.Send(protoNodeScan); err != nil {
+				log.Printf("could send node scan %v to client: %v\n", protoNodeScan.ID, err)
+
+				return
+			}
+		}
+
+		wg.Done()
+	}()
+
 	// Get node scans from database
-	dbNodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
-	if err != nil {
-		log.Printf("could not get node scans from DB: %v\n", err)
+	go func() {
+		dbNodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
+		if err != nil {
+			log.Printf("could not get node scans from DB: %v\n", err)
 
-		return status.Errorf(codes.Unknown, "could not get node scans from DB")
-	}
-
-	for _, dbNodeScan := range dbNodeScans {
-		protoNodeScan := &proto.NodeScanNeoMessage{
-			CreatedAt: dbNodeScan.CreatedAt.String(),
-			Done: func() bool {
-				if dbNodeScan.Done == 1 {
-					return true
-				}
-
-				return false
-			}(),
-			ID: dbNodeScan.ID,
+			return
 		}
 
-		if err := stream.Send(protoNodeScan); err != nil {
-			log.Printf("could send node scan %v to client: %v\n", protoNodeScan.ID, err)
+		for _, dbNodeScan := range dbNodeScans {
+			protoNodeScan := &proto.NodeScanNeoMessage{
+				CreatedAt: dbNodeScan.CreatedAt.String(),
+				Done: func() bool {
+					if dbNodeScan.Done == 1 {
+						return true
+					}
 
-			return status.Errorf(codes.Unknown, "could send node scan to client")
+					return false
+				}(),
+				ID: dbNodeScan.ID,
+			}
+
+			if err := stream.Send(protoNodeScan); err != nil {
+				log.Printf("could send node scan %v to client: %v\n", protoNodeScan.ID, err)
+
+				return
+			}
 		}
-	}
+
+		wg.Done()
+	}()
+
+	wg.Wait()
 
 	return nil
 }
