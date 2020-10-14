@@ -62,7 +62,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
-		log.Printf("could not create node scan %v in DB: %v\n", dbNodeScan.ID, err)
+		log.Printf("could not create node scan in DB: %v\n", err)
 
 		return nil, status.Errorf(codes.Unknown, "could not create node scan in DB")
 	}
