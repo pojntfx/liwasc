@@ -54,8 +54,12 @@ func (d *NodeAndPortScanDatabase) GetNodeScans() (models.NodeScanSlice, error) {
 	return models.NodeScans().All(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) GetNodes(networkScanID int64) (models.NodeSlice, error) {
-	return models.Nodes(models.NodeWhere.NodeScanID.EQ(networkScanID)).All(context.Background(), d.db)
+func (d *NodeAndPortScanDatabase) GetNodeScan(nodeScanID int64) (*models.NodeScan, error) {
+	return models.FindNodeScan(context.Background(), d.db, nodeScanID)
+}
+
+func (d *NodeAndPortScanDatabase) GetNodes(nodeScanID int64) (models.NodeSlice, error) {
+	return models.Nodes(models.NodeWhere.NodeScanID.EQ(nodeScanID)).All(context.Background(), d.db)
 }
 
 func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {

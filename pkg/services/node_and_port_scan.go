@@ -308,30 +308,42 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 	wg.Add(3)
 
 	// Get nodes from messenger (priority 1)
-	// TODO: Only subscribe if !nodeScan.Done
 	go func() {
-		dbNodes, err := s.nodeMessenger.Sub()
+		// Get node scan from DB and check if it is done
+		dbNodeScan, err := s.nodeAndPortScanDatabase.GetNodeScan(nodeScanMessage.GetID())
 		if err != nil {
-			log.Printf("could not get nodes from messenger: %v\n", err)
+			log.Printf("could not get node scan %v from DB, continouing to messenger subscription: %v\n", nodeScanMessage.GetID(), err)
 
-			return
+			dbNodeScan = &models.NodeScan{
+				Done: 0,
+			}
 		}
 
-		for dbNode := range dbNodes {
-			if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() { // TODO: Check if ID is -1, if so the node scan is done and return
-				protoNode := &proto.NodeNeoMessage{
-					CreatedAt:  dbNode.(*models.Node).CreatedAt.String(),
-					ID:         dbNode.(*models.Node).ID,
-					IPAddress:  dbNode.(*models.Node).IPAddress,
-					MACAddress: dbNode.(*models.Node).MacAddress,
-					NodeScanID: dbNode.(*models.Node).NodeScanID,
-					Priority:   1,
-				}
+		// If node scan is not done, then sub and send nodes until it is done
+		if dbNodeScan.Done == 0 {
+			dbNodes, err := s.nodeMessenger.Sub()
+			if err != nil {
+				log.Printf("could not get nodes for node scan %v from messenger: %v\n", nodeScanMessage.GetID(), err)
 
-				if err := stream.Send(protoNode); err != nil {
-					log.Printf("could send nodes %v to client: %v\n", protoNode.ID, err)
+				return
+			}
 
-					return
+			for dbNode := range dbNodes {
+				if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() { // TODO: Check if ID is -1, if so the node scan is done and return
+					protoNode := &proto.NodeNeoMessage{
+						CreatedAt:  dbNode.(*models.Node).CreatedAt.String(),
+						ID:         dbNode.(*models.Node).ID,
+						IPAddress:  dbNode.(*models.Node).IPAddress,
+						MACAddress: dbNode.(*models.Node).MacAddress,
+						NodeScanID: dbNode.(*models.Node).NodeScanID,
+						Priority:   1,
+					}
+
+					if err := stream.Send(protoNode); err != nil {
+						log.Printf("could send node %v for node scan %v to client: %v\n", protoNode.GetID(), nodeScanMessage.GetID(), err)
+
+						return
+					}
 				}
 			}
 		}
@@ -343,7 +355,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 	go func() {
 		dbNodes, err := s.nodeAndPortScanDatabase.GetNodes(nodeScanMessage.GetID())
 		if err != nil {
-			log.Printf("could not get nodes for node scan %v from messenger: %v\n", nodeScanMessage.GetID(), err)
+			log.Printf("could not get nodes for node scan %v from DB: %v\n", nodeScanMessage.GetID(), err)
 
 			return
 		}
@@ -359,7 +371,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 			}
 
 			if err := stream.Send(protoNode); err != nil {
-				log.Printf("could send nodes %v to client: %v\n", protoNode.ID, err)
+				log.Printf("could send node %v for node scan %v to client: %v\n", protoNode.GetID(), nodeScanMessage.GetID(), err)
 
 				return
 			}
@@ -372,7 +384,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 	go func() {
 		dbNodes, err := s.nodeAndPortScanDatabase.GetLookbackNodes()
 		if err != nil {
-			log.Printf("could not get lookback nodes from messenger: %v\n", err)
+			log.Printf("could not get lookback nodes from DB: %v\n", err)
 
 			return
 		}
@@ -388,7 +400,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 			}
 
 			if err := stream.Send(protoNode); err != nil {
-				log.Printf("could send lookback node %v to client: %v\n", protoNode.ID, err)
+				log.Printf("could send lookback node %v to client: %v\n", protoNode.GetID(), err)
 
 				return
 			}
