@@ -24,7 +24,6 @@ message NodeMetadataReferenceNeoMessage { string MACAddress = 1; }
 
 message NodeMetadataNeoMessage {
   string MACAddress = 1;
-  string IPAddress = 2;
   string Vendor = 3;
   string Registry = 4;
   string Organization = 5;
