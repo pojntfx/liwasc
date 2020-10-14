@@ -76,8 +76,8 @@ func main() {
 		contextValidator,
 	)
 	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
-
 	metadataService := services.NewMetadataService(interfaceInspector, contextValidator)
+	metadataNeoService := services.NewMetadataNeoService(interfaceInspector, mac2VendorDatabase, serviceNamesPortNumbersDatabase)
 	liwascServer := servers.NewLiwascServer(
 		*listenAddress,
 		*webSocketListenAddress,
@@ -85,6 +85,7 @@ func main() {
 		nodeWakeService,
 		metadataService,
 		nodeAndPortScanService,
+		metadataNeoService,
 	)
 
 	// Open instances
@@ -126,11 +127,13 @@ func main() {
 	// 	}
 	// }()
 
-	go func() {
-		if err := metadataService.Open(); err != nil {
-			log.Fatal("could not open metadataService", err)
-		}
-	}()
+	if err := metadataService.Open(); err != nil {
+		log.Fatal("could not open metadataService", err)
+	}
+
+	if err := metadataNeoService.Open(); err != nil {
+		log.Fatal("could not open metadataNeoService", err)
+	}
 
 	log.Printf("Listening on %v", *listenAddress)
 
