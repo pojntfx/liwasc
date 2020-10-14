@@ -2,7 +2,6 @@ package databases
 
 import (
 	"context"
-	"database/sql"
 
 	nodeWakeModels "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -12,25 +11,11 @@ import (
 //go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_wake -c pkg/sql/node_wake.toml"
 
 type NodeWakeDatabase struct {
-	dbPath string
-	db     *sql.DB
+	*SQLiteDatabase
 }
 
 func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
-	return &NodeWakeDatabase{dbPath, nil}
-}
-
-func (d *NodeWakeDatabase) Open() error {
-	db, err := sql.Open("sqlite3", d.dbPath)
-	if err != nil {
-		return err
-	}
-
-	db.SetMaxOpenConns(1) // Prevent "database locked" errors
-
-	d.db = db
-
-	return nil
+	return &NodeWakeDatabase{&SQLiteDatabase{dbPath, nil}}
 }
 
 func (d *NodeWakeDatabase) CreateNodeWake(nodeWake *nodeWakeModels.NodeWake) (int64, error) {

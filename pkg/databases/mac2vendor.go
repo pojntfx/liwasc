@@ -4,7 +4,6 @@ package databases
 
 import (
 	"context"
-	"database/sql"
 	"strconv"
 	"strings"
 
@@ -13,23 +12,11 @@ import (
 )
 
 type MAC2VendorDatabase struct {
-	dbPath string
-	db     *sql.DB
+	*SQLiteDatabase
 }
 
 func NewMAC2VendorDatabase(dbPath string) *MAC2VendorDatabase {
-	return &MAC2VendorDatabase{dbPath, nil}
-}
-
-func (d *MAC2VendorDatabase) Open() error {
-	db, err := sql.Open("sqlite3", d.dbPath)
-	if err != nil {
-		return err
-	}
-
-	d.db = db
-
-	return nil
+	return &MAC2VendorDatabase{&SQLiteDatabase{dbPath, nil}}
 }
 
 func (d *MAC2VendorDatabase) GetVendor(mac string) (*mac2vendorModels.Vendordb, error) {

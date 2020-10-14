@@ -4,7 +4,6 @@ package databases
 
 import (
 	"context"
-	"database/sql"
 
 	networkAndNodeScanModels "github.com/pojntfx/liwasc/pkg/sql/generated/network_and_node_scan"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -12,25 +11,11 @@ import (
 )
 
 type NetworkAndNodeScanDatabase struct {
-	dbPath string
-	db     *sql.DB
+	*SQLiteDatabase
 }
 
 func NewNetworkAndNodeScanDatabase(dbPath string) *NetworkAndNodeScanDatabase {
-	return &NetworkAndNodeScanDatabase{dbPath, nil}
-}
-
-func (d *NetworkAndNodeScanDatabase) Open() error {
-	db, err := sql.Open("sqlite3", d.dbPath)
-	if err != nil {
-		return err
-	}
-
-	db.SetMaxOpenConns(1) // Prevent "database locked" errors
-
-	d.db = db
-
-	return nil
+	return &NetworkAndNodeScanDatabase{&SQLiteDatabase{dbPath, nil}}
 }
 
 func (d *NetworkAndNodeScanDatabase) CreateNetworkScan(scan *networkAndNodeScanModels.NetworkScan) (int64, error) {
