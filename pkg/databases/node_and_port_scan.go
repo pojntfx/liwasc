@@ -2,7 +2,6 @@ package databases
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
@@ -13,25 +12,11 @@ import (
 //go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_and_port_scan -c pkg/sql/node_and_port_scan.toml"
 
 type NodeAndPortScanDatabase struct {
-	dbPath string
-	db     *sql.DB
+	*SQLiteDatabase
 }
 
 func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
-	return &NodeAndPortScanDatabase{dbPath, nil}
-}
-
-func (d *NodeAndPortScanDatabase) Open() error {
-	db, err := sql.Open("sqlite3", d.dbPath)
-	if err != nil {
-		return err
-	}
-
-	db.SetMaxOpenConns(1) // Prevent "database locked" errors
-
-	d.db = db
-
-	return nil
+	return &NodeAndPortScanDatabase{&SQLiteDatabase{dbPath, nil}}
 }
 
 func (d *NodeAndPortScanDatabase) CreateNodeScan(nodeScan *models.NodeScan) error {
