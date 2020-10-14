@@ -32,6 +32,9 @@ type NodeAndPortScanPortService struct {
 	nodeMessenger     *messenger.Messenger
 	portScanMessenger *messenger.Messenger
 	portMessenger     *messenger.Messenger
+
+	nodeScannerLock sync.Mutex
+	portScannerLock sync.Mutex
 }
 
 func NewNodeAndPortScanPortService(
@@ -74,11 +77,27 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 		return nil, status.Errorf(codes.Unknown, "could not open node scanner")
 	}
 
-	// Start node scan
-	log.Printf("starting node scan %v for nodes: %v\n", dbNodeScan.ID, nodes)
+	// Queueing node scan
+	log.Printf("queueing node scan %v for nodes: %v\n", dbNodeScan.ID, nodes)
+
+	// Lock the node scanner
+	nodeScannerReady := make(chan bool)
+	go func() {
+		// Lock the node scanner
+		s.nodeScannerLock.Lock()
+
+		// Start node scan
+		log.Printf("starting node scan %v for nodes: %v\n", dbNodeScan.ID, nodes)
+
+		for i := 0; i < 3; i++ {
+			nodeScannerReady <- true
+		}
+	}()
 
 	// Transmit node scan
 	go func() {
+		<-nodeScannerReady
+
 		if err := nodeScanner.Transmit(); err != nil {
 			log.Printf("could not transmit for node scan %v: %v\n", dbNodeScan.ID, err)
 		}
@@ -86,6 +105,8 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 
 	// Receive node scan
 	go func() {
+		<-nodeScannerReady
+
 		receiveCtx, cancel := context.WithTimeout(
 			context.Background(),
 			time.Millisecond*time.Duration(nodeScanStartMessage.GetNodeScanTimeout()),
@@ -99,6 +120,8 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 
 	// Read node scan
 	go func() {
+		<-nodeScannerReady
+
 		for {
 			node := nodeScanner.Read()
 			// Node scan is done
@@ -159,11 +182,27 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 					},
 				)
 
-				// Start port scan
-				log.Printf("starting port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+				// Queueing port scan
+				log.Printf("queueing port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+				// Lock the port scanner
+				portScannerReady := make(chan bool)
+				go func() {
+					// Lock the port scanner
+					s.portScannerLock.Lock()
+
+					// Start port scan
+					log.Printf("starting port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+					for i := 0; i < 2; i++ {
+						portScannerReady <- true
+					}
+				}()
 
 				// Transmit port scan
 				go func() {
+					<-portScannerReady
+
 					if err := portscanner.Transmit(); err != nil {
 						log.Printf("could not transmit for port scan %v for node %v for node scan %v: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 					}
@@ -171,6 +210,8 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 
 				// Read port scan
 				go func() {
+					<-portScannerReady
+
 					for {
 						port := portscanner.Read()
 						// Port scan is done
@@ -207,6 +248,9 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 						log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 					}
 					s.portScanMessenger.Broadcast(dbPortScan)
+
+					// Unlock the scanner
+					s.portScannerLock.Unlock()
 				}()
 			}()
 		}
@@ -217,6 +261,9 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 			log.Printf("could not update node scan %v in DB: %v\n", dbNodeScan.ID, err)
 		}
 		s.nodeScanMessenger.Broadcast(dbNodeScan)
+
+		// Unlock the node scanner
+		s.nodeScannerLock.Unlock()
 	}()
 
 	// Return reference to node scan

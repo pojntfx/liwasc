@@ -12,18 +12,18 @@ import (
 )
 
 type LiwascServer struct {
-	listenAddress             string
-	webSocketListenAddress    string
-	networkAndNodeScanService *services.NetworkAndNodeScanService
-	nodeWakeService           *services.NodeWakeService
-	metadataService           *services.MetadataService
-	nodeAndPortScanService    *services.NodeAndPortScanPortService
+	listenAddress          string
+	webSocketListenAddress string
+	// networkAndNodeScanService *services.NetworkAndNodeScanService
+	nodeWakeService        *services.NodeWakeService
+	metadataService        *services.MetadataService
+	nodeAndPortScanService *services.NodeAndPortScanPortService
 }
 
 func NewLiwascServer(
 	listenAddress string,
 	webSocketListenAddress string,
-	networkAndNodeScanService *services.NetworkAndNodeScanService,
+	// networkAndNodeScanService *services.NetworkAndNodeScanService,
 	nodeWakeService *services.NodeWakeService,
 	metadataService *services.MetadataService,
 	nodeAndPortScanService *services.NodeAndPortScanPortService,
@@ -31,7 +31,7 @@ func NewLiwascServer(
 	return &LiwascServer{
 		listenAddress,
 		webSocketListenAddress,
-		networkAndNodeScanService,
+		// networkAndNodeScanService,
 		nodeWakeService,
 		metadataService,
 		nodeAndPortScanService,
@@ -53,7 +53,7 @@ func (s *LiwascServer) ListenAndServe() error {
 	server := grpc.NewServer()
 
 	reflection.Register(server)
-	proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
+	// proto.RegisterNetworkAndNodeScanServiceServer(server, s.networkAndNodeScanService)
 	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 	proto.RegisterMetadataServiceServer(server, s.metadataService)
 	proto.RegisterNodeAndPortScanNeoServiceServer(server, s.nodeAndPortScanService)
