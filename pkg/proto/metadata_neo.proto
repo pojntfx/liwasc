@@ -32,13 +32,13 @@ message NodeMetadataNeoMessage {
 }
 
 message PortMetadataReferenceNeoMessage {
-  string PortNumber = 1;
+  int64 PortNumber = 1;
   string TransportProtocol = 2;
 }
 
 message PortMetadataNeoMessage {
   string ServiceName = 1;
-  string PortNumber = 2;
+  int64 PortNumber = 2;
   string TransportProtocol = 3;
   string Description = 4;
   string Assignee = 5;
