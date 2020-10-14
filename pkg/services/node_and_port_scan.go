@@ -218,6 +218,13 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 						if port == nil {
 							log.Printf("port scan %v for node %v for node scan %v is done\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
 
+							// Broadcast port scan completion
+							dbPort := &models.Port{
+								PortScanID: dbPortScan.ID,
+								PortNumber: -1,
+							}
+							s.portMessenger.Broadcast(dbPort)
+
 							break
 						}
 
@@ -528,6 +535,95 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 
 		for _, dbPortScan := range dbPortScans {
 			s.portScanMessenger.Broadcast(dbPortScan)
+		}
+
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return nil
+}
+
+func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.PortScanNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortsServer) error {
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	// Get ports from messenger (priority 1)
+	go func() {
+		// Get port scan from DB and check if it is done
+		dbPortScan, err := s.nodeAndPortScanDatabase.GetPortScan(portScanMessage.GetID())
+		if err != nil {
+			log.Printf("could not get port scan %v from DB, continouing to messenger subscription: %v\n", portScanMessage.GetID(), err)
+
+			dbPortScan = &models.PortScan{
+				Done: 0,
+			}
+		}
+
+		// If port scan is not done, then sub and send ports until it is done
+		if dbPortScan.Done == 0 {
+			dbPorts, err := s.portMessenger.Sub()
+			if err != nil {
+				log.Printf("could not get ports for port scan %v from messenger: %v\n", portScanMessage.GetID(), err)
+
+				return
+			}
+			defer s.portMessenger.Unsub(dbPorts)
+
+			for dbPort := range dbPorts {
+				if dbPort.(*models.Port).PortScanID == portScanMessage.GetID() {
+					// Port scan is done, so return
+					if dbPort.(*models.Port).PortNumber == -1 {
+						break
+					}
+
+					protoPort := &proto.PortNeoMessage{
+						CreatedAt:         dbPort.(*models.Port).CreatedAt.String(),
+						ID:                dbPort.(*models.Port).ID,
+						Priority:          1,
+						PortNumber:        dbPort.(*models.Port).PortNumber,
+						PortScanID:        dbPort.(*models.Port).PortScanID,
+						TransportProtocol: dbPort.(*models.Port).TransportProtocol,
+					}
+
+					if err := stream.Send(protoPort); err != nil {
+						log.Printf("could send port %v for port scan %v to client: %v\n", protoPort.GetID(), portScanMessage.GetID(), err)
+
+						return
+					}
+				}
+			}
+		}
+
+		wg.Done()
+	}()
+
+	// Get ports from database (priority 2)
+	go func() {
+		dbPorts, err := s.nodeAndPortScanDatabase.GetPorts(portScanMessage.GetID())
+		if err != nil {
+			log.Printf("could not get ports for port scan %v from DB: %v\n", portScanMessage.GetID(), err)
+
+			return
+		}
+
+		for _, dbPort := range dbPorts {
+			protoPort := &proto.PortNeoMessage{
+				CreatedAt:         dbPort.CreatedAt.String(),
+				ID:                dbPort.ID,
+				Priority:          1,
+				PortNumber:        dbPort.PortNumber,
+				PortScanID:        dbPort.PortScanID,
+				TransportProtocol: dbPort.TransportProtocol,
+			}
+
+			if err := stream.Send(protoPort); err != nil {
+				log.Printf("could send port %v for port scan %v to client: %v\n", protoPort.GetID(), portScanMessage.GetID(), err)
+
+				return
+			}
 		}
 
 		wg.Done()
