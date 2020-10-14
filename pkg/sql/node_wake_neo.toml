@@ -1,0 +1,2 @@
+[sqlite3]
+dbname = "/var/liwasc/node_wake_neo.sqlite"
