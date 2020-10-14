@@ -84,6 +84,14 @@ func (d *NodeAndPortScanDatabase) GetPortScans(nodeID int64) (models.PortScanSli
 	return models.PortScans(models.PortScanWhere.NodeID.EQ(nodeID)).All(context.Background(), d.db)
 }
 
+func (d *NodeAndPortScanDatabase) GetPortScan(portScanID int64) (*models.PortScan, error) {
+	return models.FindPortScan(context.Background(), d.db, portScanID)
+}
+
+func (d *NodeAndPortScanDatabase) GetPorts(portScanID int64) (models.PortSlice, error) {
+	return models.Ports(models.PortWhere.PortScanID.EQ(portScanID)).All(context.Background(), d.db)
+}
+
 func (d *NodeAndPortScanDatabase) UpdateNodeScan(nodeScan *models.NodeScan) error {
 	_, err := nodeScan.Update(context.Background(), d.db, boil.Infer())
 
