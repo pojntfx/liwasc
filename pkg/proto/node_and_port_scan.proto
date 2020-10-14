@@ -8,6 +8,7 @@ option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NodeAndPortScanNeoService {
   rpc StartNodeScan(NodeScanStartNeoMessage) returns (NodeScanNeoMessage);
+
   rpc SubscribeToNodeScans(google.protobuf.Empty)
       returns (stream NodeScanNeoMessage);
   rpc SubscribeToNodes(NodeScanNeoMessage) returns (stream NodeNeoMessage);
