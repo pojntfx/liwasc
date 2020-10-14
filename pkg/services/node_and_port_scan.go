@@ -287,6 +287,8 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 
 	wg.Add(2)
 
+	messengerReady := make(chan bool)
+
 	// Get node scans from messenger
 	go func() {
 		dbNodeScans, err := s.nodeScanMessenger.Sub()
@@ -295,6 +297,9 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 
 			return
 		}
+		defer s.nodeScanMessenger.Unsub(dbNodeScans)
+
+		messengerReady <- true
 
 		for dbNodeScan := range dbNodeScans {
 			protoNodeScan := &proto.NodeScanNeoMessage{
@@ -321,6 +326,8 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 
 	// Get node scans from database
 	go func() {
+		<-messengerReady
+
 		dbNodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
 		if err != nil {
 			log.Printf("could not get node scans from DB: %v\n", err)
@@ -329,23 +336,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 		}
 
 		for _, dbNodeScan := range dbNodeScans {
-			protoNodeScan := &proto.NodeScanNeoMessage{
-				CreatedAt: dbNodeScan.CreatedAt.String(),
-				Done: func() bool {
-					if dbNodeScan.Done == 1 {
-						return true
-					}
-
-					return false
-				}(),
-				ID: dbNodeScan.ID,
-			}
-
-			if err := stream.Send(protoNodeScan); err != nil {
-				log.Printf("could send node scan %v to client: %v\n", protoNodeScan.ID, err)
-
-				return
-			}
+			s.nodeScanMessenger.Broadcast(dbNodeScan)
 		}
 
 		wg.Done()
@@ -381,6 +372,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 
 				return
 			}
+			defer s.nodeMessenger.Unsub(dbNodes)
 
 			for dbNode := range dbNodes {
 				if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() {
@@ -463,6 +455,79 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 
 				return
 			}
+		}
+
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return nil
+}
+
+func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.NodeNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortScansServer) error {
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	messengerReady := make(chan bool)
+
+	// Get port scans from messenger
+	go func() {
+		dbPortScans, err := s.portScanMessenger.Sub()
+		if err != nil {
+			log.Printf("could not get port scans from messenger: %v\n", err)
+
+			return
+		}
+		defer s.portScanMessenger.Unsub(dbPortScans)
+
+		messengerReady <- true
+
+		for dbPortScan := range dbPortScans {
+			if dbPortScan.(*models.PortScan).NodeID == nodeMessage.GetID() {
+				protoPortScan := &proto.PortScanNeoMessage{
+					CreatedAt: dbPortScan.(*models.PortScan).CreatedAt.String(),
+					Done: func() bool {
+						if dbPortScan.(*models.PortScan).Done == 1 {
+							return true
+						}
+
+						return false
+					}(),
+					ID:     dbPortScan.(*models.PortScan).ID,
+					NodeID: dbPortScan.(*models.PortScan).NodeID,
+				}
+
+				if err := stream.Send(protoPortScan); err != nil {
+					log.Printf("could send port scan %v to client: %v\n", protoPortScan.ID, err)
+
+					return
+				}
+
+				// There can only be one port scan per node, so if at least one port scan is done, return.
+				if protoPortScan.Done {
+					break
+				}
+			}
+		}
+
+		wg.Done()
+	}()
+
+	// Get port scans from database
+	go func() {
+		<-messengerReady
+
+		dbPortScans, err := s.nodeAndPortScanDatabase.GetPortScans(nodeMessage.GetID())
+		if err != nil {
+			log.Printf("could not get port scans from DB: %v\n", err)
+
+			return
+		}
+
+		for _, dbPortScan := range dbPortScans {
+			s.portScanMessenger.Broadcast(dbPortScan)
 		}
 
 		wg.Done()

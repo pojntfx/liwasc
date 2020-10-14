@@ -80,6 +80,10 @@ func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
 	return uniqueNodes, nil
 }
 
+func (d *NodeAndPortScanDatabase) GetPortScans(nodeID int64) (models.PortScanSlice, error) {
+	return models.PortScans(models.PortScanWhere.NodeID.EQ(nodeID)).All(context.Background(), d.db)
+}
+
 func (d *NodeAndPortScanDatabase) UpdateNodeScan(nodeScan *models.NodeScan) error {
 	_, err := nodeScan.Update(context.Background(), d.db, boil.Infer())
 
