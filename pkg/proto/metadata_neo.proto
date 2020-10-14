@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package com.pojtinger.felix.liwasc.neo;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/pojntfx/liwasc/pkg/proto";
+
+service MetadataNeoService {
+  rpc GetMetadataForScanner(google.protobuf.Empty)
+      returns (ScannerMetadataNeoMessage);
+  rpc GetMetadataForNode(NodeMetadataReferenceNeoMessage)
+      returns (NodeMetadataNeoMessage);
+  rpc GetMetadataForPort(PortMetadataReferenceNeoMessage)
+      returns (PortMetadataNeoMessage);
+}
+
+message ScannerMetadataNeoMessage {
+  repeated string Subnets = 1;
+  string Device = 2;
+}
+
+message NodeMetadataReferenceNeoMessage { string MACAddress = 1; }
+
+message NodeMetadataNeoMessage {
+  string MACAddress = 1;
+  string IPAddress = 2;
+  string Vendor = 3;
+  string Registry = 4;
+  string Organization = 5;
+  string Address = 6;
+  bool Visible = 7;
+}
+
+message PortMetadataReferenceNeoMessage {
+  string PortNumber = 1;
+  string TransportProtocol = 2;
+}
+
+message PortMetadataNeoMessage {
+  string ServiceName = 1;
+  string PortNumber = 2;
+  string TransportProtocol = 3;
+  string Description = 4;
+  string Assignee = 5;
+  string Contact = 6;
+  string RegistrationDate = 7;
+  string ModificationDate = 8;
+  string Reference = 9;
+  string ServiceCode = 10;
+  string UnauthorizedUseReported = 11;
+  string AssignmentNotes = 12;
+}
