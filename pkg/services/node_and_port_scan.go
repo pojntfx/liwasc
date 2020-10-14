@@ -105,6 +105,13 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 			if node == nil {
 				log.Printf("node scan %v is done\n", dbNodeScan.ID)
 
+				// Broadcast node scan completion
+				dbNode := &models.Node{
+					NodeScanID: dbNodeScan.ID,
+					MacAddress: "-1",
+				}
+				s.nodeMessenger.Broadcast(dbNode)
+
 				break
 			}
 
@@ -329,7 +336,12 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 			}
 
 			for dbNode := range dbNodes {
-				if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() { // TODO: Check if ID is -1, if so the node scan is done and return
+				if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() {
+					// Node scan is done, so return
+					if dbNode.(*models.Node).MacAddress == "-1" {
+						break
+					}
+
 					protoNode := &proto.NodeNeoMessage{
 						CreatedAt:  dbNode.(*models.Node).CreatedAt.String(),
 						ID:         dbNode.(*models.Node).ID,
