@@ -3,16 +3,14 @@ module github.com/pojntfx/liwasc
 go 1.15
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20200709115526-d1f6fc58448b // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/friendsofgo/errors v0.9.2
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/google/gopacket v1.1.18
 	github.com/j-keck/arping v1.0.1
 	github.com/jszwec/csvutil v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.4
 	github.com/mdlayher/wol v0.0.0-20200423173749-bc23029f94e1
-	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pojntfx/go-app-grpc-chat-backend v0.0.0-20200914214506-117c1d64fa06
@@ -23,7 +21,7 @@ require (
 	github.com/ugjka/messenger v1.1.3
 	github.com/volatiletech/null/v8 v8.1.0
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
-	google.golang.org/grpc v1.32.0
+	google.golang.org/grpc v1.33.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
