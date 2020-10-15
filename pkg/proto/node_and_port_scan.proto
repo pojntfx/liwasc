@@ -19,6 +19,7 @@ service NodeAndPortScanNeoService {
 message NodeScanStartNeoMessage {
   int64 NodeScanTimeout = 1;
   int64 PortScanTimeout = 2;
+  string MACAddress = 3; // Scopes the scan to one node. Set to "" to scan all.
 }
 
 message NodeScanNeoMessage {
