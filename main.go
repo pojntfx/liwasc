@@ -26,9 +26,9 @@ func main() {
 	listenAddress := flag.String("listenAddress", "0.0.0.0:15123", "Listen address.")
 	webSocketListenAddress := flag.String("webSocketListenAddress", "0.0.0.0:15124", "Listen address (for the WebSocket proxy).")
 	maxConcurrentPortScans := flag.Int("maxConcurrentPortScans", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter.")
-	// periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/5 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
-	// periodicNetworkScanTimeout := flag.Int("periodicNetworkScanTimeout", 10000, "Time in milliseconds to wait for node discoveries in the periodic network scans.")
-	// periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 100, "Time in milliseconds to wait for a response per port in the periodic node scans.")
+	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/5 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
+	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 5000, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans.")
+	periodicPortScanTimeout := flag.Int("periodicPortScanTimeout", 500, "Time in milliseconds to wait for a response per port in the periodic port scans.")
 	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
 	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
 
@@ -60,6 +60,9 @@ func main() {
 		ports2PacketsDatabase,
 		nodeAndPortScanDatabase,
 		concurrency.NewGoRoutineLimiter(int32(*maxConcurrentPortScans)),
+		*periodicScanCronExpression,
+		*periodicNodeScanTimeout,
+		*periodicPortScanTimeout,
 	)
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
@@ -146,6 +149,12 @@ func main() {
 	// 		log.Fatal("could not open networkAndNodeScanService", err)
 	// 	}
 	// }()
+
+	go func() {
+		if err := nodeAndPortScanService.Open(); err != nil {
+			log.Fatal("could not open nodeAndPortScanService", err)
+		}
+	}()
 
 	if err := metadataService.Open(); err != nil {
 		log.Fatal("could not open metadataService", err)
