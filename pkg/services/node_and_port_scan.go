@@ -13,6 +13,7 @@ import (
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
@@ -42,16 +43,23 @@ type NodeAndPortScanPortService struct {
 	periodicPortScanTimeout    int
 
 	cron *cron.Cron
+
+	contextValidator *validators.ContextValidator
 }
 
 func NewNodeAndPortScanPortService(
 	device string,
+
 	ports2packetsDatabase *databases.Ports2PacketDatabase,
 	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase,
+
 	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter,
+
 	periodicScanCronExpression string,
 	periodicNodeScanTimeout int,
 	periodicPortScanTimeout int,
+
+	contextValidator *validators.ContextValidator,
 ) *NodeAndPortScanPortService {
 	return &NodeAndPortScanPortService{
 		device: device,
@@ -71,6 +79,8 @@ func NewNodeAndPortScanPortService(
 		periodicPortScanTimeout:    periodicPortScanTimeout,
 
 		cron: cron.New(),
+
+		contextValidator: contextValidator,
 	}
 }
 
@@ -103,6 +113,12 @@ func (s *NodeAndPortScanPortService) Open() error {
 }
 
 func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	return s.startInternalNodeScan(ctx, nodeScanStartMessage)
 }
 
@@ -366,6 +382,12 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 }
 
 func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanNeoService_SubscribeToNodeScansServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(2)
@@ -431,6 +453,12 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 }
 
 func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.NodeScanNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToNodesServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(3)
@@ -549,6 +577,12 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 }
 
 func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.NodeNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortScansServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(2)
@@ -622,6 +656,12 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 }
 
 func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.PortScanNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortsServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(2)
