@@ -13,6 +13,7 @@ import (
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
+	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,6 +36,12 @@ type NodeAndPortScanPortService struct {
 
 	nodeScannerLock sync.Mutex
 	portScannerLock sync.Mutex
+
+	periodicScanCronExpression string
+	periodicNodeScanTimeout    int
+	periodicPortScanTimeout    int
+
+	cron *cron.Cron
 }
 
 func NewNodeAndPortScanPortService(
@@ -42,6 +49,9 @@ func NewNodeAndPortScanPortService(
 	ports2packetsDatabase *databases.Ports2PacketDatabase,
 	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase,
 	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter,
+	periodicScanCronExpression string,
+	periodicNodeScanTimeout int,
+	periodicPortScanTimeout int,
 ) *NodeAndPortScanPortService {
 	return &NodeAndPortScanPortService{
 		device: device,
@@ -55,7 +65,41 @@ func NewNodeAndPortScanPortService(
 		nodeMessenger:     messenger.New(0, true),
 		portScanMessenger: messenger.New(0, true),
 		portMessenger:     messenger.New(0, true),
+
+		periodicScanCronExpression: periodicScanCronExpression,
+		periodicNodeScanTimeout:    periodicNodeScanTimeout,
+		periodicPortScanTimeout:    periodicPortScanTimeout,
+
+		cron: cron.New(),
 	}
+}
+
+func (s *NodeAndPortScanPortService) Open() error {
+	if _, err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
+		go func() {
+			protoNodeScanStartMessage := &proto.NodeScanStartNeoMessage{
+				NodeScanTimeout: int64(s.periodicNodeScanTimeout),
+				PortScanTimeout: int64(s.periodicPortScanTimeout),
+			}
+
+			log.Printf("starting periodic node scan\n")
+
+			protoNodeScanMessage, err := s.startInternalNodeScan(context.Background(), protoNodeScanStartMessage)
+			if err != nil {
+				log.Printf("could not start periodic node scan: %v\n", err)
+
+				return
+			}
+
+			log.Printf("started periodic node scan %v\n", protoNodeScanMessage.GetID())
+		}()
+	}); err != nil {
+		return err
+	}
+
+	s.cron.Run()
+
+	return nil
 }
 
 func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
