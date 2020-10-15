@@ -15,13 +15,13 @@ service NodeWakeNeoService {
 
 message NodeWakeStartNeoMessage {
   int64 NodeWakeTimeout = 1;
-  int64 MACAddress = 2;
+  string MACAddress = 2;
 }
 
 message NodeWakeNeoMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;
-  int64 MACAddress = 4;
+  string MACAddress = 4;
   bool PoweredOne = 5;
 }

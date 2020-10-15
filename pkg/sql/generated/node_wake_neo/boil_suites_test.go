@@ -12,52 +12,52 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakes)
+	t.Run("NodeWakesNeos", testNodeWakesNeos)
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesDelete)
+	t.Run("NodeWakesNeos", testNodeWakesNeosDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesQueryDeleteAll)
+	t.Run("NodeWakesNeos", testNodeWakesNeosQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesSliceDeleteAll)
+	t.Run("NodeWakesNeos", testNodeWakesNeosSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesExists)
+	t.Run("NodeWakesNeos", testNodeWakesNeosExists)
 }
 
 func TestFind(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesFind)
+	t.Run("NodeWakesNeos", testNodeWakesNeosFind)
 }
 
 func TestBind(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesBind)
+	t.Run("NodeWakesNeos", testNodeWakesNeosBind)
 }
 
 func TestOne(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesOne)
+	t.Run("NodeWakesNeos", testNodeWakesNeosOne)
 }
 
 func TestAll(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesAll)
+	t.Run("NodeWakesNeos", testNodeWakesNeosAll)
 }
 
 func TestCount(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesCount)
+	t.Run("NodeWakesNeos", testNodeWakesNeosCount)
 }
 
 func TestHooks(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesHooks)
+	t.Run("NodeWakesNeos", testNodeWakesNeosHooks)
 }
 
 func TestInsert(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesInsert)
-	t.Run("NodeWakes", testNodeWakesInsertWhitelist)
+	t.Run("NodeWakesNeos", testNodeWakesNeosInsert)
+	t.Run("NodeWakesNeos", testNodeWakesNeosInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
@@ -101,21 +101,21 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesReload)
+	t.Run("NodeWakesNeos", testNodeWakesNeosReload)
 }
 
 func TestReloadAll(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesReloadAll)
+	t.Run("NodeWakesNeos", testNodeWakesNeosReloadAll)
 }
 
 func TestSelect(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesSelect)
+	t.Run("NodeWakesNeos", testNodeWakesNeosSelect)
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesUpdate)
+	t.Run("NodeWakesNeos", testNodeWakesNeosUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
-	t.Run("NodeWakes", testNodeWakesSliceUpdateAll)
+	t.Run("NodeWakesNeos", testNodeWakesNeosSliceUpdateAll)
 }
