@@ -70,7 +70,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 
 	// Create and open node scanner
 	nodeScanner := scanners.NewNodeScanner(s.device)
-	nodes, err := nodeScanner.Open()
+	networks, err := nodeScanner.Open()
 	if err != nil {
 		log.Printf("could not open node scanner for node scan %v: %v\n", dbNodeScan.ID, err)
 
@@ -78,7 +78,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 	}
 
 	// Queueing node scan
-	log.Printf("queueing node scan %v for nodes: %v\n", dbNodeScan.ID, nodes)
+	log.Printf("queueing node scan %v for networks: %v\n", dbNodeScan.ID, networks)
 
 	// Lock the node scanner
 	nodeScannerReady := make(chan bool)
@@ -87,43 +87,55 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 		s.nodeScannerLock.Lock()
 
 		// Start node scan
-		log.Printf("starting node scan %v for nodes: %v\n", dbNodeScan.ID, nodes)
+		log.Printf("starting node scan %v for networks: %v\n", dbNodeScan.ID, networks)
 
-		for i := 0; i < 3; i++ {
+		if nodeScanStartMessage.GetMACAddress() == "" {
+			for i := 0; i < 3; i++ {
+				nodeScannerReady <- true
+			}
+		} else {
 			nodeScannerReady <- true
 		}
 	}()
 
-	// Transmit node scan
-	go func() {
-		<-nodeScannerReady
+	if nodeScanStartMessage.GetMACAddress() == "" {
+		// Transmit node scan
+		go func() {
+			<-nodeScannerReady
 
-		if err := nodeScanner.Transmit(); err != nil {
-			log.Printf("could not transmit for node scan %v: %v\n", dbNodeScan.ID, err)
-		}
-	}()
+			if err := nodeScanner.Transmit(); err != nil {
+				log.Printf("could not transmit for node scan %v: %v\n", dbNodeScan.ID, err)
+			}
+		}()
 
-	// Receive node scan
-	go func() {
-		<-nodeScannerReady
+		// Receive node scan
+		go func() {
+			<-nodeScannerReady
 
-		receiveCtx, cancel := context.WithTimeout(
-			context.Background(),
-			time.Millisecond*time.Duration(nodeScanStartMessage.GetNodeScanTimeout()),
-		)
-		defer cancel()
+			receiveCtx, cancel := context.WithTimeout(
+				context.Background(),
+				time.Millisecond*time.Duration(nodeScanStartMessage.GetNodeScanTimeout()),
+			)
+			defer cancel()
 
-		if err := nodeScanner.Receive(receiveCtx); err != nil {
-			log.Printf("could not receive for node scan %v: %v\n", dbNodeScan.ID, err)
-		}
-	}()
+			if err := nodeScanner.Receive(receiveCtx); err != nil {
+				log.Printf("could not receive for node scan %v: %v\n", dbNodeScan.ID, err)
+			}
+		}()
+	}
 
 	// Read node scan
 	go func() {
 		<-nodeScannerReady
 
 		for {
-			node := nodeScanner.Read()
+			var node *scanners.DiscoveredNode
+			if nodeScanStartMessage.GetMACAddress() == "" {
+				node = nodeScanner.Read()
+			} else {
+				node = &scanners.DiscoveredNode{} // We fetch the node below
+			}
+
 			// Node scan is done
 			if node == nil {
 				log.Printf("node scan %v is done\n", dbNodeScan.ID)
@@ -140,16 +152,28 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 
 			// Handle node
 			go func() {
-				// Create and broadcast node
-				dbNode := &models.Node{
-					NodeScanID: dbNodeScan.ID,
-					MacAddress: node.MACAddress.String(),
-					IPAddress:  node.IPAddress.String(),
-				}
-				if err := s.nodeAndPortScanDatabase.CreateNode(dbNode); err != nil {
-					log.Printf("could not create node %v for node scan %v in DB: %v\n", dbNode.ID, dbNodeScan.ID, err)
+				// Fetch/Create and broadcast node
+				var dbNode *models.Node
+				if nodeScanStartMessage.GetMACAddress() == "" {
+					// Create node in DB
+					dbNode = &models.Node{
+						NodeScanID: dbNodeScan.ID,
+						MacAddress: node.MACAddress.String(),
+						IPAddress:  node.IPAddress.String(),
+					}
+					if err := s.nodeAndPortScanDatabase.CreateNode(dbNode); err != nil {
+						log.Printf("could not create node %v for node scan %v in DB: %v\n", dbNode.ID, dbNodeScan.ID, err)
 
-					return
+						return
+					}
+				} else {
+					// Fetch node from DB
+					dbNode, err = s.nodeAndPortScanDatabase.GetNodeByMACAddress(nodeScanStartMessage.GetMACAddress())
+					if err != nil {
+						log.Printf("could not find node with MAC address %v: %v\n", nodeScanStartMessage.GetMACAddress(), err)
+
+						return
+					}
 				}
 				s.nodeMessenger.Broadcast(dbNode)
 
@@ -166,7 +190,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 
 				// Create port scanner
 				portscanner := scanners.NewPortScanner(
-					node.IPAddress.String(),
+					dbNode.IPAddress,
 					0,
 					math.MaxInt16,
 					time.Millisecond*time.Duration(nodeScanStartMessage.GetPortScanTimeout()),
@@ -260,6 +284,10 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 					s.portScannerLock.Unlock()
 				}()
 			}()
+
+			if nodeScanStartMessage.GetMACAddress() != "" {
+				break
+			}
 		}
 
 		// Set node scan to done
