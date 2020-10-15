@@ -177,9 +177,7 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 
 	wg.Add(2)
 
-	messengerReady := make(chan bool)
-
-	// Get node wakes from messenger
+	// Get node wakes from messenger (priority 1)
 	go func() {
 		dbNodeWakes, err := s.nodeWakeMessenger.Sub()
 		if err != nil {
@@ -188,8 +186,6 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 			return
 		}
 		defer s.nodeWakeMessenger.Unsub(dbNodeWakes)
-
-		messengerReady <- true
 
 		for dbNodeWake := range dbNodeWakes {
 			protoNodeWake := &proto.NodeWakeNeoMessage{
@@ -210,6 +206,7 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 
 					return false
 				}(),
+				Priority: 1,
 			}
 
 			if err := stream.Send(protoNodeWake); err != nil {
@@ -222,10 +219,8 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 		wg.Done()
 	}()
 
-	// Get node wakes from database
+	// Get lookback node wakes from database (priority 2)
 	go func() {
-		<-messengerReady
-
 		dbNodeWakes, err := s.nodeWakeDatabase.GetNodeWakes()
 		if err != nil {
 			log.Printf("could not get node wakes from DB: %v\n", err)
@@ -234,7 +229,32 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 		}
 
 		for _, dbNodeWake := range dbNodeWakes {
-			s.nodeWakeMessenger.Broadcast(dbNodeWake)
+			protoNodeWake := &proto.NodeWakeNeoMessage{
+				CreatedAt: dbNodeWake.CreatedAt.String(),
+				Done: func() bool {
+					if dbNodeWake.Done == 1 {
+						return true
+					}
+
+					return false
+				}(),
+				ID:         dbNodeWake.ID,
+				MACAddress: dbNodeWake.MacAddress,
+				PoweredOne: func() bool {
+					if dbNodeWake.PoweredOn == 1 {
+						return true
+					}
+
+					return false
+				}(),
+				Priority: 2,
+			}
+
+			if err := stream.Send(protoNodeWake); err != nil {
+				log.Printf("could send node wake %v to client: %v\n", protoNodeWake.ID, err)
+
+				return
+			}
 		}
 
 		wg.Done()
