@@ -1,5 +1,7 @@
 package services
 
+//go:generate sh -c "mkdir -p ../proto/generated && protoc --go_out=paths=source_relative,plugins=grpc:../proto/generated -I=../proto ../proto/*.proto"
+
 import (
 	"context"
 	"fmt"
@@ -13,6 +15,10 @@ import (
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+const (
+	AUTHORIZATION_METADATA_KEY = "X-Liwasc-Authorization"
 )
 
 type MetadataNeoService struct {
