@@ -131,7 +131,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanSt
 				// Broadcast node scan completion
 				dbNode := &models.Node{
 					NodeScanID: dbNodeScan.ID,
-					MacAddress: "-1",
+					MacAddress: "",
 				}
 				s.nodeMessenger.Broadcast(dbNode)
 
@@ -384,7 +384,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 			for dbNode := range dbNodes {
 				if dbNode.(*models.Node).NodeScanID == nodeScanMessage.GetID() {
 					// Node scan is done, so return
-					if dbNode.(*models.Node).MacAddress == "-1" {
+					if dbNode.(*models.Node).MacAddress == "" {
 						break
 					}
 
