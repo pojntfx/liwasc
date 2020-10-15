@@ -10,6 +10,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/networking"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,6 +25,8 @@ type MetadataNeoService struct {
 
 	mac2vendorDatabase              *databases.MAC2VendorDatabase
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase
+
+	contextValidator *validators.ContextValidator
 }
 
 func NewMetadataNeoService(
@@ -31,12 +34,16 @@ func NewMetadataNeoService(
 
 	mac2vendorDatabase *databases.MAC2VendorDatabase,
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
+
+	contextValidator *validators.ContextValidator,
 ) *MetadataNeoService {
 	return &MetadataNeoService{
 		interfaceInspector: interfaceInspector,
 
 		mac2vendorDatabase:              mac2vendorDatabase,
 		serviceNamesPortNumbersDatabase: serviceNamesPortNumbersDatabase,
+
+		contextValidator: contextValidator,
 	}
 }
 
@@ -52,7 +59,13 @@ func (s *MetadataNeoService) Open() error {
 	return nil
 }
 
-func (s *MetadataNeoService) GetMetadataForScanner(context.Context, *empty.Empty) (*proto.ScannerMetadataNeoMessage, error) {
+func (s *MetadataNeoService) GetMetadataForScanner(ctx context.Context, _ *empty.Empty) (*proto.ScannerMetadataNeoMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	protoScannerMetadataMessage := &proto.ScannerMetadataNeoMessage{
 		Subnets: s.subnets,
 		Device:  s.device,
@@ -61,7 +74,13 @@ func (s *MetadataNeoService) GetMetadataForScanner(context.Context, *empty.Empty
 	return protoScannerMetadataMessage, nil
 }
 
-func (s *MetadataNeoService) GetMetadataForNode(_ context.Context, nodeMetadataReferenceMessage *proto.NodeMetadataReferenceNeoMessage) (*proto.NodeMetadataNeoMessage, error) {
+func (s *MetadataNeoService) GetMetadataForNode(ctx context.Context, nodeMetadataReferenceMessage *proto.NodeMetadataReferenceNeoMessage) (*proto.NodeMetadataNeoMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	dbNodeMetadata, err := s.mac2vendorDatabase.GetVendor(nodeMetadataReferenceMessage.GetMACAddress())
 	if err != nil {
 		log.Printf("could not find node %v in DB: %v\n", nodeMetadataReferenceMessage.GetMACAddress(), err)
@@ -87,7 +106,13 @@ func (s *MetadataNeoService) GetMetadataForNode(_ context.Context, nodeMetadataR
 	return protoNodeMetadataMessage, nil
 }
 
-func (s *MetadataNeoService) GetMetadataForPort(_ context.Context, portMetadataReferenceMessage *proto.PortMetadataReferenceNeoMessage) (*proto.PortMetadataNeoMessage, error) {
+func (s *MetadataNeoService) GetMetadataForPort(ctx context.Context, portMetadataReferenceMessage *proto.PortMetadataReferenceNeoMessage) (*proto.PortMetadataNeoMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	dbPortMetadata, err := s.serviceNamesPortNumbersDatabase.GetService(int(portMetadataReferenceMessage.GetPortNumber()), portMetadataReferenceMessage.GetTransportProtocol())
 	if err != nil || (dbPortMetadata != nil && len(dbPortMetadata) == 0) {
 		log.Printf("could not find port %v in DB: %v\n", fmt.Sprintf("%v/%v", portMetadataReferenceMessage.GetPortNumber(), portMetadataReferenceMessage.GetTransportProtocol()), err)

@@ -63,6 +63,7 @@ func main() {
 		*periodicScanCronExpression,
 		*periodicNodeScanTimeout,
 		*periodicPortScanTimeout,
+		contextValidator,
 	)
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
 	nodeWakeService := services.NewNodeWakeService(
@@ -81,7 +82,12 @@ func main() {
 	)
 	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
 	metadataService := services.NewMetadataService(interfaceInspector, contextValidator)
-	metadataNeoService := services.NewMetadataNeoService(interfaceInspector, mac2VendorDatabase, serviceNamesPortNumbersDatabase)
+	metadataNeoService := services.NewMetadataNeoService(
+		interfaceInspector,
+		mac2VendorDatabase,
+		serviceNamesPortNumbersDatabase,
+		contextValidator,
+	)
 	nodeWakeNeoDatabase := databases.NewNodeWakeNeoDatabase(*nodeWakeNeoDatabasePath)
 	nodeWakeNeoService := services.NewNodeWakeNeoService(
 		*deviceName,
@@ -95,6 +101,7 @@ func main() {
 
 			return node.IPAddress, nil
 		},
+		contextValidator,
 	)
 	liwascServer := servers.NewLiwascServer(
 		*listenAddress,

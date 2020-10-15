@@ -12,6 +12,7 @@ import (
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake_neo"
+	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"
 	"google.golang.org/grpc/codes"
@@ -28,6 +29,8 @@ type NodeWakeNeoService struct {
 	getIPAddress     func(macAddress string) (ipAddress string, err error)
 
 	nodeWakeMessenger *messenger.Messenger
+
+	contextValidator *validators.ContextValidator
 }
 
 func NewNodeWakeNeoService(
@@ -36,6 +39,8 @@ func NewNodeWakeNeoService(
 
 	nodeWakeDatabase *databases.NodeWakeNeoDatabase,
 	getIPAddress func(macAddress string) (ipAddress string, err error),
+
+	contextValidator *validators.ContextValidator,
 ) *NodeWakeNeoService {
 	return &NodeWakeNeoService{
 		device:         device,
@@ -45,10 +50,18 @@ func NewNodeWakeNeoService(
 		getIPAddress:     getIPAddress,
 
 		nodeWakeMessenger: messenger.New(0, true),
+
+		contextValidator: contextValidator,
 	}
 }
 
-func (s *NodeWakeNeoService) StartNodeWake(_ context.Context, nodeWakeStartMessage *proto.NodeWakeStartNeoMessage) (*proto.NodeWakeNeoMessage, error) {
+func (s *NodeWakeNeoService) StartNodeWake(ctx context.Context, nodeWakeStartMessage *proto.NodeWakeStartNeoMessage) (*proto.NodeWakeNeoMessage, error) {
+	// Authorize
+	valid, err := s.contextValidator.Validate(ctx)
+	if err != nil || !valid {
+		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	// Create and broadcast node wake in DB
 	dbNodeWake := &models.NodeWakesNeo{
 		Done:       0,
@@ -140,7 +153,7 @@ func (s *NodeWakeNeoService) StartNodeWake(_ context.Context, nodeWakeStartMessa
 		}
 	}()
 
-	err := <-successfulFirstOpen
+	err = <-successfulFirstOpen
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
 			return nil, status.Errorf(codes.NotFound, "could not find node to wake. Did you run a network scan yet?")
@@ -173,6 +186,12 @@ func (s *NodeWakeNeoService) StartNodeWake(_ context.Context, nodeWakeStartMessa
 }
 
 func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.NodeWakeNeoService_SubscribeToNodeWakesServer) error {
+	// Authorize
+	valid, err := s.contextValidator.Validate(stream.Context())
+	if err != nil || !valid {
+		return status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(2)
