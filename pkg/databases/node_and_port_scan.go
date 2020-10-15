@@ -7,6 +7,7 @@ import (
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 //go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_and_port_scan -c pkg/sql/node_and_port_scan.toml"
@@ -36,7 +37,7 @@ func (d *NodeAndPortScanDatabase) CreatePort(port *models.Port) error {
 }
 
 func (d *NodeAndPortScanDatabase) GetNodeScans() (models.NodeScanSlice, error) {
-	return models.NodeScans().All(context.Background(), d.db)
+	return models.NodeScans(qm.OrderBy(models.NodeScanColumns.CreatedAt)).All(context.Background(), d.db)
 }
 
 func (d *NodeAndPortScanDatabase) GetNodeScan(nodeScanID int64) (*models.NodeScan, error) {
@@ -44,7 +45,7 @@ func (d *NodeAndPortScanDatabase) GetNodeScan(nodeScanID int64) (*models.NodeSca
 }
 
 func (d *NodeAndPortScanDatabase) GetNodes(nodeScanID int64) (models.NodeSlice, error) {
-	return models.Nodes(models.NodeWhere.NodeScanID.EQ(nodeScanID)).All(context.Background(), d.db)
+	return models.Nodes(models.NodeWhere.NodeScanID.EQ(nodeScanID), qm.OrderBy(models.NodeColumns.CreatedAt)).All(context.Background(), d.db)
 }
 
 func (d *NodeAndPortScanDatabase) GetNodeByMACAddress(macAddress string) (*models.Node, error) {
@@ -70,7 +71,7 @@ func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
 }
 
 func (d *NodeAndPortScanDatabase) GetPortScans(nodeID int64) (models.PortScanSlice, error) {
-	return models.PortScans(models.PortScanWhere.NodeID.EQ(nodeID)).All(context.Background(), d.db)
+	return models.PortScans(models.PortScanWhere.NodeID.EQ(nodeID), qm.OrderBy(models.PortScanColumns.CreatedAt)).All(context.Background(), d.db)
 }
 
 func (d *NodeAndPortScanDatabase) GetPortScan(portScanID int64) (*models.PortScan, error) {
@@ -78,7 +79,7 @@ func (d *NodeAndPortScanDatabase) GetPortScan(portScanID int64) (*models.PortSca
 }
 
 func (d *NodeAndPortScanDatabase) GetPorts(portScanID int64) (models.PortSlice, error) {
-	return models.Ports(models.PortWhere.PortScanID.EQ(portScanID)).All(context.Background(), d.db)
+	return models.Ports(models.PortWhere.PortScanID.EQ(portScanID), qm.OrderBy(models.PortColumns.CreatedAt)).All(context.Background(), d.db)
 }
 
 func (d *NodeAndPortScanDatabase) UpdateNodeScan(nodeScan *models.NodeScan) error {

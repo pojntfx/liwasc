@@ -22,6 +22,7 @@ message NodeWakeNeoMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;
-  string MACAddress = 4;
-  bool PoweredOne = 5;
+  int64 Priority = 4;
+  string MACAddress = 5;
+  bool PoweredOne = 6;
 }

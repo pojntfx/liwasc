@@ -613,7 +613,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 			protoPort := &proto.PortNeoMessage{
 				CreatedAt:         dbPort.CreatedAt.String(),
 				ID:                dbPort.ID,
-				Priority:          1,
+				Priority:          2,
 				PortNumber:        dbPort.PortNumber,
 				PortScanID:        dbPort.PortScanID,
 				TransportProtocol: dbPort.TransportProtocol,
