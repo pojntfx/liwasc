@@ -58,7 +58,11 @@ func NewNodeAndPortScanPortService(
 	}
 }
 
-func (s *NodeAndPortScanPortService) StartNodeScan(_ context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
+func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
+	return s.startInternalNodeScan(ctx, nodeScanStartMessage)
+}
+
+func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
