@@ -26,3 +26,7 @@ func (d *NodeWakeNeoDatabase) UpdateNodeWake(nodeWake *models.NodeWakesNeo) erro
 
 	return err
 }
+
+func (d *NodeWakeNeoDatabase) GetNodeWakes() (models.NodeWakesNeoSlice, error) {
+	return models.NodeWakesNeos().All(context.Background(), d.db)
+}
