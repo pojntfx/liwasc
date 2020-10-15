@@ -47,6 +47,10 @@ func (d *NodeAndPortScanDatabase) GetNodes(nodeScanID int64) (models.NodeSlice, 
 	return models.Nodes(models.NodeWhere.NodeScanID.EQ(nodeScanID)).All(context.Background(), d.db)
 }
 
+func (d *NodeAndPortScanDatabase) GetNodeByMACAddress(macAddress string) (*models.Node, error) {
+	return models.Nodes(models.NodeWhere.MacAddress.EQ(macAddress)).One(context.Background(), d.db)
+}
+
 func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
 	var uniqueNodes models.NodeSlice
 	if err := queries.Raw(

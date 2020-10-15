@@ -4,7 +4,7 @@
 package models
 
 var TableNames = struct {
-	NodeWake string
+	NodeWakesNeo string
 }{
-	NodeWake: "node_wake",
+	NodeWakesNeo: "node_wakes_neo",
 }

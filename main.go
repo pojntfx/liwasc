@@ -20,6 +20,7 @@ func main() {
 	networkAndNodeScanDatabasePath := flag.String("networkAndNodeScanDatabasePath", "/var/liwasc/network_and_node_scan.sqlite", "Path to the persistence database for the network and node scan service.")
 	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", "/var/liwasc/node_and_port_scan.sqlite", "Path to the persistence database for the node and port scan service.")
 	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/liwasc/node_wake.sqlite", "Path to the persistence database for the node wake service.")
+	nodeWakeNeoDatabasePath := flag.String("nodeWakeNeoDatabasePath", "/var/liwasc/node_wake_neo.sqlite", "Path to the persistence database for the neo node wake service.")
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
 	listenAddress := flag.String("listenAddress", "0.0.0.0:15123", "Listen address.")
@@ -78,6 +79,20 @@ func main() {
 	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
 	metadataService := services.NewMetadataService(interfaceInspector, contextValidator)
 	metadataNeoService := services.NewMetadataNeoService(interfaceInspector, mac2VendorDatabase, serviceNamesPortNumbersDatabase)
+	nodeWakeNeoDatabase := databases.NewNodeWakeNeoDatabase(*nodeWakeNeoDatabasePath)
+	nodeWakeNeoService := services.NewNodeWakeNeoService(
+		*deviceName,
+		wakeOnLANWaker,
+		nodeWakeNeoDatabase,
+		func(macAddress string) (string, error) {
+			node, err := nodeAndPortScanDatabase.GetNodeByMACAddress(macAddress)
+			if err != nil {
+				return "", err
+			}
+
+			return node.IPAddress, nil
+		},
+	)
 	liwascServer := servers.NewLiwascServer(
 		*listenAddress,
 		*webSocketListenAddress,
@@ -86,6 +101,7 @@ func main() {
 		metadataService,
 		nodeAndPortScanService,
 		metadataNeoService,
+		nodeWakeNeoService,
 	)
 
 	// Open instances
@@ -115,6 +131,10 @@ func main() {
 
 	if err := nodeWakeDatabase.Open(); err != nil {
 		log.Fatal("could not open nodeWakeDatabase", err)
+	}
+
+	if err := nodeWakeNeoDatabase.Open(); err != nil {
+		log.Fatal("could not open nodeWakeNeoDatabase", err)
 	}
 
 	if err := wakeOnLANWaker.Open(); err != nil {
