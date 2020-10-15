@@ -11,7 +11,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/databases"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
-	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake_neo"
+	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"
@@ -19,13 +19,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type NodeWakeNeoService struct {
-	proto.UnimplementedNodeWakeNeoServiceServer
+type NodeWakeService struct {
+	proto.UnimplementedNodeWakeServiceServer
 
 	device         string
 	wakeOnLANWaker *wakers.WakeOnLANWaker
 
-	nodeWakeDatabase *databases.NodeWakeNeoDatabase
+	nodeWakeDatabase *databases.NodeWakeDatabase
 	getIPAddress     func(macAddress string) (ipAddress string, err error)
 
 	nodeWakeMessenger *messenger.Messenger
@@ -33,16 +33,16 @@ type NodeWakeNeoService struct {
 	contextValidator *validators.ContextValidator
 }
 
-func NewNodeWakeNeoService(
+func NewNodeWakeService(
 	device string,
 	wakeOnLANWaker *wakers.WakeOnLANWaker,
 
-	nodeWakeDatabase *databases.NodeWakeNeoDatabase,
+	nodeWakeDatabase *databases.NodeWakeDatabase,
 	getIPAddress func(macAddress string) (ipAddress string, err error),
 
 	contextValidator *validators.ContextValidator,
-) *NodeWakeNeoService {
-	return &NodeWakeNeoService{
+) *NodeWakeService {
+	return &NodeWakeService{
 		device:         device,
 		wakeOnLANWaker: wakeOnLANWaker,
 
@@ -55,7 +55,7 @@ func NewNodeWakeNeoService(
 	}
 }
 
-func (s *NodeWakeNeoService) StartNodeWake(ctx context.Context, nodeWakeStartMessage *proto.NodeWakeStartNeoMessage) (*proto.NodeWakeNeoMessage, error) {
+func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessage *proto.NodeWakeStartMessage) (*proto.NodeWakeMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -63,7 +63,7 @@ func (s *NodeWakeNeoService) StartNodeWake(ctx context.Context, nodeWakeStartMes
 	}
 
 	// Create and broadcast node wake in DB
-	dbNodeWake := &models.NodeWakesNeo{
+	dbNodeWake := &models.NodeWake{
 		Done:       0,
 		PoweredOn:  0,
 		MacAddress: nodeWakeStartMessage.GetMACAddress(),
@@ -162,7 +162,7 @@ func (s *NodeWakeNeoService) StartNodeWake(ctx context.Context, nodeWakeStartMes
 		return nil, status.Errorf(codes.Unknown, "could not wake node")
 	}
 
-	protoNodeWake := &proto.NodeWakeNeoMessage{
+	protoNodeWake := &proto.NodeWakeMessage{
 		CreatedAt: dbNodeWake.CreatedAt.String(),
 		Done: func() bool {
 			if dbNodeWake.Done == 1 {
@@ -185,7 +185,7 @@ func (s *NodeWakeNeoService) StartNodeWake(ctx context.Context, nodeWakeStartMes
 	return protoNodeWake, nil
 }
 
-func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.NodeWakeNeoService_SubscribeToNodeWakesServer) error {
+func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.NodeWakeService_SubscribeToNodeWakesServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -207,19 +207,19 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 		defer s.nodeWakeMessenger.Unsub(dbNodeWakes)
 
 		for dbNodeWake := range dbNodeWakes {
-			protoNodeWake := &proto.NodeWakeNeoMessage{
-				CreatedAt: dbNodeWake.(*models.NodeWakesNeo).CreatedAt.String(),
+			protoNodeWake := &proto.NodeWakeMessage{
+				CreatedAt: dbNodeWake.(*models.NodeWake).CreatedAt.String(),
 				Done: func() bool {
-					if dbNodeWake.(*models.NodeWakesNeo).Done == 1 {
+					if dbNodeWake.(*models.NodeWake).Done == 1 {
 						return true
 					}
 
 					return false
 				}(),
-				ID:         dbNodeWake.(*models.NodeWakesNeo).ID,
-				MACAddress: dbNodeWake.(*models.NodeWakesNeo).MacAddress,
+				ID:         dbNodeWake.(*models.NodeWake).ID,
+				MACAddress: dbNodeWake.(*models.NodeWake).MacAddress,
 				PoweredOne: func() bool {
-					if dbNodeWake.(*models.NodeWakesNeo).PoweredOn == 1 {
+					if dbNodeWake.(*models.NodeWake).PoweredOn == 1 {
 						return true
 					}
 
@@ -248,7 +248,7 @@ func (s *NodeWakeNeoService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.N
 		}
 
 		for _, dbNodeWake := range dbNodeWakes {
-			protoNodeWake := &proto.NodeWakeNeoMessage{
+			protoNodeWake := &proto.NodeWakeMessage{
 				CreatedAt: dbNodeWake.CreatedAt.String(),
 				Done: func() bool {
 					if dbNodeWake.Done == 1 {

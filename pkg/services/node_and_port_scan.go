@@ -21,7 +21,7 @@ import (
 )
 
 type NodeAndPortScanPortService struct {
-	proto.UnimplementedNodeAndPortScanNeoServiceServer
+	proto.UnimplementedNodeAndPortScanServiceServer
 
 	device string
 
@@ -87,7 +87,7 @@ func NewNodeAndPortScanPortService(
 func (s *NodeAndPortScanPortService) Open() error {
 	if _, err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
 		go func() {
-			protoNodeScanStartMessage := &proto.NodeScanStartNeoMessage{
+			protoNodeScanStartMessage := &proto.NodeScanStartMessage{
 				NodeScanTimeout: int64(s.periodicNodeScanTimeout),
 				PortScanTimeout: int64(s.periodicPortScanTimeout),
 			}
@@ -112,7 +112,7 @@ func (s *NodeAndPortScanPortService) Open() error {
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
+func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartMessage) (*proto.NodeScanMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -122,7 +122,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 	return s.startInternalNodeScan(ctx, nodeScanStartMessage)
 }
 
-func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *proto.NodeScanStartNeoMessage) (*proto.NodeScanNeoMessage, error) {
+func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *proto.NodeScanStartMessage) (*proto.NodeScanMessage, error) {
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
@@ -366,7 +366,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 	}()
 
 	// Return reference to node scan
-	protoNodeScanMessage := &proto.NodeScanNeoMessage{
+	protoNodeScanMessage := &proto.NodeScanMessage{
 		ID:        dbNodeScan.ID,
 		CreatedAt: dbNodeScan.CreatedAt.String(),
 		Done: func() bool {
@@ -381,7 +381,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 	return protoNodeScanMessage, nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanNeoService_SubscribeToNodeScansServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanService_SubscribeToNodeScansServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -407,7 +407,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 		messengerReady <- true
 
 		for dbNodeScan := range dbNodeScans {
-			protoNodeScan := &proto.NodeScanNeoMessage{
+			protoNodeScan := &proto.NodeScanMessage{
 				CreatedAt: dbNodeScan.(*models.NodeScan).CreatedAt.String(),
 				Done: func() bool {
 					if dbNodeScan.(*models.NodeScan).Done == 1 {
@@ -452,7 +452,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.NodeScanNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToNodesServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.NodeScanMessage, stream proto.NodeAndPortScanService_SubscribeToNodesServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -492,7 +492,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 						break
 					}
 
-					protoNode := &proto.NodeNeoMessage{
+					protoNode := &proto.NodeMessage{
 						CreatedAt:  dbNode.(*models.Node).CreatedAt.String(),
 						ID:         dbNode.(*models.Node).ID,
 						IPAddress:  dbNode.(*models.Node).IPAddress,
@@ -523,7 +523,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 		}
 
 		for _, dbNode := range dbNodes {
-			protoNode := &proto.NodeNeoMessage{
+			protoNode := &proto.NodeMessage{
 				CreatedAt:  dbNode.CreatedAt.String(),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
@@ -552,7 +552,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 		}
 
 		for _, dbNode := range dbNodes {
-			protoNode := &proto.NodeNeoMessage{
+			protoNode := &proto.NodeMessage{
 				CreatedAt:  dbNode.CreatedAt.String(),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
@@ -576,7 +576,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.NodeNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortScansServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.NodeMessage, stream proto.NodeAndPortScanService_SubscribeToPortScansServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -603,7 +603,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 
 		for dbPortScan := range dbPortScans {
 			if dbPortScan.(*models.PortScan).NodeID == nodeMessage.GetID() {
-				protoPortScan := &proto.PortScanNeoMessage{
+				protoPortScan := &proto.PortScanMessage{
 					CreatedAt: dbPortScan.(*models.PortScan).CreatedAt.String(),
 					Done: func() bool {
 						if dbPortScan.(*models.PortScan).Done == 1 {
@@ -655,7 +655,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.PortScanNeoMessage, stream proto.NodeAndPortScanNeoService_SubscribeToPortsServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.PortScanMessage, stream proto.NodeAndPortScanService_SubscribeToPortsServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -695,7 +695,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 						break
 					}
 
-					protoPort := &proto.PortNeoMessage{
+					protoPort := &proto.PortMessage{
 						CreatedAt:         dbPort.(*models.Port).CreatedAt.String(),
 						ID:                dbPort.(*models.Port).ID,
 						Priority:          1,
@@ -726,7 +726,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 		}
 
 		for _, dbPort := range dbPorts {
-			protoPort := &proto.PortNeoMessage{
+			protoPort := &proto.PortMessage{
 				CreatedAt:         dbPort.CreatedAt.String(),
 				ID:                dbPort.ID,
 				Priority:          2,

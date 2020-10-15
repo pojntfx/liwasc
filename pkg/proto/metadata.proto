@@ -1,28 +1,28 @@
 syntax = "proto3";
 
-package com.pojtinger.felix.liwasc.neo;
+package com.pojtinger.felix.liwasc;
 
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
-service MetadataNeoService {
+service MetadataService {
   rpc GetMetadataForScanner(google.protobuf.Empty)
-      returns (ScannerMetadataNeoMessage);
-  rpc GetMetadataForNode(NodeMetadataReferenceNeoMessage)
-      returns (NodeMetadataNeoMessage);
-  rpc GetMetadataForPort(PortMetadataReferenceNeoMessage)
-      returns (PortMetadataNeoMessage);
+      returns (ScannerMetadataMessage);
+  rpc GetMetadataForNode(NodeMetadataReferenceMessage)
+      returns (NodeMetadataMessage);
+  rpc GetMetadataForPort(PortMetadataReferenceMessage)
+      returns (PortMetadataMessage);
 }
 
-message ScannerMetadataNeoMessage {
+message ScannerMetadataMessage {
   repeated string Subnets = 1;
   string Device = 2;
 }
 
-message NodeMetadataReferenceNeoMessage { string MACAddress = 1; }
+message NodeMetadataReferenceMessage { string MACAddress = 1; }
 
-message NodeMetadataNeoMessage {
+message NodeMetadataMessage {
   string MACAddress = 1;
   string Vendor = 3;
   string Registry = 4;
@@ -31,12 +31,12 @@ message NodeMetadataNeoMessage {
   bool Visible = 7;
 }
 
-message PortMetadataReferenceNeoMessage {
+message PortMetadataReferenceMessage {
   int64 PortNumber = 1;
   string TransportProtocol = 2;
 }
 
-message PortMetadataNeoMessage {
+message PortMetadataMessage {
   string ServiceName = 1;
   int64 PortNumber = 2;
   string TransportProtocol = 3;

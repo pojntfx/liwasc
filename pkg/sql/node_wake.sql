@@ -1,7 +1,7 @@
 -- Remove old tables if they exist
-drop table if exists node_wakes_neo;
+drop table if exists node_wakes;
 -- Create new tables
-create table node_wakes_neo (
+create table node_wakes (
     id integer not null primary key,
     created_at date not null,
     done integer not null,

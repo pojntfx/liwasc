@@ -1,34 +1,34 @@
 syntax = "proto3";
 
-package com.pojtinger.felix.liwasc.neo;
+package com.pojtinger.felix.liwasc;
 
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
-service NodeAndPortScanNeoService {
-  rpc StartNodeScan(NodeScanStartNeoMessage) returns (NodeScanNeoMessage);
+service NodeAndPortScanService {
+  rpc StartNodeScan(NodeScanStartMessage) returns (NodeScanMessage);
 
   rpc SubscribeToNodeScans(google.protobuf.Empty)
-      returns (stream NodeScanNeoMessage);
-  rpc SubscribeToNodes(NodeScanNeoMessage) returns (stream NodeNeoMessage);
-  rpc SubscribeToPortScans(NodeNeoMessage) returns (stream PortScanNeoMessage);
-  rpc SubscribeToPorts(PortScanNeoMessage) returns (stream PortNeoMessage);
+      returns (stream NodeScanMessage);
+  rpc SubscribeToNodes(NodeScanMessage) returns (stream NodeMessage);
+  rpc SubscribeToPortScans(NodeMessage) returns (stream PortScanMessage);
+  rpc SubscribeToPorts(PortScanMessage) returns (stream PortMessage);
 }
 
-message NodeScanStartNeoMessage {
+message NodeScanStartMessage {
   int64 NodeScanTimeout = 1;
   int64 PortScanTimeout = 2;
   string MACAddress = 3; // Scopes the scan to one node. Set to "" to scan all.
 }
 
-message NodeScanNeoMessage {
+message NodeScanMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;
 }
 
-message NodeNeoMessage {
+message NodeMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   int64 Priority = 3;
@@ -37,14 +37,14 @@ message NodeNeoMessage {
   int64 NodeScanID = 6;
 }
 
-message PortScanNeoMessage {
+message PortScanMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;
   int64 NodeID = 4;
 }
 
-message PortNeoMessage {
+message PortMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   int64 Priority = 3;
