@@ -1,24 +1,24 @@
 syntax = "proto3";
 
-package com.pojtinger.felicitas.liwasc.neo;
+package com.pojtinger.felicitas.liwasc;
 
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
-service NodeWakeNeoService {
-  rpc StartNodeWake(NodeWakeStartNeoMessage) returns (NodeWakeNeoMessage);
+service NodeWakeService {
+  rpc StartNodeWake(NodeWakeStartMessage) returns (NodeWakeMessage);
 
   rpc SubscribeToNodeWakes(google.protobuf.Empty)
-      returns (stream NodeWakeNeoMessage);
+      returns (stream NodeWakeMessage);
 }
 
-message NodeWakeStartNeoMessage {
+message NodeWakeStartMessage {
   int64 NodeWakeTimeout = 1;
   string MACAddress = 2;
 }
 
-message NodeWakeNeoMessage {
+message NodeWakeMessage {
   int64 ID = 1;
   string CreatedAt = 2;
   bool Done = 3;

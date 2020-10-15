@@ -20,19 +20,19 @@ import (
 	"github.com/volatiletech/sqlboiler/strmangle"
 )
 
-// NodeWakesNeo is an object representing the database table.
-type NodeWakesNeo struct {
+// NodeWake is an object representing the database table.
+type NodeWake struct {
 	ID         int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	Done       int64     `boil:"done" json:"done" toml:"done" yaml:"done"`
 	MacAddress string    `boil:"mac_address" json:"mac_address" toml:"mac_address" yaml:"mac_address"`
 	PoweredOn  int64     `boil:"powered_on" json:"powered_on" toml:"powered_on" yaml:"powered_on"`
 
-	R *nodeWakesNeoR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L nodeWakesNeoL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *nodeWakeR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L nodeWakeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var NodeWakesNeoColumns = struct {
+var NodeWakeColumns = struct {
 	ID         string
 	CreatedAt  string
 	Done       string
@@ -101,66 +101,66 @@ func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
 }
 
-var NodeWakesNeoWhere = struct {
+var NodeWakeWhere = struct {
 	ID         whereHelperint64
 	CreatedAt  whereHelpertime_Time
 	Done       whereHelperint64
 	MacAddress whereHelperstring
 	PoweredOn  whereHelperint64
 }{
-	ID:         whereHelperint64{field: "\"node_wakes_neo\".\"id\""},
-	CreatedAt:  whereHelpertime_Time{field: "\"node_wakes_neo\".\"created_at\""},
-	Done:       whereHelperint64{field: "\"node_wakes_neo\".\"done\""},
-	MacAddress: whereHelperstring{field: "\"node_wakes_neo\".\"mac_address\""},
-	PoweredOn:  whereHelperint64{field: "\"node_wakes_neo\".\"powered_on\""},
+	ID:         whereHelperint64{field: "\"node_wakes\".\"id\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"node_wakes\".\"created_at\""},
+	Done:       whereHelperint64{field: "\"node_wakes\".\"done\""},
+	MacAddress: whereHelperstring{field: "\"node_wakes\".\"mac_address\""},
+	PoweredOn:  whereHelperint64{field: "\"node_wakes\".\"powered_on\""},
 }
 
-// NodeWakesNeoRels is where relationship names are stored.
-var NodeWakesNeoRels = struct {
+// NodeWakeRels is where relationship names are stored.
+var NodeWakeRels = struct {
 }{}
 
-// nodeWakesNeoR is where relationships are stored.
-type nodeWakesNeoR struct {
+// nodeWakeR is where relationships are stored.
+type nodeWakeR struct {
 }
 
 // NewStruct creates a new relationship struct
-func (*nodeWakesNeoR) NewStruct() *nodeWakesNeoR {
-	return &nodeWakesNeoR{}
+func (*nodeWakeR) NewStruct() *nodeWakeR {
+	return &nodeWakeR{}
 }
 
-// nodeWakesNeoL is where Load methods for each relationship are stored.
-type nodeWakesNeoL struct{}
+// nodeWakeL is where Load methods for each relationship are stored.
+type nodeWakeL struct{}
 
 var (
-	nodeWakesNeoAllColumns            = []string{"id", "created_at", "done", "mac_address", "powered_on"}
-	nodeWakesNeoColumnsWithoutDefault = []string{"created_at", "done", "mac_address", "powered_on"}
-	nodeWakesNeoColumnsWithDefault    = []string{"id"}
-	nodeWakesNeoPrimaryKeyColumns     = []string{"id"}
+	nodeWakeAllColumns            = []string{"id", "created_at", "done", "mac_address", "powered_on"}
+	nodeWakeColumnsWithoutDefault = []string{"created_at", "done", "mac_address", "powered_on"}
+	nodeWakeColumnsWithDefault    = []string{"id"}
+	nodeWakePrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// NodeWakesNeoSlice is an alias for a slice of pointers to NodeWakesNeo.
-	// This should generally be used opposed to []NodeWakesNeo.
-	NodeWakesNeoSlice []*NodeWakesNeo
-	// NodeWakesNeoHook is the signature for custom NodeWakesNeo hook methods
-	NodeWakesNeoHook func(context.Context, boil.ContextExecutor, *NodeWakesNeo) error
+	// NodeWakeSlice is an alias for a slice of pointers to NodeWake.
+	// This should generally be used opposed to []NodeWake.
+	NodeWakeSlice []*NodeWake
+	// NodeWakeHook is the signature for custom NodeWake hook methods
+	NodeWakeHook func(context.Context, boil.ContextExecutor, *NodeWake) error
 
-	nodeWakesNeoQuery struct {
+	nodeWakeQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	nodeWakesNeoType                 = reflect.TypeOf(&NodeWakesNeo{})
-	nodeWakesNeoMapping              = queries.MakeStructMapping(nodeWakesNeoType)
-	nodeWakesNeoPrimaryKeyMapping, _ = queries.BindMapping(nodeWakesNeoType, nodeWakesNeoMapping, nodeWakesNeoPrimaryKeyColumns)
-	nodeWakesNeoInsertCacheMut       sync.RWMutex
-	nodeWakesNeoInsertCache          = make(map[string]insertCache)
-	nodeWakesNeoUpdateCacheMut       sync.RWMutex
-	nodeWakesNeoUpdateCache          = make(map[string]updateCache)
-	nodeWakesNeoUpsertCacheMut       sync.RWMutex
-	nodeWakesNeoUpsertCache          = make(map[string]insertCache)
+	nodeWakeType                 = reflect.TypeOf(&NodeWake{})
+	nodeWakeMapping              = queries.MakeStructMapping(nodeWakeType)
+	nodeWakePrimaryKeyMapping, _ = queries.BindMapping(nodeWakeType, nodeWakeMapping, nodeWakePrimaryKeyColumns)
+	nodeWakeInsertCacheMut       sync.RWMutex
+	nodeWakeInsertCache          = make(map[string]insertCache)
+	nodeWakeUpdateCacheMut       sync.RWMutex
+	nodeWakeUpdateCache          = make(map[string]updateCache)
+	nodeWakeUpsertCacheMut       sync.RWMutex
+	nodeWakeUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -171,24 +171,24 @@ var (
 	_ = qmhelper.Where
 )
 
-var nodeWakesNeoBeforeInsertHooks []NodeWakesNeoHook
-var nodeWakesNeoBeforeUpdateHooks []NodeWakesNeoHook
-var nodeWakesNeoBeforeDeleteHooks []NodeWakesNeoHook
-var nodeWakesNeoBeforeUpsertHooks []NodeWakesNeoHook
+var nodeWakeBeforeInsertHooks []NodeWakeHook
+var nodeWakeBeforeUpdateHooks []NodeWakeHook
+var nodeWakeBeforeDeleteHooks []NodeWakeHook
+var nodeWakeBeforeUpsertHooks []NodeWakeHook
 
-var nodeWakesNeoAfterInsertHooks []NodeWakesNeoHook
-var nodeWakesNeoAfterSelectHooks []NodeWakesNeoHook
-var nodeWakesNeoAfterUpdateHooks []NodeWakesNeoHook
-var nodeWakesNeoAfterDeleteHooks []NodeWakesNeoHook
-var nodeWakesNeoAfterUpsertHooks []NodeWakesNeoHook
+var nodeWakeAfterInsertHooks []NodeWakeHook
+var nodeWakeAfterSelectHooks []NodeWakeHook
+var nodeWakeAfterUpdateHooks []NodeWakeHook
+var nodeWakeAfterDeleteHooks []NodeWakeHook
+var nodeWakeAfterUpsertHooks []NodeWakeHook
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *NodeWakesNeo) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoBeforeInsertHooks {
+	for _, hook := range nodeWakeBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -198,12 +198,12 @@ func (o *NodeWakesNeo) doBeforeInsertHooks(ctx context.Context, exec boil.Contex
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *NodeWakesNeo) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoBeforeUpdateHooks {
+	for _, hook := range nodeWakeBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -213,12 +213,12 @@ func (o *NodeWakesNeo) doBeforeUpdateHooks(ctx context.Context, exec boil.Contex
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *NodeWakesNeo) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoBeforeDeleteHooks {
+	for _, hook := range nodeWakeBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -228,12 +228,12 @@ func (o *NodeWakesNeo) doBeforeDeleteHooks(ctx context.Context, exec boil.Contex
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *NodeWakesNeo) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoBeforeUpsertHooks {
+	for _, hook := range nodeWakeBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -243,12 +243,12 @@ func (o *NodeWakesNeo) doBeforeUpsertHooks(ctx context.Context, exec boil.Contex
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *NodeWakesNeo) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoAfterInsertHooks {
+	for _, hook := range nodeWakeAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -258,12 +258,12 @@ func (o *NodeWakesNeo) doAfterInsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *NodeWakesNeo) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoAfterSelectHooks {
+	for _, hook := range nodeWakeAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -273,12 +273,12 @@ func (o *NodeWakesNeo) doAfterSelectHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *NodeWakesNeo) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoAfterUpdateHooks {
+	for _, hook := range nodeWakeAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -288,12 +288,12 @@ func (o *NodeWakesNeo) doAfterUpdateHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *NodeWakesNeo) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoAfterDeleteHooks {
+	for _, hook := range nodeWakeAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -303,12 +303,12 @@ func (o *NodeWakesNeo) doAfterDeleteHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *NodeWakesNeo) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *NodeWake) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range nodeWakesNeoAfterUpsertHooks {
+	for _, hook := range nodeWakeAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -317,33 +317,33 @@ func (o *NodeWakesNeo) doAfterUpsertHooks(ctx context.Context, exec boil.Context
 	return nil
 }
 
-// AddNodeWakesNeoHook registers your hook function for all future operations.
-func AddNodeWakesNeoHook(hookPoint boil.HookPoint, nodeWakesNeoHook NodeWakesNeoHook) {
+// AddNodeWakeHook registers your hook function for all future operations.
+func AddNodeWakeHook(hookPoint boil.HookPoint, nodeWakeHook NodeWakeHook) {
 	switch hookPoint {
 	case boil.BeforeInsertHook:
-		nodeWakesNeoBeforeInsertHooks = append(nodeWakesNeoBeforeInsertHooks, nodeWakesNeoHook)
+		nodeWakeBeforeInsertHooks = append(nodeWakeBeforeInsertHooks, nodeWakeHook)
 	case boil.BeforeUpdateHook:
-		nodeWakesNeoBeforeUpdateHooks = append(nodeWakesNeoBeforeUpdateHooks, nodeWakesNeoHook)
+		nodeWakeBeforeUpdateHooks = append(nodeWakeBeforeUpdateHooks, nodeWakeHook)
 	case boil.BeforeDeleteHook:
-		nodeWakesNeoBeforeDeleteHooks = append(nodeWakesNeoBeforeDeleteHooks, nodeWakesNeoHook)
+		nodeWakeBeforeDeleteHooks = append(nodeWakeBeforeDeleteHooks, nodeWakeHook)
 	case boil.BeforeUpsertHook:
-		nodeWakesNeoBeforeUpsertHooks = append(nodeWakesNeoBeforeUpsertHooks, nodeWakesNeoHook)
+		nodeWakeBeforeUpsertHooks = append(nodeWakeBeforeUpsertHooks, nodeWakeHook)
 	case boil.AfterInsertHook:
-		nodeWakesNeoAfterInsertHooks = append(nodeWakesNeoAfterInsertHooks, nodeWakesNeoHook)
+		nodeWakeAfterInsertHooks = append(nodeWakeAfterInsertHooks, nodeWakeHook)
 	case boil.AfterSelectHook:
-		nodeWakesNeoAfterSelectHooks = append(nodeWakesNeoAfterSelectHooks, nodeWakesNeoHook)
+		nodeWakeAfterSelectHooks = append(nodeWakeAfterSelectHooks, nodeWakeHook)
 	case boil.AfterUpdateHook:
-		nodeWakesNeoAfterUpdateHooks = append(nodeWakesNeoAfterUpdateHooks, nodeWakesNeoHook)
+		nodeWakeAfterUpdateHooks = append(nodeWakeAfterUpdateHooks, nodeWakeHook)
 	case boil.AfterDeleteHook:
-		nodeWakesNeoAfterDeleteHooks = append(nodeWakesNeoAfterDeleteHooks, nodeWakesNeoHook)
+		nodeWakeAfterDeleteHooks = append(nodeWakeAfterDeleteHooks, nodeWakeHook)
 	case boil.AfterUpsertHook:
-		nodeWakesNeoAfterUpsertHooks = append(nodeWakesNeoAfterUpsertHooks, nodeWakesNeoHook)
+		nodeWakeAfterUpsertHooks = append(nodeWakeAfterUpsertHooks, nodeWakeHook)
 	}
 }
 
-// One returns a single nodeWakesNeo record from the query.
-func (q nodeWakesNeoQuery) One(ctx context.Context, exec boil.ContextExecutor) (*NodeWakesNeo, error) {
-	o := &NodeWakesNeo{}
+// One returns a single nodeWake record from the query.
+func (q nodeWakeQuery) One(ctx context.Context, exec boil.ContextExecutor) (*NodeWake, error) {
+	o := &NodeWake{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -352,7 +352,7 @@ func (q nodeWakesNeoQuery) One(ctx context.Context, exec boil.ContextExecutor) (
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for node_wakes_neo")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for node_wakes")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -362,16 +362,16 @@ func (q nodeWakesNeoQuery) One(ctx context.Context, exec boil.ContextExecutor) (
 	return o, nil
 }
 
-// All returns all NodeWakesNeo records from the query.
-func (q nodeWakesNeoQuery) All(ctx context.Context, exec boil.ContextExecutor) (NodeWakesNeoSlice, error) {
-	var o []*NodeWakesNeo
+// All returns all NodeWake records from the query.
+func (q nodeWakeQuery) All(ctx context.Context, exec boil.ContextExecutor) (NodeWakeSlice, error) {
+	var o []*NodeWake
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to NodeWakesNeo slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to NodeWake slice")
 	}
 
-	if len(nodeWakesNeoAfterSelectHooks) != 0 {
+	if len(nodeWakeAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -382,8 +382,8 @@ func (q nodeWakesNeoQuery) All(ctx context.Context, exec boil.ContextExecutor) (
 	return o, nil
 }
 
-// Count returns the count of all NodeWakesNeo records in the query.
-func (q nodeWakesNeoQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all NodeWake records in the query.
+func (q nodeWakeQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -391,14 +391,14 @@ func (q nodeWakesNeoQuery) Count(ctx context.Context, exec boil.ContextExecutor)
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count node_wakes_neo rows")
+		return 0, errors.Wrap(err, "models: failed to count node_wakes rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q nodeWakesNeoQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q nodeWakeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -407,49 +407,49 @@ func (q nodeWakesNeoQuery) Exists(ctx context.Context, exec boil.ContextExecutor
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if node_wakes_neo exists")
+		return false, errors.Wrap(err, "models: failed to check if node_wakes exists")
 	}
 
 	return count > 0, nil
 }
 
-// NodeWakesNeos retrieves all the records using an executor.
-func NodeWakesNeos(mods ...qm.QueryMod) nodeWakesNeoQuery {
-	mods = append(mods, qm.From("\"node_wakes_neo\""))
-	return nodeWakesNeoQuery{NewQuery(mods...)}
+// NodeWakes retrieves all the records using an executor.
+func NodeWakes(mods ...qm.QueryMod) nodeWakeQuery {
+	mods = append(mods, qm.From("\"node_wakes\""))
+	return nodeWakeQuery{NewQuery(mods...)}
 }
 
-// FindNodeWakesNeo retrieves a single record by ID with an executor.
+// FindNodeWake retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindNodeWakesNeo(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*NodeWakesNeo, error) {
-	nodeWakesNeoObj := &NodeWakesNeo{}
+func FindNodeWake(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*NodeWake, error) {
+	nodeWakeObj := &NodeWake{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"node_wakes_neo\" where \"id\"=?", sel,
+		"select %s from \"node_wakes\" where \"id\"=?", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, nodeWakesNeoObj)
+	err := q.Bind(ctx, exec, nodeWakeObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from node_wakes_neo")
+		return nil, errors.Wrap(err, "models: unable to select from node_wakes")
 	}
 
-	return nodeWakesNeoObj, nil
+	return nodeWakeObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *NodeWakesNeo) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *NodeWake) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no node_wakes_neo provided for insertion")
+		return errors.New("models: no node_wakes provided for insertion")
 	}
 
 	var err error
@@ -465,39 +465,39 @@ func (o *NodeWakesNeo) Insert(ctx context.Context, exec boil.ContextExecutor, co
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(nodeWakesNeoColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(nodeWakeColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	nodeWakesNeoInsertCacheMut.RLock()
-	cache, cached := nodeWakesNeoInsertCache[key]
-	nodeWakesNeoInsertCacheMut.RUnlock()
+	nodeWakeInsertCacheMut.RLock()
+	cache, cached := nodeWakeInsertCache[key]
+	nodeWakeInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			nodeWakesNeoAllColumns,
-			nodeWakesNeoColumnsWithDefault,
-			nodeWakesNeoColumnsWithoutDefault,
+			nodeWakeAllColumns,
+			nodeWakeColumnsWithDefault,
+			nodeWakeColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(nodeWakesNeoType, nodeWakesNeoMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(nodeWakeType, nodeWakeMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(nodeWakesNeoType, nodeWakesNeoMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(nodeWakeType, nodeWakeMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"node_wakes_neo\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"node_wakes\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"node_wakes_neo\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"node_wakes\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT \"%s\" FROM \"node_wakes_neo\" WHERE %s", strings.Join(returnColumns, "\",\""), strmangle.WhereClause("\"", "\"", 0, nodeWakesNeoPrimaryKeyColumns))
+			cache.retQuery = fmt.Sprintf("SELECT \"%s\" FROM \"node_wakes\" WHERE %s", strings.Join(returnColumns, "\",\""), strmangle.WhereClause("\"", "\"", 0, nodeWakePrimaryKeyColumns))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -514,7 +514,7 @@ func (o *NodeWakesNeo) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	result, err := exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into node_wakes_neo")
+		return errors.Wrap(err, "models: unable to insert into node_wakes")
 	}
 
 	var lastID int64
@@ -530,7 +530,7 @@ func (o *NodeWakesNeo) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	}
 
 	o.ID = int64(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == nodeWakesNeoMapping["id"] {
+	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == nodeWakeMapping["id"] {
 		goto CacheNoHooks
 	}
 
@@ -545,50 +545,50 @@ func (o *NodeWakesNeo) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to populate default values for node_wakes_neo")
+		return errors.Wrap(err, "models: unable to populate default values for node_wakes")
 	}
 
 CacheNoHooks:
 	if !cached {
-		nodeWakesNeoInsertCacheMut.Lock()
-		nodeWakesNeoInsertCache[key] = cache
-		nodeWakesNeoInsertCacheMut.Unlock()
+		nodeWakeInsertCacheMut.Lock()
+		nodeWakeInsertCache[key] = cache
+		nodeWakeInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// Update uses an executor to update the NodeWakesNeo.
+// Update uses an executor to update the NodeWake.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *NodeWakesNeo) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *NodeWake) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	nodeWakesNeoUpdateCacheMut.RLock()
-	cache, cached := nodeWakesNeoUpdateCache[key]
-	nodeWakesNeoUpdateCacheMut.RUnlock()
+	nodeWakeUpdateCacheMut.RLock()
+	cache, cached := nodeWakeUpdateCache[key]
+	nodeWakeUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			nodeWakesNeoAllColumns,
-			nodeWakesNeoPrimaryKeyColumns,
+			nodeWakeAllColumns,
+			nodeWakePrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("models: unable to update node_wakes_neo, could not build whitelist")
+			return 0, errors.New("models: unable to update node_wakes, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"node_wakes_neo\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"node_wakes\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 0, wl),
-			strmangle.WhereClause("\"", "\"", 0, nodeWakesNeoPrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", 0, nodeWakePrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(nodeWakesNeoType, nodeWakesNeoMapping, append(wl, nodeWakesNeoPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(nodeWakeType, nodeWakeMapping, append(wl, nodeWakePrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -604,42 +604,42 @@ func (o *NodeWakesNeo) Update(ctx context.Context, exec boil.ContextExecutor, co
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update node_wakes_neo row")
+		return 0, errors.Wrap(err, "models: unable to update node_wakes row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by update for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by update for node_wakes")
 	}
 
 	if !cached {
-		nodeWakesNeoUpdateCacheMut.Lock()
-		nodeWakesNeoUpdateCache[key] = cache
-		nodeWakesNeoUpdateCacheMut.Unlock()
+		nodeWakeUpdateCacheMut.Lock()
+		nodeWakeUpdateCache[key] = cache
+		nodeWakeUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q nodeWakesNeoQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q nodeWakeQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: unable to update all for node_wakes")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for node_wakes")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o NodeWakesNeoSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o NodeWakeSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -661,13 +661,13 @@ func (o NodeWakesNeoSlice) UpdateAll(ctx context.Context, exec boil.ContextExecu
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakesNeoPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakePrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"node_wakes_neo\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"node_wakes\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakesNeoPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakePrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -676,29 +676,29 @@ func (o NodeWakesNeoSlice) UpdateAll(ctx context.Context, exec boil.ContextExecu
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all in nodeWakesNeo slice")
+		return 0, errors.Wrap(err, "models: unable to update all in nodeWake slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all nodeWakesNeo")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all nodeWake")
 	}
 	return rowsAff, nil
 }
 
-// Delete deletes a single NodeWakesNeo record with an executor.
+// Delete deletes a single NodeWake record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *NodeWakesNeo) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *NodeWake) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("models: no NodeWakesNeo provided for delete")
+		return 0, errors.New("models: no NodeWake provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), nodeWakesNeoPrimaryKeyMapping)
-	sql := "DELETE FROM \"node_wakes_neo\" WHERE \"id\"=?"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), nodeWakePrimaryKeyMapping)
+	sql := "DELETE FROM \"node_wakes\" WHERE \"id\"=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -707,12 +707,12 @@ func (o *NodeWakesNeo) Delete(ctx context.Context, exec boil.ContextExecutor) (i
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete from node_wakes_neo")
+		return 0, errors.Wrap(err, "models: unable to delete from node_wakes")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for node_wakes")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -723,33 +723,33 @@ func (o *NodeWakesNeo) Delete(ctx context.Context, exec boil.ContextExecutor) (i
 }
 
 // DeleteAll deletes all matching rows.
-func (q nodeWakesNeoQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q nodeWakeQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("models: no nodeWakesNeoQuery provided for delete all")
+		return 0, errors.New("models: no nodeWakeQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from node_wakes_neo")
+		return 0, errors.Wrap(err, "models: unable to delete all from node_wakes")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_wakes")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o NodeWakesNeoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o NodeWakeSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(nodeWakesNeoBeforeDeleteHooks) != 0 {
+	if len(nodeWakeBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -759,12 +759,12 @@ func (o NodeWakesNeoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakesNeoPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakePrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"node_wakes_neo\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakesNeoPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"node_wakes\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakePrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -773,15 +773,15 @@ func (o NodeWakesNeoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from nodeWakesNeo slice")
+		return 0, errors.Wrap(err, "models: unable to delete all from nodeWake slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_wakes_neo")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for node_wakes")
 	}
 
-	if len(nodeWakesNeoAfterDeleteHooks) != 0 {
+	if len(nodeWakeAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -794,8 +794,8 @@ func (o NodeWakesNeoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *NodeWakesNeo) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindNodeWakesNeo(ctx, exec, o.ID)
+func (o *NodeWake) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindNodeWake(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -806,26 +806,26 @@ func (o *NodeWakesNeo) Reload(ctx context.Context, exec boil.ContextExecutor) er
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *NodeWakesNeoSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *NodeWakeSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := NodeWakesNeoSlice{}
+	slice := NodeWakeSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakesNeoPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), nodeWakePrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"node_wakes_neo\".* FROM \"node_wakes_neo\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakesNeoPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"node_wakes\".* FROM \"node_wakes\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, nodeWakePrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in NodeWakesNeoSlice")
+		return errors.Wrap(err, "models: unable to reload all in NodeWakeSlice")
 	}
 
 	*o = slice
@@ -833,10 +833,10 @@ func (o *NodeWakesNeoSlice) ReloadAll(ctx context.Context, exec boil.ContextExec
 	return nil
 }
 
-// NodeWakesNeoExists checks if the NodeWakesNeo row exists.
-func NodeWakesNeoExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+// NodeWakeExists checks if the NodeWake row exists.
+func NodeWakeExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"node_wakes_neo\" where \"id\"=? limit 1)"
+	sql := "select exists(select 1 from \"node_wakes\" where \"id\"=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -847,7 +847,7 @@ func NodeWakesNeoExists(ctx context.Context, exec boil.ContextExecutor, iD int64
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if node_wakes_neo exists")
+		return false, errors.Wrap(err, "models: unable to check if node_wakes exists")
 	}
 
 	return exists, nil

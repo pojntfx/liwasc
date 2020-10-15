@@ -21,8 +21,8 @@ const (
 	AUTHORIZATION_METADATA_KEY = "X-Liwasc-Authorization"
 )
 
-type MetadataNeoService struct {
-	proto.UnimplementedMetadataNeoServiceServer
+type MetadataService struct {
+	proto.UnimplementedMetadataServiceServer
 
 	subnets []string
 	device  string
@@ -35,15 +35,15 @@ type MetadataNeoService struct {
 	contextValidator *validators.ContextValidator
 }
 
-func NewMetadataNeoService(
+func NewMetadataService(
 	interfaceInspector *networking.InterfaceInspector,
 
 	mac2vendorDatabase *databases.MAC2VendorDatabase,
 	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
 
 	contextValidator *validators.ContextValidator,
-) *MetadataNeoService {
-	return &MetadataNeoService{
+) *MetadataService {
+	return &MetadataService{
 		interfaceInspector: interfaceInspector,
 
 		mac2vendorDatabase:              mac2vendorDatabase,
@@ -53,7 +53,7 @@ func NewMetadataNeoService(
 	}
 }
 
-func (s *MetadataNeoService) Open() error {
+func (s *MetadataService) Open() error {
 	subnets, err := s.interfaceInspector.GetIPv4Subnets()
 	if err != nil {
 		return err
@@ -65,14 +65,14 @@ func (s *MetadataNeoService) Open() error {
 	return nil
 }
 
-func (s *MetadataNeoService) GetMetadataForScanner(ctx context.Context, _ *empty.Empty) (*proto.ScannerMetadataNeoMessage, error) {
+func (s *MetadataService) GetMetadataForScanner(ctx context.Context, _ *empty.Empty) (*proto.ScannerMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
-	protoScannerMetadataMessage := &proto.ScannerMetadataNeoMessage{
+	protoScannerMetadataMessage := &proto.ScannerMetadataMessage{
 		Subnets: s.subnets,
 		Device:  s.device,
 	}
@@ -80,7 +80,7 @@ func (s *MetadataNeoService) GetMetadataForScanner(ctx context.Context, _ *empty
 	return protoScannerMetadataMessage, nil
 }
 
-func (s *MetadataNeoService) GetMetadataForNode(ctx context.Context, nodeMetadataReferenceMessage *proto.NodeMetadataReferenceNeoMessage) (*proto.NodeMetadataNeoMessage, error) {
+func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataReferenceMessage *proto.NodeMetadataReferenceMessage) (*proto.NodeMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -94,7 +94,7 @@ func (s *MetadataNeoService) GetMetadataForNode(ctx context.Context, nodeMetadat
 		return nil, status.Errorf(codes.NotFound, "could not find node in DB")
 	}
 
-	protoNodeMetadataMessage := &proto.NodeMetadataNeoMessage{
+	protoNodeMetadataMessage := &proto.NodeMetadataMessage{
 		Address:      dbNodeMetadata.Address.String,
 		MACAddress:   nodeMetadataReferenceMessage.GetMACAddress(),
 		Organization: dbNodeMetadata.Organization.String,
@@ -112,7 +112,7 @@ func (s *MetadataNeoService) GetMetadataForNode(ctx context.Context, nodeMetadat
 	return protoNodeMetadataMessage, nil
 }
 
-func (s *MetadataNeoService) GetMetadataForPort(ctx context.Context, portMetadataReferenceMessage *proto.PortMetadataReferenceNeoMessage) (*proto.PortMetadataNeoMessage, error) {
+func (s *MetadataService) GetMetadataForPort(ctx context.Context, portMetadataReferenceMessage *proto.PortMetadataReferenceMessage) (*proto.PortMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -133,7 +133,7 @@ func (s *MetadataNeoService) GetMetadataForPort(ctx context.Context, portMetadat
 		return nil, status.Errorf(codes.Unknown, "could not find valid port number in DB")
 	}
 
-	protoPortMetadataMessage := &proto.PortMetadataNeoMessage{
+	protoPortMetadataMessage := &proto.PortMetadataMessage{
 		Assignee:                dbPortMetadata[0].Assignee,
 		AssignmentNotes:         dbPortMetadata[0].AssignmentNotes,
 		Contact:                 dbPortMetadata[0].Contact,

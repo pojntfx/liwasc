@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testNodeWakesNeos(t *testing.T) {
+func testNodeWakes(t *testing.T) {
 	t.Parallel()
 
-	query := NodeWakesNeos()
+	query := NodeWakes()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testNodeWakesNeosDelete(t *testing.T) {
+func testNodeWakesDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testNodeWakesNeosDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testNodeWakesNeosDelete(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosQueryDeleteAll(t *testing.T) {
+func testNodeWakesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testNodeWakesNeosQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := NodeWakesNeos().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := NodeWakes().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testNodeWakesNeosQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosSliceDeleteAll(t *testing.T) {
+func testNodeWakesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testNodeWakesNeosSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeWakesNeoSlice{o}
+	slice := NodeWakeSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testNodeWakesNeosSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testNodeWakesNeosSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosExists(t *testing.T) {
+func testNodeWakesExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testNodeWakesNeosExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := NodeWakesNeoExists(ctx, tx, o.ID)
+	e, err := NodeWakeExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if NodeWakesNeo exists: %s", err)
+		t.Errorf("Unable to check if NodeWake exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected NodeWakesNeoExists to return true, but got false.")
+		t.Errorf("Expected NodeWakeExists to return true, but got false.")
 	}
 }
 
-func testNodeWakesNeosFind(t *testing.T) {
+func testNodeWakesFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testNodeWakesNeosFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	nodeWakesNeoFound, err := FindNodeWakesNeo(ctx, tx, o.ID)
+	nodeWakeFound, err := FindNodeWake(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if nodeWakesNeoFound == nil {
+	if nodeWakeFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testNodeWakesNeosBind(t *testing.T) {
+func testNodeWakesBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testNodeWakesNeosBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = NodeWakesNeos().Bind(ctx, tx, o); err != nil {
+	if err = NodeWakes().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodeWakesNeosOne(t *testing.T) {
+func testNodeWakesOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testNodeWakesNeosOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := NodeWakesNeos().One(ctx, tx); err != nil {
+	if x, err := NodeWakes().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testNodeWakesNeosAll(t *testing.T) {
+func testNodeWakesAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	nodeWakesNeoOne := &NodeWakesNeo{}
-	nodeWakesNeoTwo := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, nodeWakesNeoOne, nodeWakesNeoDBTypes, false, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	nodeWakeOne := &NodeWake{}
+	nodeWakeTwo := &NodeWake{}
+	if err = randomize.Struct(seed, nodeWakeOne, nodeWakeDBTypes, false, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeWakesNeoTwo, nodeWakesNeoDBTypes, false, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	if err = randomize.Struct(seed, nodeWakeTwo, nodeWakeDBTypes, false, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeWakesNeoOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = nodeWakeOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeWakesNeoTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = nodeWakeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := NodeWakesNeos().All(ctx, tx)
+	slice, err := NodeWakes().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testNodeWakesNeosAll(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosCount(t *testing.T) {
+func testNodeWakesCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	nodeWakesNeoOne := &NodeWakesNeo{}
-	nodeWakesNeoTwo := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, nodeWakesNeoOne, nodeWakesNeoDBTypes, false, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	nodeWakeOne := &NodeWake{}
+	nodeWakeTwo := &NodeWake{}
+	if err = randomize.Struct(seed, nodeWakeOne, nodeWakeDBTypes, false, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
-	if err = randomize.Struct(seed, nodeWakesNeoTwo, nodeWakesNeoDBTypes, false, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	if err = randomize.Struct(seed, nodeWakeTwo, nodeWakeDBTypes, false, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = nodeWakesNeoOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = nodeWakeOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = nodeWakesNeoTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = nodeWakeTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testNodeWakesNeosCount(t *testing.T) {
 	}
 }
 
-func nodeWakesNeoBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func nodeWakesNeoAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWakesNeo) error {
-	*o = NodeWakesNeo{}
+func nodeWakeAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *NodeWake) error {
+	*o = NodeWake{}
 	return nil
 }
 
-func testNodeWakesNeosHooks(t *testing.T) {
+func testNodeWakesHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &NodeWakesNeo{}
-	o := &NodeWakesNeo{}
+	empty := &NodeWake{}
+	o := &NodeWake{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo object: %s", err)
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize NodeWake object: %s", err)
 	}
 
-	AddNodeWakesNeoHook(boil.BeforeInsertHook, nodeWakesNeoBeforeInsertHook)
+	AddNodeWakeHook(boil.BeforeInsertHook, nodeWakeBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoBeforeInsertHooks = []NodeWakesNeoHook{}
+	nodeWakeBeforeInsertHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.AfterInsertHook, nodeWakesNeoAfterInsertHook)
+	AddNodeWakeHook(boil.AfterInsertHook, nodeWakeAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoAfterInsertHooks = []NodeWakesNeoHook{}
+	nodeWakeAfterInsertHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.AfterSelectHook, nodeWakesNeoAfterSelectHook)
+	AddNodeWakeHook(boil.AfterSelectHook, nodeWakeAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoAfterSelectHooks = []NodeWakesNeoHook{}
+	nodeWakeAfterSelectHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.BeforeUpdateHook, nodeWakesNeoBeforeUpdateHook)
+	AddNodeWakeHook(boil.BeforeUpdateHook, nodeWakeBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoBeforeUpdateHooks = []NodeWakesNeoHook{}
+	nodeWakeBeforeUpdateHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.AfterUpdateHook, nodeWakesNeoAfterUpdateHook)
+	AddNodeWakeHook(boil.AfterUpdateHook, nodeWakeAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoAfterUpdateHooks = []NodeWakesNeoHook{}
+	nodeWakeAfterUpdateHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.BeforeDeleteHook, nodeWakesNeoBeforeDeleteHook)
+	AddNodeWakeHook(boil.BeforeDeleteHook, nodeWakeBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoBeforeDeleteHooks = []NodeWakesNeoHook{}
+	nodeWakeBeforeDeleteHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.AfterDeleteHook, nodeWakesNeoAfterDeleteHook)
+	AddNodeWakeHook(boil.AfterDeleteHook, nodeWakeAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoAfterDeleteHooks = []NodeWakesNeoHook{}
+	nodeWakeAfterDeleteHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.BeforeUpsertHook, nodeWakesNeoBeforeUpsertHook)
+	AddNodeWakeHook(boil.BeforeUpsertHook, nodeWakeBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoBeforeUpsertHooks = []NodeWakesNeoHook{}
+	nodeWakeBeforeUpsertHooks = []NodeWakeHook{}
 
-	AddNodeWakesNeoHook(boil.AfterUpsertHook, nodeWakesNeoAfterUpsertHook)
+	AddNodeWakeHook(boil.AfterUpsertHook, nodeWakeAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	nodeWakesNeoAfterUpsertHooks = []NodeWakesNeoHook{}
+	nodeWakeAfterUpsertHooks = []NodeWakeHook{}
 }
 
-func testNodeWakesNeosInsert(t *testing.T) {
+func testNodeWakesInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testNodeWakesNeosInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testNodeWakesNeosInsert(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosInsertWhitelist(t *testing.T) {
+func testNodeWakesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(nodeWakesNeoColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(nodeWakeColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testNodeWakesNeosInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosReload(t *testing.T) {
+func testNodeWakesReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testNodeWakesNeosReload(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosReloadAll(t *testing.T) {
+func testNodeWakesReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testNodeWakesNeosReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := NodeWakesNeoSlice{o}
+	slice := NodeWakeSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testNodeWakesNeosSelect(t *testing.T) {
+func testNodeWakesSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testNodeWakesNeosSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := NodeWakesNeos().All(ctx, tx)
+	slice, err := NodeWakes().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testNodeWakesNeosSelect(t *testing.T) {
 }
 
 var (
-	nodeWakesNeoDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`, `MacAddress`: `TEXT`, `PoweredOn`: `INTEGER`}
-	_                   = bytes.MinRead
+	nodeWakeDBTypes = map[string]string{`ID`: `INTEGER`, `CreatedAt`: `DATE`, `Done`: `INTEGER`, `MacAddress`: `TEXT`, `PoweredOn`: `INTEGER`}
+	_               = bytes.MinRead
 )
 
-func testNodeWakesNeosUpdate(t *testing.T) {
+func testNodeWakesUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(nodeWakesNeoPrimaryKeyColumns) {
+	if 0 == len(nodeWakePrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(nodeWakesNeoAllColumns) == len(nodeWakesNeoPrimaryKeyColumns) {
+	if len(nodeWakeAllColumns) == len(nodeWakePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testNodeWakesNeosUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testNodeWakesNeosUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testNodeWakesNeosUpdate(t *testing.T) {
 	}
 }
 
-func testNodeWakesNeosSliceUpdateAll(t *testing.T) {
+func testNodeWakesSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(nodeWakesNeoAllColumns) == len(nodeWakesNeoPrimaryKeyColumns) {
+	if len(nodeWakeAllColumns) == len(nodeWakePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &NodeWakesNeo{}
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	o := &NodeWake{}
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakeColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testNodeWakesNeosSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := NodeWakesNeos().Count(ctx, tx)
+	count, err := NodeWakes().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testNodeWakesNeosSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, nodeWakesNeoDBTypes, true, nodeWakesNeoPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize NodeWakesNeo struct: %s", err)
+	if err = randomize.Struct(seed, o, nodeWakeDBTypes, true, nodeWakePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize NodeWake struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(nodeWakesNeoAllColumns, nodeWakesNeoPrimaryKeyColumns) {
-		fields = nodeWakesNeoAllColumns
+	if strmangle.StringSliceMatch(nodeWakeAllColumns, nodeWakePrimaryKeyColumns) {
+		fields = nodeWakeAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			nodeWakesNeoAllColumns,
-			nodeWakesNeoPrimaryKeyColumns,
+			nodeWakeAllColumns,
+			nodeWakePrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testNodeWakesNeosSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := NodeWakesNeoSlice{o}
+	slice := NodeWakeSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
