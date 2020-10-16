@@ -499,6 +499,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 						MACAddress: dbNode.(*models.Node).MacAddress,
 						NodeScanID: dbNode.(*models.Node).NodeScanID,
 						Priority:   1,
+						PoweredOn:  true, // Found in this node scan so it has to be powered on
 					}
 
 					if err := stream.Send(protoNode); err != nil {
@@ -530,6 +531,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 				MACAddress: dbNode.MacAddress,
 				NodeScanID: dbNode.NodeScanID,
 				Priority:   2,
+				PoweredOn:  true, // Found in this node scan so it has to be powered on
 			}
 
 			if err := stream.Send(protoNode); err != nil {
@@ -559,6 +561,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 				MACAddress: dbNode.MacAddress,
 				NodeScanID: dbNode.NodeScanID,
 				Priority:   3,
+				PoweredOn:  false, // Not found in this node scan, so set to false. Higher priorities will overwrite this.
 			}
 
 			if err := stream.Send(protoNode); err != nil {

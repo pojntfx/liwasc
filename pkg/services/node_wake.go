@@ -173,7 +173,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 		}(),
 		ID:         dbNodeWake.ID,
 		MACAddress: dbNodeWake.MacAddress,
-		PoweredOne: func() bool {
+		PoweredOn: func() bool {
 			if dbNodeWake.PoweredOn == 1 {
 				return true
 			}
@@ -218,7 +218,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 				}(),
 				ID:         dbNodeWake.(*models.NodeWake).ID,
 				MACAddress: dbNodeWake.(*models.NodeWake).MacAddress,
-				PoweredOne: func() bool {
+				PoweredOn: func() bool {
 					if dbNodeWake.(*models.NodeWake).PoweredOn == 1 {
 						return true
 					}
@@ -259,7 +259,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 				}(),
 				ID:         dbNodeWake.ID,
 				MACAddress: dbNodeWake.MacAddress,
-				PoweredOne: func() bool {
+				PoweredOn: func() bool {
 					if dbNodeWake.PoweredOn == 1 {
 						return true
 					}

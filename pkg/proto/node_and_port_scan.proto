@@ -35,6 +35,7 @@ message NodeMessage {
   string MACAddress = 4;
   string IPAddress = 5;
   int64 NodeScanID = 6;
+  bool PoweredOn = 7;
 }
 
 message PortScanMessage {
