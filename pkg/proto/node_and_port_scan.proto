@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package com.pojtinger.felicitas.liwasc;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/pojntfx/liwasc/pkg/proto";
+
+service NodeAndPortScanService {
+  rpc StartNodeScan(NodeScanStartMessage) returns (NodeScanMessage);
+
+  rpc SubscribeToNodeScans(google.protobuf.Empty)
+      returns (stream NodeScanMessage);
+  rpc SubscribeToNodes(NodeScanMessage) returns (stream NodeMessage);
+  rpc SubscribeToPortScans(NodeMessage) returns (stream PortScanMessage);
+  rpc SubscribeToPorts(PortScanMessage) returns (stream PortMessage);
+}
+
+message NodeScanStartMessage {
+  int64 NodeScanTimeout = 1;
+  int64 PortScanTimeout = 2;
+  string MACAddress = 3; // Scopes the scan to one node. Set to "" to scan all.
+}
+
+message NodeScanMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  bool Done = 3;
+}
+
+message NodeMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  int64 Priority = 3;
+  string MACAddress = 4;
+  string IPAddress = 5;
+  int64 NodeScanID = 6;
+  bool PoweredOn = 7;
+}
+
+message PortScanMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  bool Done = 3;
+  int64 NodeID = 4;
+}
+
+message PortMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  int64 Priority = 3;
+  int64 PortNumber = 4;
+  string TransportProtocol = 5;
+  int64 PortScanID = 6;
+}

@@ -2,30 +2,27 @@ syntax = "proto3";
 
 package com.pojtinger.felicitas.liwasc;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service NodeWakeService {
-  rpc TriggerNodeWake(NodeWakeTriggerMessage)
-      returns (NodeWakeReferenceMessage);
-  // Use -1 as NodeWakeID and a valid MAC address to return the latest wake
-  // state for the MAC Address
-  // Use a valid NodeWakeID and "" as a MAC address to
-  // return the matching wake state
-  rpc SubscribeToNodeWakeUp(NodeWakeReferenceMessage)
-      returns (stream LucidNodeMessage);
+  rpc StartNodeWake(NodeWakeStartMessage) returns (NodeWakeMessage);
+
+  rpc SubscribeToNodeWakes(google.protobuf.Empty)
+      returns (stream NodeWakeMessage);
 }
 
-message NodeWakeTriggerMessage {
-  string MACAddress = 1;
-  int64 Timeout = 2;
-}
-
-message NodeWakeReferenceMessage {
-  string MACAddress = 1;
-  int64 NodeWakeID = 2;
-}
-
-message LucidNodeMessage {
-  bool PoweredOn = 1;
+message NodeWakeStartMessage {
+  int64 NodeWakeTimeout = 1;
   string MACAddress = 2;
+}
+
+message NodeWakeMessage {
+  int64 ID = 1;
+  string CreatedAt = 2;
+  bool Done = 3;
+  int64 Priority = 4;
+  string MACAddress = 5;
+  bool PoweredOn = 6;
 }
