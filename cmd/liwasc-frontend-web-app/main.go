@@ -22,6 +22,7 @@ func main() {
 	defer conn.Close()
 
 	metadataServiceClient := proto.NewMetadataServiceClient(conn)
+	nodeAndPortScanServiceClient := proto.NewNodeAndPortScanServiceClient(conn)
 
 	app.Route("/",
 		&components.OIDCLoginProviderComponent{
@@ -60,7 +61,8 @@ func main() {
 				return &components.DataProviderComponent{
 					IDToken: loginProviderChildrenProps.IDToken,
 
-					MetadataServiceClient: metadataServiceClient,
+					MetadataServiceClient:        metadataServiceClient,
+					NodeAndPortScanServiceClient: nodeAndPortScanServiceClient,
 					Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
 						return &components.AppComponent{
 							UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%x", md5.Sum([]byte(loginProviderChildrenProps.UserInfo.Email))),
@@ -79,14 +81,14 @@ func main() {
 							Connected: dataProviderChildrenProps.Connected,
 							Scanning:  dataProviderChildrenProps.Scanning,
 
-							TriggerNetworkScan: func() {
-								protoNetworkScanTriggerMessage := &proto.NodeScanStartMessage{
+							TriggerNodeScan: func() {
+								protoNodeScanTriggerMessage := &proto.NodeScanStartMessage{
 									NodeScanTimeout: 500,
-									PortScanTimeout: 500,
+									PortScanTimeout: 50,
 									MACAddress:      "",
 								}
 
-								go dataProviderChildrenProps.TriggerNetworkScan(protoNetworkScanTriggerMessage)
+								go dataProviderChildrenProps.TriggerNodeScan(protoNodeScanTriggerMessage)
 							},
 						}
 					},
