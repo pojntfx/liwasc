@@ -4,3 +4,6 @@ build:
 
 run: build
 	@./liwasc-frontend-web-server -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL}
+
+clean:
+	@rm -rf ./pkg/proto/generated

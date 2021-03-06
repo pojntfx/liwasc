@@ -15,14 +15,12 @@ import (
 func main() {
 	proxy := websocketproxy.NewWebSocketProxyClient(time.Minute)
 
-	conn, err := grpc.Dial("ws://stuttgart.felix.pojtinger.com:15124", grpc.WithContextDialer(proxy.Dialer), grpc.WithInsecure())
+	conn, err := grpc.Dial("ws://localhost:15124", grpc.WithContextDialer(proxy.Dialer), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
-	networkAndNodeScanServiceClient := proto.NewNetworkAndNodeScanServiceClient(conn)
-	nodeWakeServiceClient := proto.NewNodeWakeServiceClient(conn)
 	metadataServiceClient := proto.NewMetadataServiceClient(conn)
 
 	app.Route("/",
@@ -62,9 +60,7 @@ func main() {
 				return &components.DataProviderComponent{
 					IDToken: loginProviderChildrenProps.IDToken,
 
-					NetworkAndNodeScanServiceClient: networkAndNodeScanServiceClient,
-					NodeWakeServiceClient:           nodeWakeServiceClient,
-					MetadataServiceClient:           metadataServiceClient,
+					MetadataServiceClient: metadataServiceClient,
 					Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
 						return &components.AppComponent{
 							UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%x", md5.Sum([]byte(loginProviderChildrenProps.UserInfo.Email))),
@@ -84,9 +80,10 @@ func main() {
 							Scanning:  dataProviderChildrenProps.Scanning,
 
 							TriggerNetworkScan: func() {
-								protoNetworkScanTriggerMessage := &proto.NetworkScanTriggerMessage{
-									NetworkScanTimeout: 100,
-									NodeScanTimeout:    100,
+								protoNetworkScanTriggerMessage := &proto.NodeScanStartMessage{
+									NodeScanTimeout: 500,
+									PortScanTimeout: 500,
+									MACAddress:      "",
 								}
 
 								go dataProviderChildrenProps.TriggerNetworkScan(protoNetworkScanTriggerMessage)

@@ -7,10 +7,46 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/pojntfx/liwasc/pkg/proto";
 
 service MetadataService {
-  rpc GetMetadata(google.protobuf.Empty) returns (MetadataMessage);
+  rpc GetMetadataForScanner(google.protobuf.Empty)
+      returns (ScannerMetadataMessage);
+  rpc GetMetadataForNode(NodeMetadataReferenceMessage)
+      returns (NodeMetadataMessage);
+  rpc GetMetadataForPort(PortMetadataReferenceMessage)
+      returns (PortMetadataMessage);
 }
 
-message MetadataMessage {
+message ScannerMetadataMessage {
   repeated string Subnets = 1;
   string Device = 2;
+}
+
+message NodeMetadataReferenceMessage { string MACAddress = 1; }
+
+message NodeMetadataMessage {
+  string MACAddress = 1;
+  string Vendor = 3;
+  string Registry = 4;
+  string Organization = 5;
+  string Address = 6;
+  bool Visible = 7;
+}
+
+message PortMetadataReferenceMessage {
+  int64 PortNumber = 1;
+  string TransportProtocol = 2;
+}
+
+message PortMetadataMessage {
+  string ServiceName = 1;
+  int64 PortNumber = 2;
+  string TransportProtocol = 3;
+  string Description = 4;
+  string Assignee = 5;
+  string Contact = 6;
+  string RegistrationDate = 7;
+  string ModificationDate = 8;
+  string Reference = 9;
+  string ServiceCode = 10;
+  string UnauthorizedUseReported = 11;
+  string AssignmentNotes = 12;
 }
