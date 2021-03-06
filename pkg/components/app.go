@@ -34,7 +34,7 @@ type AppComponent struct {
 	Connected bool
 	Scanning  bool
 
-	TriggerNetworkScan func()
+	TriggerNodeScan func()
 }
 
 func (c *AppComponent) Render() app.UI {
@@ -112,7 +112,7 @@ func (c *AppComponent) Render() app.UI {
 								c.handleNodeSearchChange(newSearchValue)
 							},
 							OnTriggerClick: func(ctx app.Context, e app.Event) {
-								c.TriggerNetworkScan()
+								c.TriggerNodeScan()
 							},
 						},
 						&TableComponent{

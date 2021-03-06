@@ -22,7 +22,7 @@ type DataProviderChildrenProps struct {
 	Subnets []string
 	Device  string
 
-	TriggerNetworkScan func(*proto.NodeScanStartMessage)
+	TriggerNodeScan func(*proto.NodeScanStartMessage)
 }
 
 type DataProviderComponent struct {
@@ -34,8 +34,9 @@ type DataProviderComponent struct {
 
 	IDToken string
 
-	MetadataServiceClient proto.MetadataServiceClient
-	Children              func(DataProviderChildrenProps) app.UI
+	MetadataServiceClient        proto.MetadataServiceClient
+	NodeAndPortScanServiceClient proto.NodeAndPortScanServiceClient
+	Children                     func(DataProviderChildrenProps) app.UI
 
 	connected bool
 	scanning  bool
@@ -54,7 +55,7 @@ func (c *DataProviderComponent) Render() app.UI {
 		Subnets: c.subnets,
 		Device:  c.device,
 
-		TriggerNetworkScan: c.triggerNetworkScan,
+		TriggerNodeScan: c.triggerNodeScan,
 	})
 }
 
@@ -69,7 +70,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 	})
 
 	go func() {
-		log.Println("getting metadata from service")
+		log.Println("getting metadata")
 
 		metadata, err := c.MetadataServiceClient.GetMetadataForScanner(c.getAuthenticatedContext(), &emptypb.Empty{})
 		if err != nil {
@@ -82,21 +83,36 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 		log.Printf("received metadata: %v\n", metadata)
 
-		c.subnets = metadata.GetSubnets()
-		c.device = metadata.GetDevice()
+		app.Dispatch(func() {
+			c.subnets = metadata.GetSubnets()
+			c.device = metadata.GetDevice()
 
-		c.Update()
+			c.Update()
+		})
 	}()
 }
 
-func (c *DataProviderComponent) triggerNetworkScan(networkScanMessage *proto.NodeScanStartMessage) {
-	log.Println("triggering network scan")
-
+func (c *DataProviderComponent) triggerNodeScan(nodeScanMessage *proto.NodeScanStartMessage) {
 	app.Dispatch(func() {
 		c.scanning = true
 
 		c.Update()
 	})
+
+	go func() {
+		log.Println("starting node scan")
+
+		nodeScanMessage, err := c.NodeAndPortScanServiceClient.StartNodeScan(c.getAuthenticatedContext(), nodeScanMessage)
+		if err != nil {
+			log.Println("could not start node scan", err)
+
+			c.invalidateConnection()
+
+			return
+		}
+
+		log.Printf("received node scan message: %v\n", nodeScanMessage)
+	}()
 }
 
 func (c *DataProviderComponent) invalidateConnection() {
