@@ -4,6 +4,7 @@ package databases
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -34,7 +35,12 @@ func (d *MAC2VendorDatabase) GetVendor(mac string) (*mac2vendorModels.Vendordb, 
 }
 
 func GetOUI(mac string) (uint64, error) {
-	res, err := strconv.ParseUint(strings.Join(strings.Split(mac, ":")[0:3], ""), 16, 64)
+	parsedMAC := strings.Split(mac, ":")
+	if len(parsedMAC) < 4 {
+		return 0, fmt.Errorf("invalid MAC Address: %v", mac)
+	}
+
+	res, err := strconv.ParseUint(strings.Join(parsedMAC[0:3], ""), 16, 64)
 	if err != nil {
 		return 0, err
 	}
