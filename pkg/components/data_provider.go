@@ -144,6 +144,8 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 						break
 					}
 
+					log.Printf("received node message: %v\n", nodeMessage)
+
 					go func(nm *proto.NodeMessage) {
 						nodeMetadataMessage, err := c.MetadataServiceClient.GetMetadataForNode(c.getAuthenticatedContext(), &proto.NodeMetadataReferenceMessage{
 							MACAddress: nm.GetMACAddress(),
@@ -163,8 +165,6 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 						log.Printf("received node metadata: %v\n", nodeMetadataMessage)
 					}(nodeMessage)
-
-					log.Printf("received node message: %v\n", nodeMessage)
 
 					go func(nm *proto.NodeMessage) {
 						portScanStream, err := c.NodeAndPortScanServiceClient.SubscribeToPortScans(c.getAuthenticatedContext(), nm)
@@ -221,6 +221,27 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 									}
 
 									log.Printf("received port message: %v\n", portMessage)
+
+									go func(pm *proto.PortMessage) {
+										portMetadataMessage, err := c.MetadataServiceClient.GetMetadataForPort(c.getAuthenticatedContext(), &proto.PortMetadataReferenceMessage{
+											PortNumber:        pm.PortNumber,
+											TransportProtocol: pm.TransportProtocol,
+										})
+
+										if err != nil {
+											if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+												log.Println("could not find metadata for port, ignoring", err)
+											} else {
+												log.Println("could not get metadata for port", err)
+
+												c.invalidateConnection()
+											}
+
+											return
+										}
+
+										log.Printf("received port metadata: %v\n", portMetadataMessage)
+									}(portMessage)
 								}
 							}(portScanMessage)
 						}
