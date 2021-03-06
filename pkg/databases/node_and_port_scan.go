@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 //go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_and_port_scan -c pkg/sql/node_and_port_scan.toml"
