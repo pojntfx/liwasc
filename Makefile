@@ -13,6 +13,9 @@ deps:
 	@go install github.com/volatiletech/sqlboiler-sqlite3@latest
 	@go install github.com/golang/protobuf/protoc-gen-go@latest
 
+tools:
+	@go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
 setup-databases:
 	@sudo mkdir -p /etc/liwasc
 	@sudo curl -L -o /etc/liwasc/oui-database.sqlite https://mac2vendor.com/download/oui-database.sqlite
