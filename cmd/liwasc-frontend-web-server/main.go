@@ -14,6 +14,7 @@ func main() {
 	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
 	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
 	oidcRedirectURL := flag.String("oidcRedirectURL", "http://example.com/", "OIDC redirect URL")
+	buildStatic := flag.Bool("buildStatic", false, "Create static build")
 
 	flag.Parse()
 
@@ -61,9 +62,16 @@ func main() {
 		},
 	}
 
-	log.Println("Listening on", *listenAddress)
+	if *buildStatic {
+		if err := app.GenerateStaticWebsite("out", &h); err != nil {
+			log.Fatal("could not build static", err)
+		}
+	} else {
+		log.Println("Listening on", *listenAddress)
 
-	if err := http.ListenAndServe(*listenAddress, compress.Handler(&h)); err != nil {
-		log.Fatal("could not start server", err)
+		if err := http.ListenAndServe(*listenAddress, compress.Handler(&h)); err != nil {
+			log.Fatal("could not start server", err)
+		}
 	}
+
 }
