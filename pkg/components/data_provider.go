@@ -117,9 +117,7 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 			log.Printf("received node scan message: %v\n", nodeScanMessage)
 
 			go func(nsm *proto.NodeScanMessage) {
-				nodeMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodes(c.getAuthenticatedContext(), &proto.NodeScanMessage{
-					ID: nsm.GetID(),
-				})
+				nodeMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodes(c.getAuthenticatedContext(), nsm)
 				if err != nil {
 					log.Println("could not subscribe to nodes", err)
 
@@ -145,6 +143,66 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 					}
 
 					log.Printf("received node message: %v\n", nodeMessage)
+
+					go func(nm *proto.NodeMessage) {
+						portScanStream, err := c.NodeAndPortScanServiceClient.SubscribeToPortScans(c.getAuthenticatedContext(), nm)
+						if err != nil {
+							log.Println("could not subscribe to port scans", err)
+
+							c.invalidateConnection()
+
+							return
+						}
+
+						for {
+							portScanMessage, err := portScanStream.Recv()
+							if err != nil {
+								if err == io.EOF {
+									log.Println("no more port scans for this node, continuing to the next node")
+
+									break
+								}
+
+								log.Println("could not receive node port scan message", err)
+
+								c.invalidateConnection()
+
+								break
+							}
+
+							log.Printf("received port scan message: %v\n", portScanMessage)
+
+							go func(psm *proto.PortScanMessage) {
+								portMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToPorts(c.getAuthenticatedContext(), psm)
+								if err != nil {
+									log.Println("could not subscribe to ports", err)
+
+									c.invalidateConnection()
+
+									return
+								}
+
+								for {
+									portMessage, err := portMessageStream.Recv()
+									if err != nil {
+										if err == io.EOF {
+											log.Println("no more ports for this scan, continuing to the next scan")
+
+											break
+										}
+
+										log.Println("could not receive port message", err)
+
+										c.invalidateConnection()
+
+										break
+									}
+
+									log.Printf("received port message: %v\n", portMessage)
+								}
+							}(portScanMessage)
+						}
+					}(nodeMessage)
 				}
 			}(nodeScanMessage)
 		}
