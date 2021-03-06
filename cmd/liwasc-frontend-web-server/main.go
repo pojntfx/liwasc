@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/kataras/compress"
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
@@ -62,7 +63,7 @@ func main() {
 
 	log.Println("Listening on", *listenAddress)
 
-	if err := http.ListenAndServe(*listenAddress, &h); err != nil {
+	if err := http.ListenAndServe(*listenAddress, compress.Handler(&h)); err != nil {
 		log.Fatal("could not start server", err)
 	}
 }

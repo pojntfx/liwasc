@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/golang/protobuf v1.4.3
+	github.com/kataras/compress v0.0.6
 	github.com/maxence-charriere/go-app/v7 v7.3.0
 	github.com/pojntfx/go-app-grpc-chat-frontend-web v0.0.0-20200914214440-b28bb959fef9
 	github.com/pquerna/cachecontrol v0.0.0-20201205024021-ac21108117ac // indirect
