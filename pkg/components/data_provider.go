@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 
@@ -89,6 +90,64 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 			c.Update()
 		})
+	}()
+
+	go func() {
+		log.Println("subscribing to node scans")
+
+		nodeScanStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodeScans(c.getAuthenticatedContext(), &emptypb.Empty{})
+		if err != nil {
+			log.Println("could not subscribe to node scans", err)
+
+			c.invalidateConnection()
+
+			return
+		}
+
+		for {
+			nodeScanMessage, err := nodeScanStream.Recv()
+			if err != nil {
+				log.Println("could not receive node scan message", err)
+
+				c.invalidateConnection()
+
+				break
+			}
+
+			log.Printf("received node scan message: %v\n", nodeScanMessage)
+
+			go func(nsm *proto.NodeScanMessage) {
+				nodeMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodes(c.getAuthenticatedContext(), &proto.NodeScanMessage{
+					ID: nsm.GetID(),
+				})
+				if err != nil {
+					log.Println("could not subscribe to nodes", err)
+
+					c.invalidateConnection()
+
+					return
+				}
+
+				for {
+					nodeMessage, err := nodeMessageStream.Recv()
+					if err != nil {
+						if err == io.EOF {
+							log.Println("no more nodes for this scan, continuing to the next scan")
+
+							break
+						}
+
+						log.Println("could not receive node message", err)
+
+						c.invalidateConnection()
+
+						break
+					}
+
+					log.Printf("received node message: %v\n", nodeMessage)
+				}
+			}(nodeScanMessage)
+		}
 	}()
 }
 
