@@ -10,7 +10,9 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
 	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -141,6 +143,26 @@ func (c *DataProviderComponent) OnMount(ctx app.Context) {
 
 						break
 					}
+
+					go func(nm *proto.NodeMessage) {
+						nodeMetadataMessage, err := c.MetadataServiceClient.GetMetadataForNode(c.getAuthenticatedContext(), &proto.NodeMetadataReferenceMessage{
+							MACAddress: nm.GetMACAddress(),
+						})
+
+						if err != nil {
+							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+								log.Println("could not find metadata for node, ignoring", err)
+							} else {
+								log.Println("could not get metadata for node", err)
+
+								c.invalidateConnection()
+							}
+
+							return
+						}
+
+						log.Printf("received node metadata: %v\n", nodeMetadataMessage)
+					}(nodeMessage)
 
 					log.Printf("received node message: %v\n", nodeMessage)
 
