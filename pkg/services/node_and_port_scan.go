@@ -463,7 +463,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 
 	wg.Add(3)
 
-	// Get nodes from messenger (priority 1)
+	// Get nodes from messenger (priority 3)
 	go func() {
 		// Get node scan from DB and check if it is done
 		dbNodeScan, err := s.nodeAndPortScanDatabase.GetNodeScan(nodeScanMessage.GetID())
@@ -498,7 +498,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 						IPAddress:  dbNode.(*models.Node).IPAddress,
 						MACAddress: dbNode.(*models.Node).MacAddress,
 						NodeScanID: dbNode.(*models.Node).NodeScanID,
-						Priority:   1,
+						Priority:   3,
 						PoweredOn:  true, // Found in this node scan so it has to be powered on
 					}
 
@@ -544,7 +544,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 		wg.Done()
 	}()
 
-	// Get lookback nodes from database (priority 3)
+	// Get lookback nodes from database (priority 1)
 	go func() {
 		dbNodes, err := s.nodeAndPortScanDatabase.GetLookbackNodes()
 		if err != nil {
@@ -560,7 +560,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 				IPAddress:  dbNode.IPAddress,
 				MACAddress: dbNode.MacAddress,
 				NodeScanID: dbNode.NodeScanID,
-				Priority:   3,
+				Priority:   1,
 				PoweredOn:  false, // Not found in this node scan, so set to false. Higher priorities will overwrite this.
 			}
 
@@ -669,7 +669,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 
 	wg.Add(2)
 
-	// Get ports from messenger (priority 1)
+	// Get ports from messenger (priority 2)
 	go func() {
 		// Get port scan from DB and check if it is done
 		dbPortScan, err := s.nodeAndPortScanDatabase.GetPortScan(portScanMessage.GetID())
@@ -701,7 +701,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 					protoPort := &proto.PortMessage{
 						CreatedAt:         dbPort.(*models.Port).CreatedAt.Format(time.RFC3339),
 						ID:                dbPort.(*models.Port).ID,
-						Priority:          1,
+						Priority:          2,
 						PortNumber:        dbPort.(*models.Port).PortNumber,
 						PortScanID:        dbPort.(*models.Port).PortScanID,
 						TransportProtocol: dbPort.(*models.Port).TransportProtocol,
@@ -719,7 +719,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 		wg.Done()
 	}()
 
-	// Get ports from database (priority 2)
+	// Get ports from database (priority 1)
 	go func() {
 		dbPorts, err := s.nodeAndPortScanDatabase.GetPorts(portScanMessage.GetID())
 		if err != nil {
@@ -732,7 +732,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 			protoPort := &proto.PortMessage{
 				CreatedAt:         dbPort.CreatedAt.Format(time.RFC3339),
 				ID:                dbPort.ID,
-				Priority:          2,
+				Priority:          1,
 				PortNumber:        dbPort.PortNumber,
 				PortScanID:        dbPort.PortScanID,
 				TransportProtocol: dbPort.TransportProtocol,
