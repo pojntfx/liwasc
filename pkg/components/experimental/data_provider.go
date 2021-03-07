@@ -3,6 +3,7 @@ package experimental
 import (
 	"context"
 	"io"
+	"log"
 	"sync"
 	"time"
 
@@ -20,9 +21,10 @@ type Node struct {
 	createdAt time.Time
 	priority  int64
 
-	MACAddress string
-	IPAddress  string
-	PoweredOn  bool
+	MACAddress       string
+	IPAddress        string
+	PoweredOn        bool
+	LastPortScanDate time.Time
 }
 
 type Network struct {
@@ -94,10 +96,6 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			// Receive scan from stream
 			nodeScan, err := nodeScanStream.Recv()
 			if err != nil {
-				if err == io.EOF {
-					break
-				}
-
 				panic(err)
 			}
 
@@ -164,11 +162,81 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								createdAt: nodeCreatedAt,
 								priority:  node.GetPriority(),
 
-								MACAddress: node.GetMACAddress(),
-								IPAddress:  node.GetIPAddress(),
-								PoweredOn:  node.GetPoweredOn(),
+								MACAddress:       node.GetMACAddress(),
+								IPAddress:        node.GetIPAddress(),
+								PoweredOn:        node.GetPoweredOn(),
+								LastPortScanDate: time.Unix(0, 0),
 							})
 						})
+
+						// Subscribe to port scans
+						go func(nm *proto.NodeMessage) {
+							// Get stream from service
+							portScanStream, err := c.NodeAndPortScanService.SubscribeToPortScans(c.AuthenticatedContext, nm)
+							if err != nil {
+								panic(err)
+							}
+
+							// Process stream
+							for {
+								// Receive scan from stream
+								portScan, err := portScanStream.Recv()
+								if err != nil {
+									if err == io.EOF {
+										break
+									}
+
+									panic(err)
+								}
+
+								// Parse the scan's date
+								portScanCreatedAt, err := time.Parse(time.RFC3339, portScan.GetCreatedAt())
+								if err != nil {
+									panic(err)
+								}
+
+								// Check if this port scan is the newest one
+								portScanIsNewest := false
+								c.dispatch(func() {
+									for i, currentNode := range c.network.Nodes {
+										if currentNode.MACAddress == node.GetMACAddress() && portScanCreatedAt.After(currentNode.LastPortScanDate) {
+											portScanIsNewest = true
+
+											c.network.Nodes[i].LastPortScanDate = portScanCreatedAt
+
+											break
+										}
+									}
+								})
+
+								// Only continue evaluation if this scan is newer
+								if portScanIsNewest {
+									// Subscribe to ports
+									go func(ps *proto.PortScanMessage) {
+										// Get stream from service
+										portStream, err := c.NodeAndPortScanService.SubscribeToPorts(c.AuthenticatedContext, ps)
+										if err != nil {
+											panic(err)
+										}
+
+										// Process stream
+										for {
+											// Receive port from stream
+											port, err := portStream.Recv()
+											if err != nil {
+												if err == io.EOF {
+													break
+												}
+
+												panic(err)
+											}
+
+											log.Printf("received port %v for node %v\n", port, nm.GetMACAddress())
+										}
+									}(portScan)
+								}
+							}
+						}(node)
 					}
 				}(nodeScan)
 			}
