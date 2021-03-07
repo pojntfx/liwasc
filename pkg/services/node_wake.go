@@ -196,7 +196,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 
 	wg.Add(2)
 
-	// Get node wakes from messenger (priority 1)
+	// Get node wakes from messenger (priority 2)
 	go func() {
 		dbNodeWakes, err := s.nodeWakeMessenger.Sub()
 		if err != nil {
@@ -225,7 +225,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 
 					return false
 				}(),
-				Priority: 1,
+				Priority: 2,
 			}
 
 			if err := stream.Send(protoNodeWake); err != nil {
@@ -238,7 +238,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 		wg.Done()
 	}()
 
-	// Get lookback node wakes from database (priority 2)
+	// Get lookback node wakes from database (priority 1)
 	go func() {
 		dbNodeWakes, err := s.nodeWakeDatabase.GetNodeWakes()
 		if err != nil {
@@ -266,7 +266,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 
 					return false
 				}(),
-				Priority: 2,
+				Priority: 1,
 			}
 
 			if err := stream.Send(protoNodeWake); err != nil {
