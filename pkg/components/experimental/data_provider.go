@@ -62,6 +62,7 @@ type Node struct {
 
 type Network struct {
 	ScannerMetadata  ScannerMetadata
+	NodeScanRunning  bool
 	LastNodeScanDate time.Time
 	Nodes            []Node
 }
@@ -96,6 +97,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 				Subnets: []string{},
 				Device:  "",
 			},
+			NodeScanRunning:  false,
 			LastNodeScanDate: time.Unix(0, 0),
 			Nodes:            []Node{},
 		}
@@ -139,10 +141,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			}
 
 			// Only continue evaluation if this scan is newer
-			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) {
-				// Set the new latest node scan date
+			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) || nodeScanCreatedAt.Equal(c.network.LastNodeScanDate) {
 				c.dispatch(func() {
+					// Set the new latest node scan date
 					c.network.LastNodeScanDate = nodeScanCreatedAt
+
+					// Update the node scan indicator
+					if nodeScan.Done {
+						c.network.NodeScanRunning = false
+					} else {
+						c.network.NodeScanRunning = true
+					}
 				})
 
 				// Subscribe to nodes
@@ -195,7 +204,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 							lastKnownNodeIndex := -1
 							for i, knownNode := range c.network.Nodes {
 								if knownNode.MACAddress == node.GetMACAddress() {
-									if nodeCreatedAt.After(knownNode.createdAt) && knownNode.priority > node.GetPriority() {
+									if (nodeCreatedAt.After(knownNode.createdAt) || nodeCreatedAt.Equal(knownNode.createdAt)) && knownNode.priority > node.GetPriority() {
 										// Ignore the node
 										return
 									}
@@ -262,7 +271,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								portScanIsNewest := false
 								c.dispatch(func() {
 									for i, currentNode := range c.network.Nodes {
-										if currentNode.MACAddress == node.GetMACAddress() && portScanCreatedAt.After(currentNode.LastPortScanDate) {
+										if currentNode.MACAddress == node.GetMACAddress() && (portScanCreatedAt.After(currentNode.LastPortScanDate) || portScanCreatedAt.Equal(currentNode.LastPortScanDate)) {
 											portScanIsNewest = true
 
 											c.network.Nodes[i].LastPortScanDate = portScanCreatedAt
@@ -336,7 +345,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 
 														for portIndex, knownPort := range knownNode.Ports {
 															if knownPort.PortNumber == port.PortNumber && knownPort.TransportProtocol == port.TransportProtocol {
-																if portCreatedAt.After(knownPort.createdAt) && knownPort.priority > port.GetPriority() {
+																if (portCreatedAt.After(knownPort.createdAt) || portCreatedAt.Equal(knownPort.createdAt)) && knownPort.priority > port.GetPriority() {
 																	// Ignore the port
 																	return
 																}
