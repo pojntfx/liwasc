@@ -1,15 +1,16 @@
 package main
 
 import (
-	"crypto/md5"
-	"fmt"
+	"context"
 	"time"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
 	"github.com/pojntfx/liwasc-frontend-web/pkg/components"
+	"github.com/pojntfx/liwasc-frontend-web/pkg/components/experimental"
 	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -21,8 +22,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	metadataServiceClient := proto.NewMetadataServiceClient(conn)
-	nodeAndPortScanServiceClient := proto.NewNodeAndPortScanServiceClient(conn)
+	metadataService := proto.NewMetadataServiceClient(conn)
+	// nodeAndPortScanServiceClient := proto.NewNodeAndPortScanServiceClient(conn)
 
 	app.Route("/",
 		&components.OIDCLoginProviderComponent{
@@ -58,41 +59,51 @@ func main() {
 					}
 				}
 
-				return &components.DataProviderComponent{
-					IDToken: loginProviderChildrenProps.IDToken,
-
-					MetadataServiceClient:        metadataServiceClient,
-					NodeAndPortScanServiceClient: nodeAndPortScanServiceClient,
-					Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
-						return &components.AppComponent{
-							UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%x", md5.Sum([]byte(loginProviderChildrenProps.UserInfo.Email))),
-							UserName:   loginProviderChildrenProps.UserInfo.Email,
-
-							Logout: loginProviderChildrenProps.Logout,
-
-							Subnets:         dataProviderChildrenProps.Subnets,
-							Device:          dataProviderChildrenProps.Device,
-							NodeSearchValue: "",
-
-							Nodes: dataProviderChildrenProps.Nodes,
-
-							InspectorSearchValue: "",
-
-							Connected: dataProviderChildrenProps.Connected,
-							Scanning:  dataProviderChildrenProps.Scanning,
-
-							TriggerNodeScan: func() {
-								protoNodeScanTriggerMessage := &proto.NodeScanStartMessage{
-									NodeScanTimeout: 500,
-									PortScanTimeout: 50,
-									MACAddress:      "",
-								}
-
-								go dataProviderChildrenProps.TriggerNodeScan(protoNodeScanTriggerMessage)
-							},
+				return &experimental.DataProviderComponent{
+					AuthenticatedContext: metadata.AppendToOutgoingContext(context.Background(), components.AUTHORIZATION_METADATA_KEY, loginProviderChildrenProps.IDToken),
+					MetadataService:      metadataService,
+					Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
+						return &experimental.JSONOutputComponent{
+							Object: dpcp.Network,
 						}
 					},
 				}
+
+				// return &components.DataProviderComponent{
+				// 	IDToken: loginProviderChildrenProps.IDToken,
+
+				// 	MetadataServiceClient:        metadataServiceClient,
+				// 	NodeAndPortScanServiceClient: nodeAndPortScanServiceClient,
+				// 	Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
+				// 		return &components.AppComponent{
+				// 			UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%x", md5.Sum([]byte(loginProviderChildrenProps.UserInfo.Email))),
+				// 			UserName:   loginProviderChildrenProps.UserInfo.Email,
+
+				// 			Logout: loginProviderChildrenProps.Logout,
+
+				// 			Subnets:         dataProviderChildrenProps.Subnets,
+				// 			Device:          dataProviderChildrenProps.Device,
+				// 			NodeSearchValue: "",
+
+				// 			Nodes: dataProviderChildrenProps.Nodes,
+
+				// 			InspectorSearchValue: "",
+
+				// 			Connected: dataProviderChildrenProps.Connected,
+				// 			Scanning:  dataProviderChildrenProps.Scanning,
+
+				// 			TriggerNodeScan: func() {
+				// 				protoNodeScanTriggerMessage := &proto.NodeScanStartMessage{
+				// 					NodeScanTimeout: 500,
+				// 					PortScanTimeout: 50,
+				// 					MACAddress:      "",
+				// 				}
+
+				// 				go dataProviderChildrenProps.TriggerNodeScan(protoNodeScanTriggerMessage)
+				// 			},
+				// 		}
+				// 	},
+				// }
 			},
 		},
 	)
