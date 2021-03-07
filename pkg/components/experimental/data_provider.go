@@ -3,7 +3,6 @@ package experimental
 import (
 	"context"
 	"io"
-	"log"
 	"sync"
 	"time"
 
@@ -17,9 +16,19 @@ type ScannerMetadata struct {
 	Device  string
 }
 
+type Node struct {
+	createdAt time.Time
+	priority  int64
+
+	MACAddress string
+	IPAddress  string
+	PoweredOn  bool
+}
+
 type Network struct {
 	ScannerMetadata  ScannerMetadata
 	LastNodeScanDate time.Time
+	Nodes            []Node
 }
 
 type DataProviderChildrenProps struct {
@@ -53,6 +62,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 				Device:  "",
 			},
 			LastNodeScanDate: time.Unix(0, 0),
+			Nodes:            []Node{},
 		}
 	})
 
@@ -91,19 +101,76 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 				panic(err)
 			}
 
-			// Only continue evaluation if this scan is newer than the newest one
-			createdAt, err := time.Parse(time.RFC3339, nodeScan.GetCreatedAt())
+			// Parse the scan's date
+			nodeScanCreatedAt, err := time.Parse(time.RFC3339, nodeScan.GetCreatedAt())
 			if err != nil {
 				panic(err)
 			}
 
-			if createdAt.After(c.network.LastNodeScanDate) {
+			// Only continue evaluation if this scan is newer
+			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) {
 				// Set the new latest node scan date
 				c.dispatch(func() {
-					c.network.LastNodeScanDate = createdAt
+					c.network.LastNodeScanDate = nodeScanCreatedAt
 				})
 
-				log.Printf("continuing to evaluate node scan %v\n", c.network.LastNodeScanDate)
+				// Subscribe to nodes
+				go func(nsm *proto.NodeScanMessage) {
+					// Get stream from service
+					nodeStream, err := c.NodeAndPortScanService.SubscribeToNodes(c.AuthenticatedContext, nsm)
+					if err != nil {
+						panic(err)
+					}
+
+					// Process stream
+					for {
+						// Receive node from stream
+						node, err := nodeStream.Recv()
+						if err != nil {
+							if err == io.EOF {
+								break
+							}
+
+							panic(err)
+						}
+
+						// Parse the node's date
+						nodeCreatedAt, err := time.Parse(time.RFC3339, node.GetCreatedAt())
+						if err != nil {
+							panic(err)
+						}
+
+						c.dispatch(func() {
+							// Only continue if this node is newer and has a higher priority
+							lastKnownNodeIndex := -1
+							for i, knownNode := range c.network.Nodes {
+								if knownNode.MACAddress == node.GetMACAddress() {
+									if nodeCreatedAt.After(knownNode.createdAt) && knownNode.priority > node.GetPriority() {
+										// Ignore the node
+										return
+									}
+
+									lastKnownNodeIndex = i
+								}
+							}
+
+							// If an old node exists, remove it
+							if lastKnownNodeIndex != -1 {
+								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
+							}
+
+							// Add the new node
+							c.network.Nodes = append(c.network.Nodes, Node{
+								createdAt: nodeCreatedAt,
+								priority:  node.GetPriority(),
+
+								MACAddress: node.GetMACAddress(),
+								IPAddress:  node.GetIPAddress(),
+								PoweredOn:  node.GetPoweredOn(),
+							})
+						})
+					}
+				}(nodeScan)
 			}
 		}
 	}()
