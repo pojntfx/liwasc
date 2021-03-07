@@ -19,11 +19,25 @@ type ScannerMetadata struct {
 }
 
 type Port struct {
+	// Internal metadata
 	createdAt time.Time
 	priority  int64
 
+	// Data
 	PortNumber        int64
 	TransportProtocol string
+
+	// Public metadata
+	ServiceName             string
+	Description             string
+	Assignee                string
+	Contact                 string
+	RegistrationDate        string
+	ModificationDate        string
+	Reference               string
+	ServiceCode             string
+	UnauthorizedUseReported string
+	AssignmentNotes         string
 }
 
 type Node struct {
@@ -165,10 +179,10 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
 								nodeMetadata = &proto.NodeMetadataMessage{
 									MACAddress:   node.GetMACAddress(),
-									Vendor:       "Unknown Vendor",
-									Registry:     "Unknown Registry",
-									Organization: "Unknown Organization",
-									Address:      "Unknown Address",
+									Vendor:       "",
+									Registry:     "",
+									Organization: "",
+									Address:      "",
 									Visible:      true, // The majority are visible, so set it as the default value
 								}
 							} else {
@@ -286,6 +300,32 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 												panic(err)
 											}
 
+											// Get the port's metadata
+											portMetadata, err := c.MetadataService.GetMetadataForPort(c.AuthenticatedContext, &proto.PortMetadataReferenceMessage{
+												PortNumber:        port.GetPortNumber(),
+												TransportProtocol: port.GetTransportProtocol(),
+											})
+											if err != nil {
+												if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+													portMetadata = &proto.PortMetadataMessage{
+														ServiceName:             "",
+														PortNumber:              port.GetPortNumber(),
+														TransportProtocol:       port.GetTransportProtocol(),
+														Description:             "",
+														Assignee:                "",
+														Contact:                 "",
+														RegistrationDate:        "",
+														ModificationDate:        "",
+														Reference:               "",
+														ServiceCode:             "",
+														UnauthorizedUseReported: "",
+														AssignmentNotes:         "",
+													}
+												} else {
+													panic(err)
+												}
+											}
+
 											c.dispatch(func() {
 												// Only continue if this port is newer and has a higher priority
 												lastKnownNodeIndex := -1
@@ -325,6 +365,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 
 														PortNumber:        port.GetPortNumber(),
 														TransportProtocol: port.GetTransportProtocol(),
+
+														ServiceName:             portMetadata.ServiceName,
+														Description:             portMetadata.Description,
+														Assignee:                portMetadata.Assignee,
+														Contact:                 portMetadata.Contact,
+														RegistrationDate:        portMetadata.RegistrationDate,
+														ModificationDate:        portMetadata.ModificationDate,
+														Reference:               portMetadata.Reference,
+														ServiceCode:             portMetadata.ServiceCode,
+														UnauthorizedUseReported: portMetadata.UnauthorizedUseReported,
+														AssignmentNotes:         portMetadata.AssignmentNotes,
 													})
 												}
 											})
