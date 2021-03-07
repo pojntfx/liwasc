@@ -49,6 +49,7 @@ type Node struct {
 	MACAddress       string
 	IPAddress        string
 	PoweredOn        bool
+	PortScanRunning  bool
 	LastPortScanDate time.Time
 	Ports            []Port
 
@@ -143,10 +144,10 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			// Only continue evaluation if this scan is newer
 			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) || nodeScanCreatedAt.Equal(c.network.LastNodeScanDate) {
 				c.dispatch(func() {
-					// Set the new latest node scan date
+					// Set the new latest scan date
 					c.network.LastNodeScanDate = nodeScanCreatedAt
 
-					// Update the node scan indicator
+					// Update the scan indicator
 					if nodeScan.Done {
 						c.network.NodeScanRunning = false
 					} else {
@@ -215,10 +216,15 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								}
 							}
 
-							// If an old node exists, remove it, but keep the ports
+							// If an old node exists, remove it, but keep the port scan state
 							ports := []Port{}
+							portScanRunning := false
+							lastPortScanDate := time.Unix(0, 0)
 							if lastKnownNodeIndex != -1 {
 								ports = c.network.Nodes[lastKnownNodeIndex].Ports
+								portScanRunning = c.network.Nodes[lastKnownNodeIndex].PortScanRunning
+								lastPortScanDate = c.network.Nodes[lastKnownNodeIndex].LastPortScanDate
+
 								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
 							}
 
@@ -230,7 +236,8 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								MACAddress:       node.GetMACAddress(),
 								IPAddress:        node.GetIPAddress(),
 								PoweredOn:        node.GetPoweredOn(),
-								LastPortScanDate: time.Unix(0, 0),
+								PortScanRunning:  portScanRunning,
+								LastPortScanDate: lastPortScanDate,
 								Ports:            ports,
 
 								Vendor:       nodeMetadata.GetVendor(),
@@ -274,7 +281,15 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 										if currentNode.MACAddress == node.GetMACAddress() && (portScanCreatedAt.After(currentNode.LastPortScanDate) || portScanCreatedAt.Equal(currentNode.LastPortScanDate)) {
 											portScanIsNewest = true
 
+											// Set the new latest scan date
 											c.network.Nodes[i].LastPortScanDate = portScanCreatedAt
+
+											// Update the scan indicator
+											if portScan.Done {
+												c.network.Nodes[i].PortScanRunning = false
+											} else {
+												c.network.Nodes[i].PortScanRunning = true
+											}
 
 											break
 										}
