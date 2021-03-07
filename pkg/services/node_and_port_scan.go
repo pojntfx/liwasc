@@ -368,7 +368,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 	// Return reference to node scan
 	protoNodeScanMessage := &proto.NodeScanMessage{
 		ID:        dbNodeScan.ID,
-		CreatedAt: dbNodeScan.CreatedAt.String(),
+		CreatedAt: dbNodeScan.CreatedAt.Format(time.RFC3339),
 		Done: func() bool {
 			if dbNodeScan.Done == 1 {
 				return true
@@ -408,7 +408,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 
 		for dbNodeScan := range dbNodeScans {
 			protoNodeScan := &proto.NodeScanMessage{
-				CreatedAt: dbNodeScan.(*models.NodeScan).CreatedAt.String(),
+				CreatedAt: dbNodeScan.(*models.NodeScan).CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeScan.(*models.NodeScan).Done == 1 {
 						return true
@@ -493,7 +493,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 					}
 
 					protoNode := &proto.NodeMessage{
-						CreatedAt:  dbNode.(*models.Node).CreatedAt.String(),
+						CreatedAt:  dbNode.(*models.Node).CreatedAt.Format(time.RFC3339),
 						ID:         dbNode.(*models.Node).ID,
 						IPAddress:  dbNode.(*models.Node).IPAddress,
 						MACAddress: dbNode.(*models.Node).MacAddress,
@@ -525,7 +525,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 
 		for _, dbNode := range dbNodes {
 			protoNode := &proto.NodeMessage{
-				CreatedAt:  dbNode.CreatedAt.String(),
+				CreatedAt:  dbNode.CreatedAt.Format(time.RFC3339),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
 				MACAddress: dbNode.MacAddress,
@@ -555,7 +555,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 
 		for _, dbNode := range dbNodes {
 			protoNode := &proto.NodeMessage{
-				CreatedAt:  dbNode.CreatedAt.String(),
+				CreatedAt:  dbNode.CreatedAt.Format(time.RFC3339),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
 				MACAddress: dbNode.MacAddress,
@@ -607,7 +607,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 		for dbPortScan := range dbPortScans {
 			if dbPortScan.(*models.PortScan).NodeID == nodeMessage.GetID() {
 				protoPortScan := &proto.PortScanMessage{
-					CreatedAt: dbPortScan.(*models.PortScan).CreatedAt.String(),
+					CreatedAt: dbPortScan.(*models.PortScan).CreatedAt.Format(time.RFC3339),
 					Done: func() bool {
 						if dbPortScan.(*models.PortScan).Done == 1 {
 							return true
@@ -699,7 +699,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 					}
 
 					protoPort := &proto.PortMessage{
-						CreatedAt:         dbPort.(*models.Port).CreatedAt.String(),
+						CreatedAt:         dbPort.(*models.Port).CreatedAt.Format(time.RFC3339),
 						ID:                dbPort.(*models.Port).ID,
 						Priority:          1,
 						PortNumber:        dbPort.(*models.Port).PortNumber,
@@ -730,7 +730,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 
 		for _, dbPort := range dbPorts {
 			protoPort := &proto.PortMessage{
-				CreatedAt:         dbPort.CreatedAt.String(),
+				CreatedAt:         dbPort.CreatedAt.Format(time.RFC3339),
 				ID:                dbPort.ID,
 				Priority:          2,
 				PortNumber:        dbPort.PortNumber,
