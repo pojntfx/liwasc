@@ -8,6 +8,8 @@ import (
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -25,14 +27,23 @@ type Port struct {
 }
 
 type Node struct {
+	// Internal metadata
 	createdAt time.Time
 	priority  int64
 
+	// Data
 	MACAddress       string
 	IPAddress        string
 	PoweredOn        bool
 	LastPortScanDate time.Time
 	Ports            []Port
+
+	// Public metadata
+	Vendor       string
+	Registry     string
+	Organization string
+	Address      string
+	Visible      bool
 }
 
 type Network struct {
@@ -146,6 +157,25 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 							panic(err)
 						}
 
+						// Get the node's metadata
+						nodeMetadata, err := c.MetadataService.GetMetadataForNode(c.AuthenticatedContext, &proto.NodeMetadataReferenceMessage{
+							MACAddress: node.GetMACAddress(),
+						})
+						if err != nil {
+							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+								nodeMetadata = &proto.NodeMetadataMessage{
+									MACAddress:   node.GetMACAddress(),
+									Vendor:       "Unknown Vendor",
+									Registry:     "Unknown Registry",
+									Organization: "Unknown Organization",
+									Address:      "Unknown Address",
+									Visible:      true, // The majority are visible, so set it as the default value
+								}
+							} else {
+								panic(err)
+							}
+						}
+
 						c.dispatch(func() {
 							// Only continue if this node is newer and has a higher priority
 							lastKnownNodeIndex := -1
@@ -179,6 +209,12 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								PoweredOn:        node.GetPoweredOn(),
 								LastPortScanDate: time.Unix(0, 0),
 								Ports:            ports,
+
+								Vendor:       nodeMetadata.GetVendor(),
+								Registry:     nodeMetadata.GetRegistry(),
+								Organization: nodeMetadata.GetOrganization(),
+								Address:      nodeMetadata.GetAddress(),
+								Visible:      nodeMetadata.GetVisible(),
 							})
 						})
 
