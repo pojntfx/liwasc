@@ -163,7 +163,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 	}
 
 	protoNodeWake := &proto.NodeWakeMessage{
-		CreatedAt: dbNodeWake.CreatedAt.String(),
+		CreatedAt: dbNodeWake.CreatedAt.Format(time.RFC3339),
 		Done: func() bool {
 			if dbNodeWake.Done == 1 {
 				return true
@@ -208,7 +208,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 
 		for dbNodeWake := range dbNodeWakes {
 			protoNodeWake := &proto.NodeWakeMessage{
-				CreatedAt: dbNodeWake.(*models.NodeWake).CreatedAt.String(),
+				CreatedAt: dbNodeWake.(*models.NodeWake).CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeWake.(*models.NodeWake).Done == 1 {
 						return true
@@ -249,7 +249,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 
 		for _, dbNodeWake := range dbNodeWakes {
 			protoNodeWake := &proto.NodeWakeMessage{
-				CreatedAt: dbNodeWake.CreatedAt.String(),
+				CreatedAt: dbNodeWake.CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeWake.Done == 1 {
 						return true
