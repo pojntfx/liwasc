@@ -3,7 +3,6 @@ package experimental
 import (
 	"context"
 	"io"
-	"log"
 	"sync"
 	"time"
 
@@ -17,6 +16,14 @@ type ScannerMetadata struct {
 	Device  string
 }
 
+type Port struct {
+	createdAt time.Time
+	priority  int64
+
+	PortNumber        int64
+	TransportProtocol string
+}
+
 type Node struct {
 	createdAt time.Time
 	priority  int64
@@ -25,6 +32,7 @@ type Node struct {
 	IPAddress        string
 	PoweredOn        bool
 	LastPortScanDate time.Time
+	Ports            []Port
 }
 
 type Network struct {
@@ -149,11 +157,15 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 									}
 
 									lastKnownNodeIndex = i
+
+									break
 								}
 							}
 
-							// If an old node exists, remove it
+							// If an old node exists, remove it, but keep the ports
+							ports := []Port{}
 							if lastKnownNodeIndex != -1 {
+								ports = c.network.Nodes[lastKnownNodeIndex].Ports
 								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
 							}
 
@@ -166,6 +178,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								IPAddress:        node.GetIPAddress(),
 								PoweredOn:        node.GetPoweredOn(),
 								LastPortScanDate: time.Unix(0, 0),
+								Ports:            ports,
 							})
 						})
 
@@ -231,7 +244,54 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 												panic(err)
 											}
 
-											log.Printf("received port %v for node %v\n", port, nm.GetMACAddress())
+											// Parse the port's date
+											portCreatedAt, err := time.Parse(time.RFC3339, port.GetCreatedAt())
+											if err != nil {
+												panic(err)
+											}
+
+											c.dispatch(func() {
+												// Only continue if this port is newer and has a higher priority
+												lastKnownNodeIndex := -1
+												lastKnownPortIndex := -1
+												for nodeIndex, knownNode := range c.network.Nodes {
+													if knownNode.MACAddress == nm.GetMACAddress() {
+														lastKnownNodeIndex = nodeIndex
+
+														for portIndex, knownPort := range knownNode.Ports {
+															if knownPort.PortNumber == port.PortNumber && knownPort.TransportProtocol == port.TransportProtocol {
+																if portCreatedAt.After(knownPort.createdAt) && knownPort.priority > port.GetPriority() {
+																	// Ignore the port
+																	return
+																}
+
+																lastKnownPortIndex = portIndex
+
+																break
+															}
+														}
+
+														break
+													}
+												}
+
+												// Asynchronity; the node specified in the outer loops might not exist anymore
+												if lastKnownNodeIndex != -1 {
+													// If an old port exists, remove it.
+													if lastKnownPortIndex != -1 {
+														c.network.Nodes[lastKnownNodeIndex].Ports = append(c.network.Nodes[lastKnownNodeIndex].Ports[:lastKnownPortIndex], c.network.Nodes[lastKnownNodeIndex].Ports[lastKnownPortIndex+1:]...)
+													}
+
+													// Add the new port
+													c.network.Nodes[lastKnownNodeIndex].Ports = append(c.network.Nodes[lastKnownNodeIndex].Ports, Port{
+														createdAt: portCreatedAt,
+														priority:  port.GetPriority(),
+
+														PortNumber:        port.GetPortNumber(),
+														TransportProtocol: port.GetTransportProtocol(),
+													})
+												}
+											})
 										}
 									}(portScan)
 								}
