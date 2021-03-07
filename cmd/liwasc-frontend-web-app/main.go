@@ -23,7 +23,7 @@ func main() {
 	defer conn.Close()
 
 	metadataService := proto.NewMetadataServiceClient(conn)
-	// nodeAndPortScanServiceClient := proto.NewNodeAndPortScanServiceClient(conn)
+	nodeAndPortScanService := proto.NewNodeAndPortScanServiceClient(conn)
 
 	app.Route("/",
 		&components.OIDCLoginProviderComponent{
@@ -60,8 +60,9 @@ func main() {
 				}
 
 				return &experimental.DataProviderComponent{
-					AuthenticatedContext: metadata.AppendToOutgoingContext(context.Background(), components.AUTHORIZATION_METADATA_KEY, loginProviderChildrenProps.IDToken),
-					MetadataService:      metadataService,
+					AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), components.AUTHORIZATION_METADATA_KEY, loginProviderChildrenProps.IDToken),
+					MetadataService:        metadataService,
+					NodeAndPortScanService: nodeAndPortScanService,
 					Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
 						return &experimental.JSONOutputComponent{
 							Object: dpcp.Network,

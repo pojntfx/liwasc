@@ -2,7 +2,10 @@ package experimental
 
 import (
 	"context"
+	"io"
+	"log"
 	"sync"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
@@ -15,7 +18,8 @@ type ScannerMetadata struct {
 }
 
 type Network struct {
-	ScannerMetadata ScannerMetadata
+	ScannerMetadata  ScannerMetadata
+	LastNodeScanDate time.Time
 }
 
 type DataProviderChildrenProps struct {
@@ -25,9 +29,10 @@ type DataProviderChildrenProps struct {
 type DataProviderComponent struct {
 	app.Compo
 
-	AuthenticatedContext context.Context
-	MetadataService      proto.MetadataServiceClient
-	Children             func(DataProviderChildrenProps) app.UI
+	AuthenticatedContext   context.Context
+	MetadataService        proto.MetadataServiceClient
+	NodeAndPortScanService proto.NodeAndPortScanServiceClient
+	Children               func(DataProviderChildrenProps) app.UI
 
 	network     Network
 	networkLock sync.Mutex
@@ -41,17 +46,15 @@ func (c *DataProviderComponent) Render() app.UI {
 
 func (c *DataProviderComponent) OnMount(context app.Context) {
 	// Initialize network struct
-	c.networkLock.Lock()
-
-	c.network = Network{
-		ScannerMetadata: ScannerMetadata{
-			Subnets: []string{},
-			Device:  "",
-		},
-	}
-
-	c.Update()
-	c.networkLock.Unlock()
+	c.dispatch(func() {
+		c.network = Network{
+			ScannerMetadata: ScannerMetadata{
+				Subnets: []string{},
+				Device:  "",
+			},
+			LastNodeScanDate: time.Unix(0, 0),
+		}
+	})
 
 	// Get scanner metadata
 	go func() {
@@ -62,12 +65,55 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 		}
 
 		// Write to struct
-		c.networkLock.Lock()
-
-		c.network.ScannerMetadata.Device = scannerMetadata.GetDevice()
-		c.network.ScannerMetadata.Subnets = scannerMetadata.GetSubnets()
-
-		c.Update()
-		c.networkLock.Unlock()
+		c.dispatch(func() {
+			c.network.ScannerMetadata.Device = scannerMetadata.GetDevice()
+			c.network.ScannerMetadata.Subnets = scannerMetadata.GetSubnets()
+		})
 	}()
+
+	// Subscribe to node scans
+	go func() {
+		// Get stream from service
+		nodeScanStream, err := c.NodeAndPortScanService.SubscribeToNodeScans(c.AuthenticatedContext, &emptypb.Empty{})
+		if err != nil {
+			panic(err)
+		}
+
+		// Process stream
+		for {
+			// Receive scan from stream
+			nodeScan, err := nodeScanStream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+
+				panic(err)
+			}
+
+			// Only continue evaluation if this scan is newer than the newest one
+			createdAt, err := time.Parse(time.RFC3339, nodeScan.GetCreatedAt())
+			if err != nil {
+				panic(err)
+			}
+
+			if createdAt.After(c.network.LastNodeScanDate) {
+				// Set the new latest node scan date
+				c.dispatch(func() {
+					c.network.LastNodeScanDate = createdAt
+				})
+
+				log.Printf("continuing to evaluate node scan %v\n", c.network.LastNodeScanDate)
+			}
+		}
+	}()
+}
+
+func (c *DataProviderComponent) dispatch(action func()) {
+	c.networkLock.Lock()
+
+	action()
+
+	c.Update()
+	c.networkLock.Unlock()
 }
