@@ -49,9 +49,9 @@ func main() {
 			`<meta property="og:image" content="https://liwasc.felicitas.pojtinger.com/web/icon.png">`,
 		},
 		Styles: []string{
-			"https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly.css",
-			"https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly-addons.css",
-			"/web/index.css",
+			// "https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly.css",
+			// "https://unpkg.com/@patternfly/patternfly@4.42.2/patternfly-addons.css",
+			// "/web/index.css",
 		},
 		ThemeColor: "#151515",
 		Title:      "liwasc",
