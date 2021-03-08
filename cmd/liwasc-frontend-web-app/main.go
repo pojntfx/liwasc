@@ -64,9 +64,14 @@ func main() {
 					MetadataService:        metadataService,
 					NodeAndPortScanService: nodeAndPortScanService,
 					Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
-						return &experimental.JSONOutputComponent{
-							Object: dpcp.Network,
-						}
+						return app.Div().Body(
+							&experimental.ActionsComponent{
+								TriggerNetworkScan: dpcp.TriggerNetworkScan,
+							},
+							&experimental.JSONOutputComponent{
+								Object: dpcp.Network,
+							},
+						)
 					},
 				}
 

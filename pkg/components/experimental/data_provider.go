@@ -70,6 +70,8 @@ type Network struct {
 
 type DataProviderChildrenProps struct {
 	Network Network
+
+	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
 }
 
 type DataProviderComponent struct {
@@ -87,7 +89,25 @@ type DataProviderComponent struct {
 func (c *DataProviderComponent) Render() app.UI {
 	return c.Children(DataProviderChildrenProps{
 		Network: c.network,
+
+		TriggerNetworkScan: c.triggerNetworkScan,
 	})
+}
+
+func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout int64, macAddress string) {
+	// Optimistic UI
+	c.dispatch(func() {
+		c.network.NodeScanRunning = true
+	})
+
+	// Start the node scan
+	if _, err := c.NodeAndPortScanService.StartNodeScan(c.AuthenticatedContext, &proto.NodeScanStartMessage{
+		NodeScanTimeout: nodeScanTimeout,
+		PortScanTimeout: portScanTimeout,
+		MACAddress:      macAddress,
+	}); err != nil {
+		panic(err)
+	}
 }
 
 func (c *DataProviderComponent) OnMount(context app.Context) {
