@@ -18,5 +18,7 @@ func (c *JSONOutputComponent) Render() app.UI {
 		panic(err)
 	}
 
-	return app.Text(string(output))
+	return app.Code().Text(
+		string(output),
+	)
 }
