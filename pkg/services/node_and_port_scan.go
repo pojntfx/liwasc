@@ -323,7 +323,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 
 								// Create and broadcast port in DB
 								dbPort := &models.Port{
-									PortScanID:        dbNode.ID,
+									PortScanID:        dbPortScan.ID,
 									PortNumber:        int64(port.Port),
 									TransportProtocol: port.Protocol,
 								}
