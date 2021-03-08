@@ -523,6 +523,31 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 			return
 		}
 
+		// If there are no nodes in the scan (i.e. it was a scoped node scan), look back until the first scan with nodes is found
+		nodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
+		if err != nil {
+			log.Printf("could not get node scans from DB: %v\n", err)
+
+			return
+		}
+		for _, nodeScan := range nodeScans {
+			// Skip running scans
+			if nodeScan.Done == 0 {
+				continue
+			}
+
+			dbNodes, err = s.nodeAndPortScanDatabase.GetNodes(nodeScan.ID)
+			if err != nil {
+				log.Printf("could not get nodes for node scan %v from DB: %v\n", nodeScanMessage.GetID(), err)
+
+				return
+			}
+
+			if len(dbNodes) >= 1 {
+				break
+			}
+		}
+
 		for _, dbNode := range dbNodes {
 			protoNode := &proto.NodeMessage{
 				CreatedAt:  dbNode.CreatedAt.Format(time.RFC3339),
