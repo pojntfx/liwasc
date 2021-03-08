@@ -629,6 +629,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 
 		messengerReady <- true
 
+		newestPortScanDate := time.Unix(0, 0)
 		for dbPortScan := range dbPortScans {
 			if dbPortScan.(*models.PortScan).NodeID == nodeMessage.GetID() {
 				protoPortScan := &proto.PortScanMessage{
@@ -650,8 +651,15 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 					return
 				}
 
-				// There can only be one port scan per node, so if at least one port scan is done, return.
-				if protoPortScan.Done {
+				// If this is the first iteration, init with the initial date
+				// Works because a) messenger is non-blocking and b) messenger delivers in order, so newest
+				// messages come first
+				if newestPortScanDate == time.Unix(0, 0) {
+					newestPortScanDate = dbPortScan.(*models.PortScan).CreatedAt
+				}
+
+				// There can only be one port scan per node, so if at least one port scan is done, break.
+				if protoPortScan.Done && (dbPortScan.(*models.PortScan).CreatedAt.After(newestPortScanDate) || dbPortScan.(*models.PortScan).CreatedAt.Equal(newestPortScanDate)) {
 					break
 				}
 			}
