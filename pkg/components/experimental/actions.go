@@ -14,16 +14,19 @@ type ActionsComponent struct {
 	portScanTimeout int64
 	macAddress      string
 
+	Nodes []Node
+
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
 }
 
 const (
 	nodeScanTimeoutName = "nodeScanTimeout"
 	portScanTimeoutName = "portScanTimeout"
+	macAddressName      = "macAddressTimeout"
 
 	defaultNodeScanTimeout = 500
 	defaultPortScanTimeout = 50
-	defaultMACAddress      = ""
+	allMACAddresses        = "ff:ff:ff:ff"
 )
 
 func (c *ActionsComponent) Render() app.UI {
@@ -33,7 +36,7 @@ func (c *ActionsComponent) Render() app.UI {
 			app.
 				Label().
 				For(nodeScanTimeoutName).
-				Text("Node Scan Timeout (in ms)"),
+				Text("Node Scan Timeout (in ms): "),
 			&helpers.Controlled{
 				Component: app.
 					Input().
@@ -62,7 +65,7 @@ func (c *ActionsComponent) Render() app.UI {
 			app.
 				Label().
 				For(portScanTimeoutName).
-				Text("Port Scan Timeout (in ms)"),
+				Text("Port Scan Timeout (in ms): "),
 			&helpers.Controlled{
 				Component: app.
 					Input().
@@ -87,6 +90,39 @@ func (c *ActionsComponent) Render() app.UI {
 				Value: c.portScanTimeout,
 			},
 			app.Br(),
+			// MAC Address Input
+			app.
+				Label().
+				For(macAddressName).
+				Text("MAC Address: "),
+			&helpers.Controlled{
+				Component: app.
+					Select().
+					Name(macAddressName).
+					ID(macAddressName).
+					Required(true).
+					OnInput(func(ctx app.Context, e app.Event) {
+						c.macAddress = ctx.JSSrc.Get("value").String()
+
+						c.Update()
+					}).Body(
+					append(
+						[]app.UI{
+							app.
+								Option().
+								Value(allMACAddresses).
+								Text("All Addresses"),
+						},
+						app.Range(c.Nodes).Slice(func(i int) app.UI {
+							return app.
+								Option().
+								Value(c.Nodes[i].MACAddress).
+								Text(c.Nodes[i].MACAddress)
+						}))...,
+				),
+				Value: c.macAddress,
+			},
+			app.Br(),
 			// Input Trigger
 			app.
 				Input().
@@ -95,7 +131,12 @@ func (c *ActionsComponent) Render() app.UI {
 		).OnSubmit(func(ctx app.Context, e app.Event) {
 			e.PreventDefault()
 
-			go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.macAddress)
+			macAddress := c.macAddress
+			if macAddress == allMACAddresses {
+				macAddress = ""
+			}
+
+			go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, macAddress)
 		}),
 	)
 }
@@ -104,5 +145,5 @@ func (c *ActionsComponent) OnMount(context app.Context) {
 	// Initialize form state
 	c.nodeScanTimeout = defaultNodeScanTimeout
 	c.portScanTimeout = defaultPortScanTimeout
-	c.macAddress = defaultMACAddress
+	c.macAddress = allMACAddresses
 }

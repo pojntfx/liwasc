@@ -66,6 +66,8 @@ func main() {
 					Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
 						return app.Div().Body(
 							&experimental.ActionsComponent{
+								Nodes: dpcp.Network.Nodes,
+
 								TriggerNetworkScan: dpcp.TriggerNetworkScan,
 							},
 							&experimental.JSONOutputComponent{
