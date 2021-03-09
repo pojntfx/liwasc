@@ -73,6 +73,10 @@ func main() {
 								TriggerNetworkScan: dpcp.TriggerNetworkScan,
 								StartNodeWake:      dpcp.StartNodeWake,
 							},
+							&experimental.StatusComponent{
+								Error:   dpcp.Error,
+								Recover: dpcp.Recover,
+							},
 							&experimental.JSONOutputComponent{
 								Object: dpcp.Network,
 							},

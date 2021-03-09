@@ -76,6 +76,9 @@ type DataProviderChildrenProps struct {
 
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
 	StartNodeWake      func(nodeWakeTimeout int64, macAddress string)
+
+	Error   error
+	Recover func()
 }
 
 type DataProviderComponent struct {
@@ -89,6 +92,8 @@ type DataProviderComponent struct {
 
 	network     Network
 	networkLock sync.Mutex
+
+	err error
 }
 
 func (c *DataProviderComponent) Render() app.UI {
@@ -97,6 +102,9 @@ func (c *DataProviderComponent) Render() app.UI {
 
 		TriggerNetworkScan: c.triggerNetworkScan,
 		StartNodeWake:      c.startNodeWake,
+
+		Error:   c.err,
+		Recover: c.recover,
 	})
 }
 
@@ -123,7 +131,9 @@ func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portSc
 		PortScanTimeout: portScanTimeout,
 		MACAddress:      macAddress,
 	}); err != nil {
-		panic(err)
+		c.panic(err)
+
+		return
 	}
 }
 
@@ -143,8 +153,27 @@ func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress 
 		NodeWakeTimeout: nodeWakeTimeout,
 		MACAddress:      macAddress,
 	}); err != nil {
-		panic(err)
+		c.panic(err)
+
+		return
 	}
+}
+
+func (c *DataProviderComponent) recover() {
+	// Clear the error
+	c.err = nil
+
+	// Resubscribe
+	c.OnMount(app.Context{})
+
+	c.Update()
+}
+
+func (c *DataProviderComponent) panic(err error) {
+	// Set the error
+	c.err = err
+
+	c.Update()
 }
 
 func (c *DataProviderComponent) OnMount(context app.Context) {
@@ -166,7 +195,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 		// Fetch from service
 		scannerMetadata, err := c.MetadataService.GetMetadataForScanner(c.AuthenticatedContext, &emptypb.Empty{})
 		if err != nil {
-			panic(err)
+			c.panic(err)
+
+			return
 		}
 
 		// Write to struct
@@ -181,7 +212,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 		// Get stream from service
 		nodeScanStream, err := c.NodeAndPortScanService.SubscribeToNodeScans(c.AuthenticatedContext, &emptypb.Empty{})
 		if err != nil {
-			panic(err)
+			c.panic(err)
+
+			return
 		}
 
 		// Process stream
@@ -189,13 +222,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			// Receive scan from stream
 			nodeScan, err := nodeScanStream.Recv()
 			if err != nil {
-				panic(err)
+				c.panic(err)
+
+				return
 			}
 
 			// Parse the scan's date
 			nodeScanCreatedAt, err := time.Parse(time.RFC3339, nodeScan.GetCreatedAt())
 			if err != nil {
-				panic(err)
+				c.panic(err)
+
+				return
 			}
 
 			// Only continue evaluation if this scan is newer
@@ -217,7 +254,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 					// Get stream from service
 					nodeStream, err := c.NodeAndPortScanService.SubscribeToNodes(c.AuthenticatedContext, nsm)
 					if err != nil {
-						panic(err)
+						c.panic(err)
+
+						return
 					}
 
 					// Process stream
@@ -229,13 +268,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								break
 							}
 
-							panic(err)
+							c.panic(err)
+
+							return
 						}
 
 						// Parse the node's date
 						nodeCreatedAt, err := time.Parse(time.RFC3339, node.GetCreatedAt())
 						if err != nil {
-							panic(err)
+							c.panic(err)
+
+							return
 						}
 
 						// Get the node's metadata
@@ -253,7 +296,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 									Visible:      true, // The majority are visible, so set it as the default value
 								}
 							} else {
-								panic(err)
+								c.panic(err)
+
+								return
 							}
 						}
 
@@ -319,7 +364,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 							// Get stream from service
 							portScanStream, err := c.NodeAndPortScanService.SubscribeToPortScans(c.AuthenticatedContext, nm)
 							if err != nil {
-								panic(err)
+								c.panic(err)
+
+								return
 							}
 
 							// Process stream
@@ -331,13 +378,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 										break
 									}
 
-									panic(err)
+									c.panic(err)
+
+									return
 								}
 
 								// Parse the scan's date
 								portScanCreatedAt, err := time.Parse(time.RFC3339, portScan.GetCreatedAt())
 								if err != nil {
-									panic(err)
+									c.panic(err)
+
+									return
 								}
 
 								// Check if this port scan is the newest one
@@ -369,7 +420,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 										// Get stream from service
 										portStream, err := c.NodeAndPortScanService.SubscribeToPorts(c.AuthenticatedContext, ps)
 										if err != nil {
-											panic(err)
+											c.panic(err)
+
+											return
 										}
 
 										// Process stream
@@ -381,13 +434,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 													break
 												}
 
-												panic(err)
+												c.panic(err)
+
+												return
 											}
 
 											// Parse the port's date
 											portCreatedAt, err := time.Parse(time.RFC3339, port.GetCreatedAt())
 											if err != nil {
-												panic(err)
+												c.panic(err)
+
+												return
 											}
 
 											// Get the port's metadata
@@ -412,7 +469,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 														AssignmentNotes:         "",
 													}
 												} else {
-													panic(err)
+													c.panic(err)
+
+													return
 												}
 											}
 
@@ -488,7 +547,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			// Get stream from service
 			nodeWakeStream, err := c.NodeWakeService.SubscribeToNodeWakes(c.AuthenticatedContext, &emptypb.Empty{})
 			if err != nil {
-				panic(err)
+				c.panic(err)
+
+				return
 			}
 
 			// Process stream
@@ -496,13 +557,17 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 				// Receive node wake from stream
 				nodeWake, err := nodeWakeStream.Recv()
 				if err != nil {
-					panic(err)
+					c.panic(err)
+
+					return
 				}
 
 				// Parse the node wake's date
 				nodeWakeCreatedAt, err := time.Parse(time.RFC3339, nodeWake.GetCreatedAt())
 				if err != nil {
-					panic(err)
+					c.panic(err)
+
+					return
 				}
 
 				// Update the node's wake status if it's newer and it's priority is higher
@@ -546,7 +611,9 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 					time.Sleep(100 * time.Millisecond)
 
 					if err := nodeWakeStream.CloseSend(); err != nil {
-						panic(err)
+						c.panic(err)
+
+						return
 					}
 
 					break
