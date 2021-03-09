@@ -62,6 +62,11 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
+	// Validate
+	if nodeWakeStartMessage.GetNodeWakeTimeout() < 1 {
+		return nil, status.Error(codes.InvalidArgument, "node wake timeout can't be lower than 1")
+	}
+
 	// Create and broadcast node wake in DB
 	dbNodeWake := &models.NodeWake{
 		Done:       0,
