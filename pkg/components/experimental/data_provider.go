@@ -3,7 +3,6 @@ package experimental
 import (
 	"context"
 	"io"
-	"log"
 	"sync"
 	"time"
 
@@ -482,54 +481,77 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 	}()
 
 	// Subscribe to node wakes
-	// FIXME: The results are currently not being displayed properly, as the other subscriptions above race with this one.
 	go func() {
-		// Get stream from service
-		nodeWakeStream, err := c.NodeWakeService.SubscribeToNodeWakes(c.AuthenticatedContext, &emptypb.Empty{})
-		if err != nil {
-			panic(err)
-		}
+		retries := 0
 
-		// Process stream
 		for {
-			// Receive node wake from stream
-			nodeWake, err := nodeWakeStream.Recv()
+			// Get stream from service
+			nodeWakeStream, err := c.NodeWakeService.SubscribeToNodeWakes(c.AuthenticatedContext, &emptypb.Empty{})
 			if err != nil {
 				panic(err)
 			}
 
-			// Parse the node wake's date
-			nodeWakeCreatedAt, err := time.Parse(time.RFC3339, nodeWake.GetCreatedAt())
-			if err != nil {
-				panic(err)
-			}
-
-			// Update the node's wake status if it's newer and it's priority is higher
-			c.dispatch(func() {
-				for i, currentNode := range c.network.Nodes {
-					if currentNode.MACAddress == nodeWake.GetMACAddress() {
-						if (currentNode.LastNodeWakeDate.After(nodeWakeCreatedAt) || currentNode.LastNodeWakeDate.Equal(nodeWakeCreatedAt)) && currentNode.lastNodeWakePriority > nodeWake.GetPriority() {
-							// Ignore the node wake
-
-							return
-						}
-
-						// Set the new latest node wake date
-						c.network.Nodes[i].LastNodeWakeDate = nodeWakeCreatedAt
-
-						// Update the node wake indicator
-						if nodeWake.Done {
-							c.network.Nodes[i].NodeWakeRunning = false
-							// If the scan is done, also set the powered on status
-							c.network.Nodes[i].PoweredOn = nodeWake.GetPoweredOn()
-						} else {
-							c.network.Nodes[i].NodeWakeRunning = true
-						}
-
-						break
-					}
+			// Process stream
+			for {
+				// Receive node wake from stream
+				nodeWake, err := nodeWakeStream.Recv()
+				if err != nil {
+					panic(err)
 				}
-			})
+
+				// Parse the node wake's date
+				nodeWakeCreatedAt, err := time.Parse(time.RFC3339, nodeWake.GetCreatedAt())
+				if err != nil {
+					panic(err)
+				}
+
+				// Update the node's wake status if it's newer and it's priority is higher
+				nodeFound := false
+				c.dispatch(func() {
+					for i, currentNode := range c.network.Nodes {
+						if currentNode.MACAddress == nodeWake.GetMACAddress() {
+							nodeFound = true
+
+							if (currentNode.LastNodeWakeDate.After(nodeWakeCreatedAt) || currentNode.LastNodeWakeDate.Equal(nodeWakeCreatedAt)) && currentNode.lastNodeWakePriority > nodeWake.GetPriority() {
+								// Ignore the node wake
+
+								return
+							}
+
+							// Set the new latest node wake date
+							c.network.Nodes[i].LastNodeWakeDate = nodeWakeCreatedAt
+
+							// Update the node wake indicator
+							if nodeWake.Done {
+								c.network.Nodes[i].NodeWakeRunning = false
+								// If the scan is done, also set the powered on status
+								c.network.Nodes[i].PoweredOn = nodeWake.GetPoweredOn()
+							} else {
+								c.network.Nodes[i].NodeWakeRunning = true
+							}
+
+							break
+						}
+					}
+				})
+
+				// If the node could not be found, the nodes have not been fetched yet
+				if !nodeFound && retries <= 1000 {
+					// Re-subscribe to the scan until the race has finished/the node exists
+					// Unless there are manual interventions in the database diverging the node
+					// and port scans from the node wakes this can't lead to an endless loop.
+					// As a safety measure, it gives up after 1000 retries, in case they have.
+					retries++
+
+					time.Sleep(100 * time.Millisecond)
+
+					if err := nodeWakeStream.CloseSend(); err != nil {
+						panic(err)
+					}
+
+					break
+				}
+			}
 		}
 	}()
 }
