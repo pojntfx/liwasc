@@ -232,90 +232,142 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 				}
 				s.portScanMessenger.Broadcast(dbPortScan)
 
-				// Create port scanner
-				portscanner := scanners.NewPortScanner(
-					dbNode.IPAddress,
-					0,
-					math.MaxInt16,
-					time.Millisecond*time.Duration(nodeScanStartMessage.GetPortScanTimeout()),
-					[]string{"tcp", "udp"},
-					s.portScannerConcurrencyLimiter,
-					func(port int) ([]byte, error) {
-						packet, err := s.ports2packetsDatabase.GetPacket(port)
-						if err != nil {
-							return nil, err
-						}
-
-						return packet.Packet, nil
-					},
-				)
-
-				// Queueing port scan
-				log.Printf("queueing port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
-
-				// Lock the port scanner
-				portScannerReady := make(chan bool)
-				go func() {
-					// Lock the port scanner
-					s.portScannerLock.Lock()
-
-					// Start port scan
-					log.Printf("starting port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
-
-					for i := 0; i < 2; i++ {
-						portScannerReady <- true
-					}
-				}()
-
-				// Transmit port scan
-				go func() {
-					<-portScannerReady
-
-					if err := portscanner.Transmit(); err != nil {
-						log.Printf("could not transmit for port scan %v for node %v for node scan %v: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
-					}
-				}()
-
-				// Read port scan
-				go func() {
-					<-portScannerReady
-
-					for {
-						port := portscanner.Read()
-						// Port scan is done
-						if port == nil {
-							log.Printf("port scan %v for node %v for node scan %v is done\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
-
-							// Broadcast port scan completion
-							dbPort := &models.Port{
-								PortScanID: dbPortScan.ID,
-								PortNumber: -1,
+				// If non-scoped scan or node in scoped scan, do a port scan, else copy last scan's port information
+				if nodeScanStartMessage.GetMACAddress() == "" || nodeScanStartMessage.GetMACAddress() == dbNode.MacAddress {
+					// Create port scanner
+					portscanner := scanners.NewPortScanner(
+						dbNode.IPAddress,
+						0,
+						math.MaxInt16,
+						time.Millisecond*time.Duration(nodeScanStartMessage.GetPortScanTimeout()),
+						[]string{"tcp", "udp"},
+						s.portScannerConcurrencyLimiter,
+						func(port int) ([]byte, error) {
+							packet, err := s.ports2packetsDatabase.GetPacket(port)
+							if err != nil {
+								return nil, err
 							}
-							s.portMessenger.Broadcast(dbPort)
 
-							break
+							return packet.Packet, nil
+						},
+					)
+
+					// Queueing port scan
+					log.Printf("queueing port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+					// Lock the port scanner
+					portScannerReady := make(chan bool)
+					go func() {
+						// Lock the port scanner
+						s.portScannerLock.Lock()
+
+						// Start port scan
+						log.Printf("starting port scan %v for node %v for node scan %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+						for i := 0; i < 2; i++ {
+							portScannerReady <- true
 						}
+					}()
 
-						// Handle port
-						if port.Open {
-							go func() {
-								log.Printf("found open port %v/%v for port scan %v for node %v for node scan %v\n", port.Port, port.Protocol, dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+					// Transmit port scan
+					go func() {
+						<-portScannerReady
 
-								// Create and broadcast port in DB
+						if err := portscanner.Transmit(); err != nil {
+							log.Printf("could not transmit for port scan %v for node %v for node scan %v: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
+						}
+					}()
+
+					// Read port scan
+					go func() {
+						<-portScannerReady
+
+						for {
+							port := portscanner.Read()
+							// Port scan is done
+							if port == nil {
+								log.Printf("port scan %v for node %v for node scan %v is done\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+								// Broadcast port scan completion
 								dbPort := &models.Port{
-									PortScanID:        dbPortScan.ID,
-									PortNumber:        int64(port.Port),
-									TransportProtocol: port.Protocol,
-								}
-								if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
-									log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
-
-									return
+									PortScanID: dbPortScan.ID,
+									PortNumber: -1,
 								}
 								s.portMessenger.Broadcast(dbPort)
-							}()
+
+								break
+							}
+
+							// Handle port
+							if port.Open {
+								go func() {
+									log.Printf("found open port %v/%v for port scan %v for node %v for node scan %v\n", port.Port, port.Protocol, dbPortScan.ID, dbNode.ID, dbNodeScan.ID)
+
+									// Create and broadcast port in DB
+									dbPort := &models.Port{
+										PortScanID:        dbPortScan.ID,
+										PortNumber:        int64(port.Port),
+										TransportProtocol: port.Protocol,
+									}
+									if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
+										log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
+
+										return
+									}
+									s.portMessenger.Broadcast(dbPort)
+								}()
+							}
 						}
+
+						// Set port scan to done
+						dbPortScan.Done = 1
+						if err := s.nodeAndPortScanDatabase.UpdatePortScan(dbPortScan); err != nil {
+							log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
+						}
+						s.portScanMessenger.Broadcast(dbPortScan)
+
+						// Unlock the scanner
+						s.portScannerLock.Unlock()
+					}()
+				} else {
+					// Get the latest port scan for this node
+					latestPortScan, err := s.nodeAndPortScanDatabase.GetLatestPortScanForNodeId(dbNode.MacAddress)
+					if err != nil {
+						log.Printf("could not get last finished port scan for node %v from DB: %v\n", dbNode.ID, err)
+
+						return
 					}
+
+					// Get the ports for this last port scan
+					dbPorts, err := s.nodeAndPortScanDatabase.GetPorts(latestPortScan.ID)
+					if err != nil {
+						log.Printf("could not get ports for port scan %v from DB: %v\n", latestPortScan.ID, err)
+
+						return
+					}
+
+					// Copy the ports to the new port scan
+					for _, port := range dbPorts {
+						// Create and broadcast port in DB
+						dbPort := &models.Port{
+							PortScanID:        dbPortScan.ID,
+							PortNumber:        int64(port.PortNumber),
+							TransportProtocol: port.TransportProtocol,
+						}
+						if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
+							log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
+
+							return
+						}
+						s.portMessenger.Broadcast(dbPort)
+					}
+
+					// Broadcast port scan completion
+					dbPort := &models.Port{
+						PortScanID: dbPortScan.ID,
+						PortNumber: -1,
+					}
+					s.portMessenger.Broadcast(dbPort)
 
 					// Set port scan to done
 					dbPortScan.Done = 1
@@ -323,10 +375,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 						log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 					}
 					s.portScanMessenger.Broadcast(dbPortScan)
-
-					// Unlock the scanner
-					s.portScannerLock.Unlock()
-				}()
+				}
 			}()
 		}
 
