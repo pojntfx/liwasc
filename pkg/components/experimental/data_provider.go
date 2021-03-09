@@ -176,6 +176,15 @@ func (c *DataProviderComponent) panic(err error) {
 	c.Update()
 }
 
+func (c *DataProviderComponent) dispatch(action func()) {
+	c.networkLock.Lock()
+
+	action()
+
+	c.Update()
+	c.networkLock.Unlock()
+}
+
 func (c *DataProviderComponent) OnMount(context app.Context) {
 	// Initialize network struct
 	c.dispatch(func() {
@@ -621,13 +630,4 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 			}
 		}
 	}()
-}
-
-func (c *DataProviderComponent) dispatch(action func()) {
-	c.networkLock.Lock()
-
-	action()
-
-	c.Update()
-	c.networkLock.Unlock()
 }
