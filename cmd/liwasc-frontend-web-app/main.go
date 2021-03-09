@@ -24,6 +24,7 @@ func main() {
 
 	metadataService := proto.NewMetadataServiceClient(conn)
 	nodeAndPortScanService := proto.NewNodeAndPortScanServiceClient(conn)
+	nodeWakeService := proto.NewNodeWakeServiceClient(conn)
 
 	app.Route("/",
 		&components.OIDCLoginProviderComponent{
@@ -63,6 +64,7 @@ func main() {
 					AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), components.AUTHORIZATION_METADATA_KEY, loginProviderChildrenProps.IDToken),
 					MetadataService:        metadataService,
 					NodeAndPortScanService: nodeAndPortScanService,
+					NodeWakeService:        nodeWakeService,
 					Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
 						return app.Div().Body(
 							&experimental.ActionsComponent{

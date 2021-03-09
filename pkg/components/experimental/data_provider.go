@@ -52,6 +52,7 @@ type Node struct {
 	PortScanRunning  bool
 	LastPortScanDate time.Time
 	Ports            []Port
+	NodeWakeRunning  bool
 
 	// Public metadata
 	Vendor       string
@@ -72,6 +73,7 @@ type DataProviderChildrenProps struct {
 	Network Network
 
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
+	StartNodeWake      func(nodeWakeTimeout int64, macAddress string)
 }
 
 type DataProviderComponent struct {
@@ -80,6 +82,7 @@ type DataProviderComponent struct {
 	AuthenticatedContext   context.Context
 	MetadataService        proto.MetadataServiceClient
 	NodeAndPortScanService proto.NodeAndPortScanServiceClient
+	NodeWakeService        proto.NodeWakeServiceClient
 	Children               func(DataProviderChildrenProps) app.UI
 
 	network     Network
@@ -91,19 +94,55 @@ func (c *DataProviderComponent) Render() app.UI {
 		Network: c.network,
 
 		TriggerNetworkScan: c.triggerNetworkScan,
+		StartNodeWake:      c.startNodeWake,
 	})
 }
 
 func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout int64, macAddress string) {
 	// Optimistic UI
 	c.dispatch(func() {
+		// Set the node scan bool
 		c.network.NodeScanRunning = true
+
+		// Scan for one address
+		if macAddress != "" {
+			for i, node := range c.network.Nodes {
+				if node.MACAddress == macAddress {
+					// Set the port scan bool
+					c.network.Nodes[i].PortScanRunning = true
+				}
+			}
+		}
+
+		c.Update()
 	})
 
 	// Start the node scan
 	if _, err := c.NodeAndPortScanService.StartNodeScan(c.AuthenticatedContext, &proto.NodeScanStartMessage{
 		NodeScanTimeout: nodeScanTimeout,
 		PortScanTimeout: portScanTimeout,
+		MACAddress:      macAddress,
+	}); err != nil {
+		panic(err)
+	}
+}
+
+func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress string) {
+	// Optimistic UI
+	c.dispatch(func() {
+		for i, node := range c.network.Nodes {
+			if node.MACAddress == macAddress {
+				// Set the node wake bool
+				c.network.Nodes[i].NodeWakeRunning = true
+			}
+		}
+
+		c.Update()
+	})
+
+	// Start the node wake
+	if _, err := c.NodeWakeService.StartNodeWake(c.AuthenticatedContext, &proto.NodeWakeStartMessage{
+		NodeWakeTimeout: nodeWakeTimeout,
 		MACAddress:      macAddress,
 	}); err != nil {
 		panic(err)
@@ -236,14 +275,16 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								}
 							}
 
-							// If an old node exists, remove it, but keep the port scan state
+							// If an old node exists, remove it, but keep the current scan & wake state
 							ports := []Port{}
 							portScanRunning := false
 							lastPortScanDate := time.Unix(0, 0)
+							nodeWakeRunning := false
 							if lastKnownNodeIndex != -1 {
 								ports = c.network.Nodes[lastKnownNodeIndex].Ports
 								portScanRunning = c.network.Nodes[lastKnownNodeIndex].PortScanRunning
 								lastPortScanDate = c.network.Nodes[lastKnownNodeIndex].LastPortScanDate
+								nodeWakeRunning = c.network.Nodes[lastKnownNodeIndex].NodeWakeRunning
 
 								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
 							}
@@ -259,6 +300,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								PortScanRunning:  portScanRunning,
 								LastPortScanDate: lastPortScanDate,
 								Ports:            ports,
+								NodeWakeRunning:  nodeWakeRunning,
 
 								Vendor:       nodeMetadata.GetVendor(),
 								Registry:     nodeMetadata.GetRegistry(),
