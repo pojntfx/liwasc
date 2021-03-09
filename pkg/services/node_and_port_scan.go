@@ -119,6 +119,16 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
+	// Validate
+	if nodeScanStartMessage.GetNodeScanTimeout() < 250 {
+		return nil, status.Error(codes.InvalidArgument, "node scan timeout can't be lower than 250")
+	}
+
+	if nodeScanStartMessage.GetPortScanTimeout() < 50 {
+		return nil, status.Error(codes.InvalidArgument, "port scan timeout can't be lower than 50")
+	}
+
+	// Start the node scan
 	return s.startInternalNodeScan(ctx, nodeScanStartMessage)
 }
 
