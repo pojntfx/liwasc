@@ -71,6 +71,7 @@ func main() {
 								Nodes: dpcp.Network.Nodes,
 
 								TriggerNetworkScan: dpcp.TriggerNetworkScan,
+								StartNodeWake:      dpcp.StartNodeWake,
 							},
 							&experimental.JSONOutputComponent{
 								Object: dpcp.Network,

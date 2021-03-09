@@ -10,23 +10,35 @@ import (
 type ActionsComponent struct {
 	app.Compo
 
-	nodeScanTimeout int64
-	portScanTimeout int64
-	macAddress      string
+	nodeScanTimeout    int64
+	portScanTimeout    int64
+	nodeScanMACAddress string
+
+	nodeWakeTimeout    int64
+	nodeWakeMACAddress string
 
 	Nodes []Node
 
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
+	StartNodeWake      func(nodeWakeTimeout int64, macAddress string)
 }
 
 const (
-	nodeScanTimeoutName = "nodeScanTimeout"
-	portScanTimeoutName = "portScanTimeout"
-	macAddressName      = "macAddressTimeout"
+	// Names and IDs
+	nodeScanTimeoutName    = "nodeScanTimeout"
+	portScanTimeoutName    = "portScanTimeout"
+	nodeScanMACAddressName = "nodeScanMACAddressTimeout"
 
+	nodeWakeTimeoutName    = "nodeWakeTimeout"
+	nodeWakeMACAddressName = "nodeWakeMACAddressTimeout"
+
+	// Default values
 	defaultNodeScanTimeout = 500
 	defaultPortScanTimeout = 50
 	allMACAddresses        = "ff:ff:ff:ff"
+
+	defaultNodeWakeTimeout    = 1000
+	defaultNodeWakeMACAddress = ""
 )
 
 func (c *ActionsComponent) Render() app.UI {
@@ -90,19 +102,19 @@ func (c *ActionsComponent) Render() app.UI {
 				Value: c.portScanTimeout,
 			},
 			app.Br(),
-			// MAC Address Input
+			// Node Scan MAC Address Input
 			app.
 				Label().
-				For(macAddressName).
-				Text("MAC Address: "),
+				For(nodeScanMACAddressName).
+				Text("Node Scan MAC Address: "),
 			&helpers.Controlled{
 				Component: app.
 					Select().
-					Name(macAddressName).
-					ID(macAddressName).
+					Name(nodeScanMACAddressName).
+					ID(nodeScanMACAddressName).
 					Required(true).
 					OnInput(func(ctx app.Context, e app.Event) {
-						c.macAddress = ctx.JSSrc.Get("value").String()
+						c.nodeScanMACAddress = ctx.JSSrc.Get("value").String()
 
 						c.Update()
 					}).Body(
@@ -120,10 +132,10 @@ func (c *ActionsComponent) Render() app.UI {
 								Text(c.Nodes[i].MACAddress)
 						}))...,
 				),
-				Value: c.macAddress,
+				Value: c.nodeScanMACAddress,
 			},
 			app.Br(),
-			// Input Trigger
+			// Network Scan Input Trigger
 			app.
 				Input().
 				Type("submit").
@@ -131,19 +143,89 @@ func (c *ActionsComponent) Render() app.UI {
 		).OnSubmit(func(ctx app.Context, e app.Event) {
 			e.PreventDefault()
 
-			macAddress := c.macAddress
+			macAddress := c.nodeScanMACAddress
 			if macAddress == allMACAddresses {
 				macAddress = ""
 			}
 
 			go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, macAddress)
 		}),
+		app.Form().Body(
+			// Node Wake Timeout Input
+			app.
+				Label().
+				For(nodeWakeTimeoutName).
+				Text("Node Wake Timeout (in ms): "),
+			&helpers.Controlled{
+				Component: app.
+					Input().
+					Name(nodeWakeTimeoutName).
+					Type("number").
+					Required(true).
+					Min(1).
+					Step(1).
+					Placeholder("500").
+					OnInput(func(ctx app.Context, e app.Event) {
+						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+						if err != nil || v == 0 {
+							c.Update()
+
+							return
+						}
+
+						c.nodeWakeTimeout = int64(v)
+
+						c.Update()
+					}),
+				Value: c.nodeWakeTimeout,
+			},
+			app.Br(),
+			// Node Wake MAC Address Input
+			app.
+				Label().
+				For(nodeWakeMACAddressName).
+				Text("Node Wake MAC Address: "),
+			&helpers.Controlled{
+				Component: app.
+					Select().
+					Name(nodeWakeMACAddressName).
+					ID(nodeWakeMACAddressName).
+					Required(true).
+					OnInput(func(ctx app.Context, e app.Event) {
+						c.nodeWakeMACAddress = ctx.JSSrc.Get("value").String()
+
+						c.Update()
+					}).Body(
+					app.Range(c.Nodes).Slice(func(i int) app.UI {
+						return app.
+							Option().
+							Value(c.Nodes[i].MACAddress).
+							Text(c.Nodes[i].MACAddress)
+					}),
+				),
+				Value: c.nodeWakeMACAddress,
+			},
+			app.Br(),
+			// Node Wake Input Trigger
+			app.
+				Input().
+				Type("submit").
+				Value("Trigger node wake"),
+		).OnSubmit(func(ctx app.Context, e app.Event) {
+			e.PreventDefault()
+
+			go c.StartNodeWake(c.nodeWakeTimeout, c.nodeWakeMACAddress)
+		}),
 	)
 }
 
 func (c *ActionsComponent) OnMount(context app.Context) {
-	// Initialize form state
+	// Initialize node scan form
 	c.nodeScanTimeout = defaultNodeScanTimeout
 	c.portScanTimeout = defaultPortScanTimeout
-	c.macAddress = allMACAddresses
+	c.nodeScanMACAddress = allMACAddresses
+
+	// Initialize node wake form
+	c.nodeWakeTimeout = defaultNodeWakeTimeout
+	c.nodeWakeMACAddress = defaultNodeWakeMACAddress
 }
