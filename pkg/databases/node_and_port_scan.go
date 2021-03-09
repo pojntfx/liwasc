@@ -78,6 +78,28 @@ func (d *NodeAndPortScanDatabase) GetPortScan(portScanID int64) (*models.PortSca
 	return models.FindPortScan(context.Background(), d.db, portScanID)
 }
 
+func (d *NodeAndPortScanDatabase) GetLatestPortScanForNodeId(macAddress string) (*models.PortScan, error) {
+	var latestPortScan models.PortScan
+	if err := queries.Raw(
+		fmt.Sprintf(
+			`select * from %v where %v = 1 and %v in (select %v from %v where %v=$1 order by %v desc) order by %v desc limit 1`,
+			models.TableNames.PortScans,
+			models.PortScanColumns.Done,
+			models.PortScanColumns.NodeID,
+			models.NodeColumns.ID,
+			models.TableNames.Nodes,
+			models.NodeColumns.MacAddress,
+			models.NodeColumns.CreatedAt,
+			models.PortScanColumns.CreatedAt,
+		),
+		macAddress,
+	).Bind(context.Background(), d.db, &latestPortScan); err != nil {
+		return nil, err
+	}
+
+	return &latestPortScan, nil
+}
+
 func (d *NodeAndPortScanDatabase) GetPorts(portScanID int64) (models.PortSlice, error) {
 	return models.Ports(models.PortWhere.PortScanID.EQ(portScanID), qm.OrderBy(models.PortColumns.CreatedAt+" DESC")).All(context.Background(), d.db)
 }
