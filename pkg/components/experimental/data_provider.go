@@ -3,6 +3,7 @@ package experimental
 import (
 	"context"
 	"io"
+	"log"
 	"sync"
 	"time"
 
@@ -42,8 +43,9 @@ type Port struct {
 
 type Node struct {
 	// Internal metadata
-	createdAt time.Time
-	priority  int64
+	createdAt            time.Time
+	priority             int64
+	lastNodeWakePriority int64
 
 	// Data
 	MACAddress       string
@@ -53,6 +55,7 @@ type Node struct {
 	LastPortScanDate time.Time
 	Ports            []Port
 	NodeWakeRunning  bool
+	LastNodeWakeDate time.Time
 
 	// Public metadata
 	Vendor       string
@@ -113,8 +116,6 @@ func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portSc
 				}
 			}
 		}
-
-		c.Update()
 	})
 
 	// Start the node scan
@@ -136,8 +137,6 @@ func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress 
 				c.network.Nodes[i].NodeWakeRunning = true
 			}
 		}
-
-		c.Update()
 	})
 
 	// Start the node wake
@@ -280,19 +279,24 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 							portScanRunning := false
 							lastPortScanDate := time.Unix(0, 0)
 							nodeWakeRunning := false
+							lastNodeWakeDate := time.Unix(0, 0)
+							lastNodeWakePriority := int64(0)
 							if lastKnownNodeIndex != -1 {
 								ports = c.network.Nodes[lastKnownNodeIndex].Ports
 								portScanRunning = c.network.Nodes[lastKnownNodeIndex].PortScanRunning
 								lastPortScanDate = c.network.Nodes[lastKnownNodeIndex].LastPortScanDate
 								nodeWakeRunning = c.network.Nodes[lastKnownNodeIndex].NodeWakeRunning
+								lastNodeWakeDate = c.network.Nodes[lastKnownNodeIndex].LastNodeWakeDate
+								lastNodeWakePriority = c.network.Nodes[lastKnownNodeIndex].lastNodeWakePriority
 
 								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
 							}
 
 							// Add the new node
 							c.network.Nodes = append(c.network.Nodes, Node{
-								createdAt: nodeCreatedAt,
-								priority:  node.GetPriority(),
+								createdAt:            nodeCreatedAt,
+								priority:             node.GetPriority(),
+								lastNodeWakePriority: lastNodeWakePriority,
 
 								MACAddress:       node.GetMACAddress(),
 								IPAddress:        node.GetIPAddress(),
@@ -301,6 +305,7 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 								LastPortScanDate: lastPortScanDate,
 								Ports:            ports,
 								NodeWakeRunning:  nodeWakeRunning,
+								LastNodeWakeDate: lastNodeWakeDate,
 
 								Vendor:       nodeMetadata.GetVendor(),
 								Registry:     nodeMetadata.GetRegistry(),
@@ -473,6 +478,58 @@ func (c *DataProviderComponent) OnMount(context app.Context) {
 					}
 				}(nodeScan)
 			}
+		}
+	}()
+
+	// Subscribe to node wakes
+	// FIXME: The results are currently not being displayed properly, as the other subscriptions above race with this one.
+	go func() {
+		// Get stream from service
+		nodeWakeStream, err := c.NodeWakeService.SubscribeToNodeWakes(c.AuthenticatedContext, &emptypb.Empty{})
+		if err != nil {
+			panic(err)
+		}
+
+		// Process stream
+		for {
+			// Receive node wake from stream
+			nodeWake, err := nodeWakeStream.Recv()
+			if err != nil {
+				panic(err)
+			}
+
+			// Parse the node wake's date
+			nodeWakeCreatedAt, err := time.Parse(time.RFC3339, nodeWake.GetCreatedAt())
+			if err != nil {
+				panic(err)
+			}
+
+			// Update the node's wake status if it's newer and it's priority is higher
+			c.dispatch(func() {
+				for i, currentNode := range c.network.Nodes {
+					if currentNode.MACAddress == nodeWake.GetMACAddress() {
+						if (currentNode.LastNodeWakeDate.After(nodeWakeCreatedAt) || currentNode.LastNodeWakeDate.Equal(nodeWakeCreatedAt)) && currentNode.lastNodeWakePriority > nodeWake.GetPriority() {
+							// Ignore the node wake
+
+							return
+						}
+
+						// Set the new latest node wake date
+						c.network.Nodes[i].LastNodeWakeDate = nodeWakeCreatedAt
+
+						// Update the node wake indicator
+						if nodeWake.Done {
+							c.network.Nodes[i].NodeWakeRunning = false
+							// If the scan is done, also set the powered on status
+							c.network.Nodes[i].PoweredOn = nodeWake.GetPoweredOn()
+						} else {
+							c.network.Nodes[i].NodeWakeRunning = true
+						}
+
+						break
+					}
+				}
+			})
 		}
 	}()
 }
