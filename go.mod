@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/coreos/go-oidc v2.2.1+incompatible
+	github.com/coreos/go-oidc/v3 v3.0.0
 	github.com/golang/protobuf v1.4.3
 	github.com/kataras/compress v0.0.6
 	github.com/maxence-charriere/go-app/v7 v7.3.0
