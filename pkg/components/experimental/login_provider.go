@@ -168,10 +168,13 @@ func (c *LoginProviderComponent) persist(oauth2Token oauth2.Token, idToken strin
 }
 
 func (c *LoginProviderComponent) clear() {
-	// Remove from local storage
+	// Remove from storage
 	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
 	app.LocalStorage.Del(c.getKey(idTokenKey))
 	app.LocalStorage.Del(c.getKey(userInfoKey))
+
+	// Remove cookies
+	app.Window().Get("document").Set("cookie", "")
 }
 
 func (c *LoginProviderComponent) getKey(key string) string {
