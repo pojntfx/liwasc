@@ -20,11 +20,6 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Create the services
-	metadataService := proto.NewMetadataServiceClient(conn)
-	nodeAndPortScanService := proto.NewNodeAndPortScanServiceClient(conn)
-	nodeWakeService := proto.NewNodeWakeServiceClient(conn)
-
 	// Define the routes
 	app.Route("/",
 		// Login provider
@@ -36,45 +31,45 @@ func main() {
 			Scopes:        []string{"profile", "email"},
 			StoragePrefix: "liwasc",
 			Children: func(lpcp experimental.LoginProviderChildrenProps) app.UI {
-				if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
-					// Login placeholder
-					return app.P().Text("Authorizing ...")
-				}
-
-				return app.Div().Body(
-					// Login status
-					&experimental.StatusComponent{
-						Error:   lpcp.Error,
-						Recover: lpcp.Recover,
-					},
-					// Data provider
-					&experimental.DataProviderComponent{
-						AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
-						MetadataService:        metadataService,
-						NodeAndPortScanService: nodeAndPortScanService,
-						NodeWakeService:        nodeWakeService,
-						Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
-							return app.Div().Body(
-								// Data actions
-								&experimental.ActionsComponent{
-									Nodes: dpcp.Network.Nodes,
-
-									TriggerNetworkScan: dpcp.TriggerNetworkScan,
-									StartNodeWake:      dpcp.StartNodeWake,
-								},
-								// Data status
-								&experimental.StatusComponent{
-									Error:   dpcp.Error,
-									Recover: dpcp.Recover,
-								},
-								// Data output
-								&experimental.JSONOutputComponent{
-									Object: dpcp.Network,
-								},
-							)
+				return app.
+					If(lpcp.IDToken == "" || lpcp.UserInfo.Email == "",
+						// Login placeholder
+						app.P().Text("Authorizing ..."),
+					).
+					Else(app.Div().Body(
+						// Login status
+						&experimental.StatusComponent{
+							Error:   lpcp.Error,
+							Recover: lpcp.Recover,
 						},
-					},
-				)
+						// Data provider
+						&experimental.DataProviderComponent{
+							AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
+							MetadataService:        proto.NewMetadataServiceClient(conn),
+							NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
+							NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
+							Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
+								return app.Div().Body(
+									// Data actions
+									&experimental.ActionsComponent{
+										Nodes: dpcp.Network.Nodes,
+
+										TriggerNetworkScan: dpcp.TriggerNetworkScan,
+										StartNodeWake:      dpcp.StartNodeWake,
+									},
+									// Data status
+									&experimental.StatusComponent{
+										Error:   dpcp.Error,
+										Recover: dpcp.Recover,
+									},
+									// Data output
+									&experimental.JSONOutputComponent{
+										Object: dpcp.Network,
+									},
+								)
+							},
+						},
+					))
 			},
 		})
 
