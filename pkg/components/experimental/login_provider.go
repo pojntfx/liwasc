@@ -130,9 +130,7 @@ func (c *LoginProviderComponent) watch() {
 
 func (c *LoginProviderComponent) logout(withRedirect bool) {
 	// Remove from local storage
-	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
-	app.LocalStorage.Del(c.getKey(idTokenKey))
-	app.LocalStorage.Del(c.getKey(userInfoKey))
+	c.clear()
 
 	// Update and navigate to home URL
 	c.Update()
@@ -168,6 +166,13 @@ func (c *LoginProviderComponent) persist(oauth2Token oauth2.Token, idToken strin
 		return err
 	}
 	return app.LocalStorage.Set(c.getKey(userInfoKey), userInfo)
+}
+
+func (c *LoginProviderComponent) clear() {
+	// Remove from local storage
+	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
+	app.LocalStorage.Del(c.getKey(idTokenKey))
+	app.LocalStorage.Del(c.getKey(userInfoKey))
 }
 
 func (c *LoginProviderComponent) getKey(key string) string {
@@ -250,6 +255,23 @@ func (c *LoginProviderComponent) authorize() {
 		// Update and navigate to home URL
 		c.Update()
 		app.Navigate(c.HomeURL)
+
+		return
+	}
+
+	// Validation state
+
+	// Create the OIDC config
+	oidcConfig := &oidc.Config{
+		ClientID: c.ClientID,
+	}
+
+	// Create the OIDC verifier and validate the token (i.e. check for it's expiry date)
+	verifier := provider.Verifier(oidcConfig)
+	if _, err := verifier.Verify(context.Background(), idToken); err != nil {
+		// Invalid token; clear and re-authorize
+		c.clear()
+		c.authorize()
 
 		return
 	}
