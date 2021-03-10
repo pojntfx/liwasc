@@ -27,7 +27,8 @@ type ConfigProviderChildrenProps struct {
 type ConfigProviderComponent struct {
 	app.Compo
 
-	Children func(ConfigProviderChildrenProps) app.UI
+	StoragePrefix string
+	Children      func(ConfigProviderChildrenProps) app.UI
 
 	backendURL      string
 	oidcIssuer      string
@@ -39,10 +40,10 @@ type ConfigProviderComponent struct {
 }
 
 const (
-	backendURLQueryParam      = "backendURL"
-	oidcIssuerQueryParam      = "oidcIssuer"
-	oidcClientIDQueryParam    = "oidcClientID"
-	oidcRedirectURLQueryParam = "oidcRedirectURL"
+	backendURLKey      = "backendURL"
+	oidcIssuerKey      = "oidcIssuer"
+	oidcClientIDKey    = "oidcClientID"
+	oidcRedirectURLKey = "oidcRedirectURL"
 )
 
 func (c *ConfigProviderComponent) Render() app.UI {
@@ -125,6 +126,13 @@ func (c *ConfigProviderComponent) validate() {
 		return
 	}
 
+	// Persist state
+	if err := c.persist(); err != nil {
+		c.invalidate(err)
+
+		return
+	}
+
 	// If all are valid, set ready state
 	c.dispatch(func() {
 		c.err = nil
@@ -132,14 +140,29 @@ func (c *ConfigProviderComponent) validate() {
 	})
 }
 
+func (c *ConfigProviderComponent) persist() error {
+	// Write state to storage
+	if err := app.LocalStorage.Set(c.getKey(backendURLKey), c.backendURL); err != nil {
+		return err
+	}
+	if err := app.LocalStorage.Set(c.getKey(oidcIssuerKey), c.oidcIssuer); err != nil {
+		return err
+	}
+	if err := app.LocalStorage.Set(c.getKey(oidcClientIDKey), c.oidcClientID); err != nil {
+		return err
+	}
+
+	return app.LocalStorage.Set(c.getKey(oidcRedirectURLKey), c.oidcRedirectURL)
+}
+
 func (c *ConfigProviderComponent) rehydrateFromURL() bool {
 	// Read the values from the URL
 	query := app.Window().URL().Query()
 
-	backendURL := query.Get(backendURLQueryParam)
-	oidcIssuer := query.Get(oidcIssuerQueryParam)
-	oidcClientID := query.Get(oidcClientIDQueryParam)
-	oidcRedirectURL := query.Get(oidcRedirectURLQueryParam)
+	backendURL := query.Get(backendURLKey)
+	oidcIssuer := query.Get(oidcIssuerKey)
+	oidcClientID := query.Get(oidcClientIDKey)
+	oidcRedirectURL := query.Get(oidcRedirectURLKey)
 
 	// If all values are set, set them in the data provider
 	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
@@ -156,6 +179,11 @@ func (c *ConfigProviderComponent) rehydrateFromURL() bool {
 	return false
 }
 
+func (c *ConfigProviderComponent) getKey(key string) string {
+	// Get a prefixed key
+	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
+}
+
 func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	// Initialize state
 	c.backendURL = ""
@@ -167,8 +195,9 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	// Rehydrate from URL
 	rehydratedFromURL := c.rehydrateFromURL()
 
-	// If rehydrated from URL, persist
+	// If rehydrated from URL, validate & apply
 	if rehydratedFromURL {
-
+		// Auto-apply if configured
+		c.validate()
 	}
 }
