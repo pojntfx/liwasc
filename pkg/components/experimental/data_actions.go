@@ -52,6 +52,7 @@ func (c *DataActionsComponent) Render() app.UI {
 				Component: app.
 					Input().
 					Name(nodeScanTimeoutName).
+					ID(nodeScanTimeoutName).
 					Type("number").
 					Required(true).
 					Min(1).
@@ -81,6 +82,7 @@ func (c *DataActionsComponent) Render() app.UI {
 				Component: app.
 					Input().
 					Name(portScanTimeoutName).
+					ID(portScanTimeoutName).
 					Type("number").
 					Required(true).
 					Min(1).
@@ -159,6 +161,7 @@ func (c *DataActionsComponent) Render() app.UI {
 				Component: app.
 					Input().
 					Name(nodeWakeTimeoutName).
+					ID(nodeWakeTimeoutName).
 					Type("number").
 					Required(true).
 					Min(1).

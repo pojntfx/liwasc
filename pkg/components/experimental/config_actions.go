@@ -39,11 +39,12 @@ func (c *ConfigActionsComponent) Render() app.UI {
 			app.
 				Label().
 				For(backendURLName).
-				Text("Node Scan Timeout (in ms): "),
+				Text("Backend URL: "),
 			&Controlled{
 				Component: app.
 					Input().
 					Name(backendURLName).
+					ID(backendURLName).
 					Type("url").
 					Required(true).
 					Placeholder(backendURLPlaceholder).
@@ -51,6 +52,62 @@ func (c *ConfigActionsComponent) Render() app.UI {
 						c.SetBackendURL(ctx.JSSrc.Get("value").String())
 					}),
 				Value: c.BackendURL,
+			},
+			app.Br(),
+			// OIDC Issuer Input
+			app.
+				Label().
+				For(oidcIssuerName).
+				Text("OIDC Issuer: "),
+			&Controlled{
+				Component: app.
+					Input().
+					Name(oidcIssuerName).
+					ID(oidcIssuerName).
+					Type("url").
+					Required(true).
+					Placeholder(oidcIssuerPlaceholder).
+					OnInput(func(ctx app.Context, e app.Event) {
+						c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
+					}),
+				Value: c.OIDCIssuer,
+			},
+			app.Br(),
+			// OIDC Client ID
+			app.
+				Label().
+				For(oidcClientIDName).
+				Text("OIDC Client ID: "),
+			&Controlled{
+				Component: app.
+					Input().
+					Name(oidcClientIDName).
+					ID(oidcClientIDName).
+					Type("text").
+					Required(true).
+					OnInput(func(ctx app.Context, e app.Event) {
+						c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
+					}),
+				Value: c.OIDCClientID,
+			},
+			app.Br(),
+			// OIDC Redirect URL
+			app.
+				Label().
+				For(oidcRedirectURLName).
+				Text("OIDC Redirect URL: "),
+			&Controlled{
+				Component: app.
+					Input().
+					Name(oidcRedirectURLName).
+					ID(oidcRedirectURLName).
+					Type("url").
+					Required(true).
+					Placeholder(oidcRedirectURLPlaceholder).
+					OnInput(func(ctx app.Context, e app.Event) {
+						c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
+					}),
+				Value: c.OIDCRedirectURL,
 			},
 			app.Br(),
 			// Configuration Apply Trigger
