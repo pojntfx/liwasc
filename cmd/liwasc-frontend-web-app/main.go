@@ -56,7 +56,6 @@ func main() {
 								if err != nil {
 									panic(err)
 								}
-								defer conn.Close()
 
 								return app.Div().Body(
 									// Login status
