@@ -1,139 +1,83 @@
 package main
 
 import (
+	"context"
 	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
 	"github.com/pojntfx/liwasc-frontend-web/pkg/components/experimental"
+	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
-	proxy := websocketproxy.NewWebSocketProxyClient(time.Minute)
-
-	conn, err := grpc.Dial("ws://localhost:15124", grpc.WithContextDialer(proxy.Dialer), grpc.WithInsecure())
+	// Connect to the backend
+	conn, err := grpc.Dial(app.Getenv("LIWASC_BACKEND_URL"), grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
-	// metadataService := proto.NewMetadataServiceClient(conn)
-	// nodeAndPortScanService := proto.NewNodeAndPortScanServiceClient(conn)
-	// nodeWakeService := proto.NewNodeWakeServiceClient(conn)
+	// Create the services
+	metadataService := proto.NewMetadataServiceClient(conn)
+	nodeAndPortScanService := proto.NewNodeAndPortScanServiceClient(conn)
+	nodeWakeService := proto.NewNodeWakeServiceClient(conn)
 
-	app.Route("/", &experimental.LoginProviderComponent{
-		Issuer:      app.Getenv("LIWASC_OIDC_ISSUER"),
-		ClientID:    app.Getenv("LIWASC_OIDC_CLIENT_ID"),
-		RedirectURL: app.Getenv("LIWASC_OIDC_REDIRECT_URL"),
-		HomeURL:     "/",
-		Children: func(lpcp experimental.LoginProviderChildrenProps) app.UI {
-			return &experimental.JSONOutputComponent{
-				Object: struct {
-					IDToken  string
-					UserInfo oidc.UserInfo
-				}{
-					IDToken:  lpcp.IDToken,
-					UserInfo: lpcp.UserInfo,
-				},
-			}
-		},
-	},
-	// &components.OIDCLoginProviderComponent{
-	// 	Issuer:      app.Getenv("LIWASC_OIDC_ISSUER"),
-	// 	ClientID:    app.Getenv("LIWASC_OIDC_CLIENT_ID"),
-	// 	RedirectURL: app.Getenv("LIWASC_OIDC_REDIRECT_URL"),
-	// 	HomePath:    "/",
-	// 	Scopes:      []string{"profile", "email"},
+	// Define the routes
+	app.Route("/",
+		// Login provider
+		&experimental.LoginProviderComponent{
+			Issuer:        app.Getenv("LIWASC_OIDC_ISSUER"),
+			ClientID:      app.Getenv("LIWASC_OIDC_CLIENT_ID"),
+			RedirectURL:   app.Getenv("LIWASC_OIDC_REDIRECT_URL"),
+			HomeURL:       "/",
+			Scopes:        []string{"profile", "email"},
+			StoragePrefix: "liwasc",
+			Children: func(lpcp experimental.LoginProviderChildrenProps) app.UI {
+				if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
+					// Login placeholder
+					return app.P().Text("Authorizing ...")
+				}
 
-	// 	LocalStoragePrefix: "liwasc",
+				return app.Div().Body(
+					// Login status
+					&experimental.StatusComponent{
+						Error:   lpcp.Error,
+						Recover: lpcp.Recover,
+					},
+					// Data provider
+					&experimental.DataProviderComponent{
+						AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
+						MetadataService:        metadataService,
+						NodeAndPortScanService: nodeAndPortScanService,
+						NodeWakeService:        nodeWakeService,
+						Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
+							return app.Div().Body(
+								// Data actions
+								&experimental.ActionsComponent{
+									Nodes: dpcp.Network.Nodes,
 
-	// 	Children: func(loginProviderChildrenProps components.OIDCLoginProviderChildrenProps) app.UI {
-	// 		if loginProviderChildrenProps.OAuth2Token.AccessToken == "" || loginProviderChildrenProps.UserInfo.Email == "" {
-	// 			return &components.LoadingPageComponent{
-	// 				Message: "Logging you in ...",
-	// 			}
-	// 		}
+									TriggerNetworkScan: dpcp.TriggerNetworkScan,
+									StartNodeWake:      dpcp.StartNodeWake,
+								},
+								// Data status
+								&experimental.StatusComponent{
+									Error:   dpcp.Error,
+									Recover: dpcp.Recover,
+								},
+								// Data output
+								&experimental.JSONOutputComponent{
+									Object: dpcp.Network,
+								},
+							)
+						},
+					},
+				)
+			},
+		})
 
-	// 		if loginProviderChildrenProps.Error != nil {
-	// 			return &components.FatalErrorPageComponent{
-	// 				Header:             "Oh no! A fatal error occured.",
-	// 				Description:        "The following message might be of help; more details might be in the console:",
-	// 				StackTraceLanguage: "Go Stacktrace",
-	// 				StackTraceContent:  loginProviderChildrenProps.Error.Error(),
-	// 				Actions: []app.UI{
-	// 					app.Button().Class("pf-c-button pf-m-primary").Body(
-	// 						app.Span().Class("pf-c-button__icon pf-m-start").Body(
-	// 							app.I().Class("fas fa-sync-alt"),
-	// 						),
-	// 						app.Text("Restart liwasc"),
-	// 					).OnClick(func(ctx app.Context, e app.Event) { app.Reload() }),
-	// 				},
-	// 			}
-	// 		}
-
-	// 		return &experimental.DataProviderComponent{
-	// 			AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), components.AUTHORIZATION_METADATA_KEY, loginProviderChildrenProps.IDToken),
-	// 			MetadataService:        metadataService,
-	// 			NodeAndPortScanService: nodeAndPortScanService,
-	// 			NodeWakeService:        nodeWakeService,
-	// 			Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
-	// 				return app.Div().Body(
-	// 					&experimental.ActionsComponent{
-	// 						Nodes: dpcp.Network.Nodes,
-
-	// 						TriggerNetworkScan: dpcp.TriggerNetworkScan,
-	// 						StartNodeWake:      dpcp.StartNodeWake,
-	// 					},
-	// 					&experimental.StatusComponent{
-	// 						Error:   dpcp.Error,
-	// 						Recover: dpcp.Recover,
-	// 					},
-	// 					&experimental.JSONOutputComponent{
-	// 						Object: dpcp.Network,
-	// 					},
-	// 				)
-	// 			},
-	// 		}
-
-	// return &components.DataProviderComponent{
-	// 	IDToken: loginProviderChildrenProps.IDToken,
-
-	// 	MetadataServiceClient:        metadataServiceClient,
-	// 	NodeAndPortScanServiceClient: nodeAndPortScanServiceClient,
-	// 	Children: func(dataProviderChildrenProps components.DataProviderChildrenProps) app.UI {
-	// 		return &components.AppComponent{
-	// 			UserAvatar: fmt.Sprintf("https://www.gravatar.com/avatar/%x", md5.Sum([]byte(loginProviderChildrenProps.UserInfo.Email))),
-	// 			UserName:   loginProviderChildrenProps.UserInfo.Email,
-
-	// 			Logout: loginProviderChildrenProps.Logout,
-
-	// 			Subnets:         dataProviderChildrenProps.Subnets,
-	// 			Device:          dataProviderChildrenProps.Device,
-	// 			NodeSearchValue: "",
-
-	// 			Nodes: dataProviderChildrenProps.Nodes,
-
-	// 			InspectorSearchValue: "",
-
-	// 			Connected: dataProviderChildrenProps.Connected,
-	// 			Scanning:  dataProviderChildrenProps.Scanning,
-
-	// 			TriggerNodeScan: func() {
-	// 				protoNodeScanTriggerMessage := &proto.NodeScanStartMessage{
-	// 					NodeScanTimeout: 500,
-	// 					PortScanTimeout: 50,
-	// 					MACAddress:      "",
-	// 				}
-
-	// 				go dataProviderChildrenProps.TriggerNodeScan(protoNodeScanTriggerMessage)
-	// 			},
-	// 		}
-	// 	},
-	// }
-	// },
-	)
-
+	// Start the app
 	app.Run()
 }

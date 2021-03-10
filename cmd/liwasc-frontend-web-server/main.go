@@ -14,6 +14,7 @@ func main() {
 	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
 	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
 	oidcRedirectURL := flag.String("oidcRedirectURL", "http://example.com/", "OIDC redirect URL")
+	backendURL := flag.String("backendURL", "ws://localhost:15124", "URL of the liwasc backend")
 	buildStatic := flag.Bool("buildStatic", false, "Create static build")
 
 	flag.Parse()
@@ -56,6 +57,7 @@ func main() {
 		ThemeColor: "#151515",
 		Title:      "liwasc",
 		Env: map[string]string{
+			"LIWASC_BACKEND_URL":       *backendURL,
 			"LIWASC_OIDC_ISSUER":       *oidcIssuer,
 			"LIWASC_OIDC_CLIENT_ID":    *oidcClientID,
 			"LIWASC_OIDC_REDIRECT_URL": *oidcRedirectURL,

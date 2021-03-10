@@ -2,6 +2,8 @@ package experimental
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
@@ -9,8 +11,14 @@ import (
 )
 
 const (
+	oauth2TokenKey = "oauth2Token"
+	idTokenKey     = "idToken"
+	userInfoKey    = "userInfo"
+
 	stateQueryParameter = "state"
 	codeQueryParameter  = "code"
+
+	idTokenExtraKey = "id_token"
 )
 
 type LoginProviderChildrenProps struct {
@@ -26,36 +34,54 @@ type LoginProviderChildrenProps struct {
 type LoginProviderComponent struct {
 	app.Compo
 
-	Issuer      string
-	ClientID    string
-	RedirectURL string
-	HomeURL     string
-	Children    func(LoginProviderChildrenProps) app.UI
+	Issuer        string
+	ClientID      string
+	RedirectURL   string
+	HomeURL       string
+	Scopes        []string
+	StoragePrefix string
+	Children      func(LoginProviderChildrenProps) app.UI
 
-	idToken  string
-	userInfo oidc.UserInfo
+	oauth2Token oauth2.Token
+	idToken     string
+	userInfo    oidc.UserInfo
 
 	err error
 }
 
 func (c *LoginProviderComponent) Render() app.UI {
-	return c.Children(LoginProviderChildrenProps{
-		IDToken:  c.idToken,
-		UserInfo: c.userInfo,
+	c.authorize()
 
-		Logout: c.logout,
+	return c.Children(
+		LoginProviderChildrenProps{
+			IDToken:  c.idToken,
+			UserInfo: c.userInfo,
 
-		Error:   c.err,
-		Recover: c.recover,
+			Logout: func() {
+				c.logout(true)
+			},
+
+			Error:   c.err,
+			Recover: c.recover,
+		},
+	)
+}
+
+func (c *LoginProviderComponent) panic(err error) {
+	c.dispatch(func() {
+		// Set the error
+		c.err = err
 	})
 }
 
-func (c *LoginProviderComponent) logout() {
-	// TODO: Implement
-}
-
 func (c *LoginProviderComponent) recover() {
-	// TODO: Implement
+	c.dispatch(func() {
+		// Clear the error
+		c.err = nil
+	})
+
+	// Logout
+	c.logout(false)
 }
 
 func (c *LoginProviderComponent) dispatch(action func()) {
@@ -64,17 +90,106 @@ func (c *LoginProviderComponent) dispatch(action func()) {
 	c.Update()
 }
 
-func (c *LoginProviderComponent) OnMount(ctx app.Context) {
-	// Initialize state
-	c.dispatch(func() {
-		c.idToken = ""
-		c.userInfo = oidc.UserInfo{}
-	})
+func (c *LoginProviderComponent) watch() {
+	for {
+		// Wait till token expires
+		if c.oauth2Token.Expiry.After(time.Now()) {
+			time.Sleep(c.oauth2Token.Expiry.Sub(time.Now()))
+		}
 
-	// Create the provider
+		// Fetch new OAuth2 token
+		oauth2Token, err := oauth2.StaticTokenSource(&c.oauth2Token).Token()
+		if err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Parse ID token
+		idToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			c.panic(err)
+
+			return
+		}
+
+		// Persist state in storage
+		if err := c.persist(*oauth2Token, idToken, c.userInfo); err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Set the login state
+		c.dispatch(func() {
+			c.oauth2Token = *oauth2Token
+			c.idToken = idToken
+		})
+	}
+}
+
+func (c *LoginProviderComponent) logout(withRedirect bool) {
+	// Remove from local storage
+	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
+	app.LocalStorage.Del(c.getKey(idTokenKey))
+	app.LocalStorage.Del(c.getKey(userInfoKey))
+
+	// Update and navigate to home URL
+	c.Update()
+	if withRedirect {
+		app.Navigate(c.HomeURL)
+	}
+}
+
+func (c *LoginProviderComponent) rehydrate() (oauth2.Token, string, oidc.UserInfo, error) {
+	// Read state from storage
+	oauth2Token := oauth2.Token{}
+	idToken := ""
+	userInfo := oidc.UserInfo{}
+	if err := app.LocalStorage.Get(c.getKey(oauth2TokenKey), &oauth2Token); err != nil {
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
+	}
+	if err := app.LocalStorage.Get(c.getKey(idTokenKey), &idToken); err != nil {
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
+	}
+	if err := app.LocalStorage.Get(c.getKey(userInfoKey), &userInfo); err != nil {
+		return oauth2.Token{}, "", oidc.UserInfo{}, err
+	}
+
+	return oauth2Token, idToken, userInfo, nil
+}
+
+func (c *LoginProviderComponent) persist(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo) error {
+	// Write state to storage
+	if err := app.LocalStorage.Set(c.getKey(oauth2TokenKey), oauth2Token); err != nil {
+		return err
+	}
+	if err := app.LocalStorage.Set(c.getKey(idTokenKey), idToken); err != nil {
+		return err
+	}
+	return app.LocalStorage.Set(c.getKey(userInfoKey), userInfo)
+}
+
+func (c *LoginProviderComponent) getKey(key string) string {
+	// Get a prefixed key
+	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
+}
+
+func (c *LoginProviderComponent) authorize() {
+	// Read state from storage
+	oauth2Token, idToken, userInfo, err := c.rehydrate()
+	if err != nil {
+		c.panic(err)
+
+		return
+	}
+
+	// Create the OIDC provider
 	provider, err := oidc.NewProvider(context.Background(), c.Issuer)
 	if err != nil {
-		panic(err)
+		c.panic(err)
+
+		return
 	}
 
 	// Create the OAuth2 config
@@ -82,34 +197,72 @@ func (c *LoginProviderComponent) OnMount(ctx app.Context) {
 		ClientID:    c.ClientID,
 		RedirectURL: c.RedirectURL,
 		Endpoint:    provider.Endpoint(),
-		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
+		Scopes:      append([]string{oidc.ScopeOpenID}, c.Scopes...),
 	}
 
-	// If state query parameter not in query, redirect
-	if app.Window().URL().Query().Get(stateQueryParameter) == "" {
-		app.Navigate(config.AuthCodeURL(stateQueryParameter, oauth2.AccessTypeOffline))
+	// Log in
+	if oauth2Token.AccessToken == "" || userInfo.Email == "" {
+		// Logged out state, info neither in storage nor in URL: Redirect to login
+		if app.Window().URL().Query().Get(stateQueryParameter) == "" {
+			app.Navigate(config.AuthCodeURL(c.RedirectURL, oauth2.AccessTypeOffline))
+
+			return
+		}
+
+		// Intermediate state, info is in URL: Parse OAuth2 token
+		oauth2Token, err := config.Exchange(context.Background(), app.Window().URL().Query().Get(codeQueryParameter))
+		if err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Parse ID token
+		idToken, ok := oauth2Token.Extra(idTokenExtraKey).(string)
+		if !ok {
+			c.panic(err)
+
+			return
+		}
+
+		// Parse user info
+		userInfo, err := provider.UserInfo(context.Background(), oauth2.StaticTokenSource(oauth2Token))
+		if err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Persist state in storage
+		if err := c.persist(*oauth2Token, idToken, *userInfo); err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Test validity of storage
+		if _, _, _, err = c.rehydrate(); err != nil {
+			c.panic(err)
+
+			return
+		}
+
+		// Update and navigate to home URL
+		c.Update()
+		app.Navigate(c.HomeURL)
 
 		return
 	}
 
-	// Parse token
-	token, err := config.Exchange(context.Background(), app.Window().URL().Query().Get(codeQueryParameter))
-	if err != nil {
-		panic(err)
-	}
-
-	// Parse user info
-	userInfo, err := provider.UserInfo(context.Background(), oauth2.StaticTokenSource(token))
-	if err != nil {
-		panic(err)
-	}
+	// Logged in state
 
 	// Set the login state
-	c.dispatch(func() {
-		c.idToken = token.Extra("id_token").(string)
-		c.userInfo = *userInfo
-	})
+	c.oauth2Token = oauth2Token
+	c.idToken = idToken
+	c.userInfo = userInfo
 
-	// Navigate to home URL
-	app.Navigate(c.HomeURL)
+	// Watch and renew token once expired
+	go c.watch()
+
+	return
 }

@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
-	"github.com/pojntfx/liwasc-frontend-web/pkg/components/experimental/helpers"
 )
 
 type ActionsComponent struct {
@@ -49,7 +48,7 @@ func (c *ActionsComponent) Render() app.UI {
 				Label().
 				For(nodeScanTimeoutName).
 				Text("Node Scan Timeout (in ms): "),
-			&helpers.Controlled{
+			&Controlled{
 				Component: app.
 					Input().
 					Name(nodeScanTimeoutName).
@@ -78,7 +77,7 @@ func (c *ActionsComponent) Render() app.UI {
 				Label().
 				For(portScanTimeoutName).
 				Text("Port Scan Timeout (in ms): "),
-			&helpers.Controlled{
+			&Controlled{
 				Component: app.
 					Input().
 					Name(portScanTimeoutName).
@@ -107,7 +106,7 @@ func (c *ActionsComponent) Render() app.UI {
 				Label().
 				For(nodeScanMACAddressName).
 				Text("Node Scan MAC Address: "),
-			&helpers.Controlled{
+			&Controlled{
 				Component: app.
 					Select().
 					Name(nodeScanMACAddressName).
@@ -156,7 +155,7 @@ func (c *ActionsComponent) Render() app.UI {
 				Label().
 				For(nodeWakeTimeoutName).
 				Text("Node Wake Timeout (in ms): "),
-			&helpers.Controlled{
+			&Controlled{
 				Component: app.
 					Input().
 					Name(nodeWakeTimeoutName).
@@ -185,7 +184,7 @@ func (c *ActionsComponent) Render() app.UI {
 				Label().
 				For(nodeWakeMACAddressName).
 				Text("Node Wake MAC Address: "),
-			&helpers.Controlled{
+			&Controlled{
 				Component: app.
 					Select().
 					Name(nodeWakeMACAddressName).
