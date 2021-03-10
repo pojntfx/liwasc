@@ -38,6 +38,13 @@ type ConfigProviderComponent struct {
 	err error
 }
 
+const (
+	backendURLQueryParam      = "backendURL"
+	oidcIssuerQueryParam      = "oidcIssuer"
+	oidcClientIDQueryParam    = "oidcClientID"
+	oidcRedirectURLQueryParam = "oidcRedirectURL"
+)
+
 func (c *ConfigProviderComponent) Render() app.UI {
 	return c.Children(ConfigProviderChildrenProps{
 		BackendURL:      c.backendURL,
@@ -48,21 +55,25 @@ func (c *ConfigProviderComponent) Render() app.UI {
 
 		SetBackendURL: func(s string) {
 			c.dispatch(func() {
+				c.ready = false
 				c.backendURL = s
 			})
 		},
 		SetOIDCIssuer: func(s string) {
 			c.dispatch(func() {
+				c.ready = false
 				c.oidcIssuer = s
 			})
 		},
 		SetOIDCClientID: func(s string) {
 			c.dispatch(func() {
+				c.ready = false
 				c.oidcClientID = s
 			})
 		},
 		SetOIDCRedirectURL: func(s string) {
 			c.dispatch(func() {
+				c.ready = false
 				c.oidcRedirectURL = s
 			})
 		},
@@ -121,6 +132,30 @@ func (c *ConfigProviderComponent) validate() {
 	})
 }
 
+func (c *ConfigProviderComponent) rehydrateFromURL() bool {
+	// Read the values from the URL
+	query := app.Window().URL().Query()
+
+	backendURL := query.Get(backendURLQueryParam)
+	oidcIssuer := query.Get(oidcIssuerQueryParam)
+	oidcClientID := query.Get(oidcClientIDQueryParam)
+	oidcRedirectURL := query.Get(oidcRedirectURLQueryParam)
+
+	// If all values are set, set them in the data provider
+	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
+		c.dispatch(func() {
+			c.backendURL = backendURL
+			c.oidcIssuer = oidcIssuer
+			c.oidcClientID = oidcClientID
+			c.oidcRedirectURL = oidcRedirectURL
+		})
+
+		return true
+	}
+
+	return false
+}
+
 func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	// Initialize state
 	c.backendURL = ""
@@ -128,4 +163,12 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	c.oidcClientID = ""
 	c.oidcRedirectURL = ""
 	c.ready = false
+
+	// Rehydrate from URL
+	rehydratedFromURL := c.rehydrateFromURL()
+
+	// If rehydrated from URL, persist
+	if rehydratedFromURL {
+
+	}
 }
