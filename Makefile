@@ -4,11 +4,11 @@ build:
 
 build-static: build
 	@rm -rf out
-	@./liwasc-frontend-web-server -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL} -buildStatic
+	@./liwasc-frontend-web-server -backendURL=${BACKEND_URL} -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL} -buildStatic
 	@cp -r web/* out/web/
 
 run: build
-	@./liwasc-frontend-web-server -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL}
+	@./liwasc-frontend-web-server -backendURL=${BACKEND_URL} -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL}
 
 clean:
 	@rm -rf ./pkg/proto/generated
