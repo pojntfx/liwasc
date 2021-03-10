@@ -156,13 +156,56 @@ func (c *ConfigProviderComponent) persist() error {
 }
 
 func (c *ConfigProviderComponent) rehydrateFromURL() bool {
-	// Read the values from the URL
+	// Read state from URL
 	query := app.Window().URL().Query()
 
 	backendURL := query.Get(backendURLKey)
 	oidcIssuer := query.Get(oidcIssuerKey)
 	oidcClientID := query.Get(oidcClientIDKey)
 	oidcRedirectURL := query.Get(oidcRedirectURLKey)
+
+	// If all values are set, set them in the data provider
+	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
+		c.dispatch(func() {
+			c.backendURL = backendURL
+			c.oidcIssuer = oidcIssuer
+			c.oidcClientID = oidcClientID
+			c.oidcRedirectURL = oidcRedirectURL
+		})
+
+		return true
+	}
+
+	return false
+}
+
+func (c *ConfigProviderComponent) rehydrateFromStorage() bool {
+	// Read state from storage
+	backendURL := ""
+	oidcIssuer := ""
+	oidcClientID := ""
+	oidcRedirectURL := ""
+
+	if err := app.LocalStorage.Get(c.getKey(backendURLKey), &backendURL); err != nil {
+		c.invalidate(err)
+
+		return false
+	}
+	if err := app.LocalStorage.Get(c.getKey(oidcIssuerKey), &oidcIssuer); err != nil {
+		c.invalidate(err)
+
+		return false
+	}
+	if err := app.LocalStorage.Get(c.getKey(oidcClientIDKey), &oidcClientID); err != nil {
+		c.invalidate(err)
+
+		return false
+	}
+	if err := app.LocalStorage.Get(c.getKey(oidcRedirectURLKey), &oidcRedirectURL); err != nil {
+		c.invalidate(err)
+
+		return false
+	}
 
 	// If all values are set, set them in the data provider
 	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
@@ -197,6 +240,15 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 
 	// If rehydrated from URL, validate & apply
 	if rehydratedFromURL {
+		// Auto-apply if configured
+		c.validate()
+	}
+
+	// Rehydrate from storage
+	rehydratedFromStorage := c.rehydrateFromStorage()
+
+	// If rehydrated from storage, validate & apply
+	if rehydratedFromStorage {
 		// Auto-apply if configured
 		c.validate()
 	}
