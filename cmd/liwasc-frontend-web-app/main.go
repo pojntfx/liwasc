@@ -17,6 +17,7 @@ func main() {
 	app.Route("/",
 		// Config provider
 		&experimental.ConfigProviderComponent{
+			StoragePrefix: "liwasc.config",
 			Children: func(cpcp experimental.ConfigProviderChildrenProps) app.UI {
 				return app.Div().Body(
 					// Config status
@@ -44,7 +45,7 @@ func main() {
 							RedirectURL:   cpcp.OIDCRedirectURL,
 							HomeURL:       "/",
 							Scopes:        []string{"profile", "email"},
-							StoragePrefix: "liwasc",
+							StoragePrefix: "liwasc.login",
 							Children: func(lpcp experimental.LoginProviderChildrenProps) app.UI {
 								// Login placeholder
 								if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
