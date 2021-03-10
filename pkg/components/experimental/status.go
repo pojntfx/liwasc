@@ -18,8 +18,8 @@ func (c *StatusComponent) Render() app.UI {
 
 	return app.If(c.Error != nil, app.Div().Body(
 		app.P().Text(errorMessage),
-		app.Button().Text("Recover").OnClick(func(ctx app.Context, e app.Event) {
+		app.If(c.Recover != nil, app.Button().Text("Recover").OnClick(func(ctx app.Context, e app.Event) {
 			c.Recover()
-		}),
+		})),
 	)).Else(app.Span())
 }

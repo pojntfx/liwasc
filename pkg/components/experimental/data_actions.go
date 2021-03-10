@@ -6,7 +6,7 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
-type ActionsComponent struct {
+type DataActionsComponent struct {
 	app.Compo
 
 	nodeScanTimeout    int64
@@ -40,7 +40,7 @@ const (
 	defaultNodeWakeMACAddress = ""
 )
 
-func (c *ActionsComponent) Render() app.UI {
+func (c *DataActionsComponent) Render() app.UI {
 	return app.Div().Body(
 		app.Form().Body(
 			// Node Scan Timeout Input
@@ -56,7 +56,7 @@ func (c *ActionsComponent) Render() app.UI {
 					Required(true).
 					Min(1).
 					Step(1).
-					Placeholder("500").
+					Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
 					OnInput(func(ctx app.Context, e app.Event) {
 						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
 						if err != nil || v == 0 {
@@ -85,7 +85,7 @@ func (c *ActionsComponent) Render() app.UI {
 					Required(true).
 					Min(1).
 					Step(1).
-					Placeholder("50").
+					Placeholder(strconv.Itoa(defaultPortScanTimeout)).
 					OnInput(func(ctx app.Context, e app.Event) {
 						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
 						if err != nil || v == 0 {
@@ -163,7 +163,7 @@ func (c *ActionsComponent) Render() app.UI {
 					Required(true).
 					Min(1).
 					Step(1).
-					Placeholder("500").
+					Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
 					OnInput(func(ctx app.Context, e app.Event) {
 						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
 						if err != nil || v == 0 {
@@ -218,7 +218,7 @@ func (c *ActionsComponent) Render() app.UI {
 	)
 }
 
-func (c *ActionsComponent) OnMount(context app.Context) {
+func (c *DataActionsComponent) OnMount(context app.Context) {
 	// Initialize node scan form
 	c.nodeScanTimeout = defaultNodeScanTimeout
 	c.portScanTimeout = defaultPortScanTimeout
