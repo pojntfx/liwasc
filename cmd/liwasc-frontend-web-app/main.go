@@ -52,7 +52,7 @@ func main() {
 									return app.P().Text("Authorizing ...")
 								}
 
-								// Connect to the backend
+								// gRPC Client
 								conn, err := grpc.Dial(app.Getenv("LIWASC_BACKEND_URL"), grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
 								if err != nil {
 									panic(err)
@@ -64,6 +64,18 @@ func main() {
 										Error:   lpcp.Error,
 										Recover: lpcp.Recover,
 									},
+									// Login actions
+									&experimental.LoginActionsComponent{
+										Logout: lpcp.Logout,
+									},
+									// Login output
+									&experimental.JSONOutputComponent{
+										Object: struct {
+											Email string
+										}{
+											Email: lpcp.UserInfo.Email,
+										},
+									},
 									// Data provider
 									&experimental.DataProviderComponent{
 										AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
@@ -72,17 +84,17 @@ func main() {
 										NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
 										Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
 											return app.Div().Body(
+												// Data status
+												&experimental.StatusComponent{
+													Error:   dpcp.Error,
+													Recover: dpcp.Recover,
+												},
 												// Data actions
 												&experimental.DataActionsComponent{
 													Nodes: dpcp.Network.Nodes,
 
 													TriggerNetworkScan: dpcp.TriggerNetworkScan,
 													StartNodeWake:      dpcp.StartNodeWake,
-												},
-												// Data status
-												&experimental.StatusComponent{
-													Error:   dpcp.Error,
-													Recover: dpcp.Recover,
 												},
 												// Data output
 												&experimental.JSONOutputComponent{

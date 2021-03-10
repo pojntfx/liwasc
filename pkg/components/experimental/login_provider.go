@@ -129,13 +129,12 @@ func (c *LoginProviderComponent) watch() {
 }
 
 func (c *LoginProviderComponent) logout(withRedirect bool) {
-	// Remove from local storage
+	// Remove from storage
 	c.clear()
 
-	// Update and navigate to home URL
-	c.Update()
+	// Reload the app
 	if withRedirect {
-		app.Navigate(c.HomeURL)
+		app.Reload()
 	}
 }
 
