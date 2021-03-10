@@ -13,6 +13,7 @@ type ConfigProviderChildrenProps struct {
 	OIDCIssuer      string
 	OIDCClientID    string
 	OIDCRedirectURL string
+	Ready           bool
 
 	SetBackendURL,
 	SetOIDCIssuer,
@@ -32,6 +33,7 @@ type ConfigProviderComponent struct {
 	oidcIssuer      string
 	oidcClientID    string
 	oidcRedirectURL string
+	ready           bool
 
 	err error
 }
@@ -42,6 +44,7 @@ func (c *ConfigProviderComponent) Render() app.UI {
 		OIDCIssuer:      c.oidcIssuer,
 		OIDCClientID:    c.oidcClientID,
 		OIDCRedirectURL: c.oidcRedirectURL,
+		Ready:           c.ready,
 
 		SetBackendURL: func(s string) {
 			c.dispatch(func() {
@@ -74,6 +77,7 @@ func (c *ConfigProviderComponent) Render() app.UI {
 func (c *ConfigProviderComponent) invalidate(err error) {
 	// Set the error state
 	c.err = err
+	c.ready = false
 
 	c.Update()
 }
@@ -86,14 +90,14 @@ func (c *ConfigProviderComponent) dispatch(action func()) {
 
 func (c *ConfigProviderComponent) validate() {
 	// Validate fields
-	if c.oidcIssuer == "" {
-		c.invalidate(errors.New("invalid OIDC issuer"))
+	if c.oidcClientID == "" {
+		c.invalidate(errors.New("invalid OIDC client ID"))
 
 		return
 	}
 
-	if c.oidcClientID == "" {
-		c.invalidate(errors.New("invalid OIDC client ID"))
+	if _, err := url.ParseRequestURI(c.oidcIssuer); err != nil {
+		c.invalidate(fmt.Errorf("invalid OIDC issuer: %v", err))
 
 		return
 	}
@@ -113,5 +117,15 @@ func (c *ConfigProviderComponent) validate() {
 	// If all are valid, set ready state
 	c.dispatch(func() {
 		c.err = nil
+		c.ready = true
 	})
+}
+
+func (c *ConfigProviderComponent) OnMount(context app.Context) {
+	// Initialize state
+	c.backendURL = ""
+	c.oidcIssuer = ""
+	c.oidcClientID = ""
+	c.oidcRedirectURL = ""
+	c.ready = false
 }
