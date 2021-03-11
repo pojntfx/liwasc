@@ -1,4 +1,4 @@
-package experimental
+package components
 
 import (
 	"encoding/json"

@@ -2,290 +2,632 @@ package components
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
 	"sync"
+	"time"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
-	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
-	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
+	proto "github.com/pojntfx/liwasc-frontend/pkg/proto/generated"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type DataProviderChildrenProps struct {
-	Nodes []*models.Node
-
-	Connected bool
-	Scanning  bool
-
+type ScannerMetadata struct {
 	Subnets []string
 	Device  string
+}
 
-	TriggerNodeScan func(*proto.NodeScanStartMessage)
+type Port struct {
+	// Internal metadata
+	createdAt time.Time
+	priority  int64
+
+	// Data
+	PortNumber        int64
+	TransportProtocol string
+
+	// Public metadata
+	ServiceName             string
+	Description             string
+	Assignee                string
+	Contact                 string
+	RegistrationDate        string
+	ModificationDate        string
+	Reference               string
+	ServiceCode             string
+	UnauthorizedUseReported string
+	AssignmentNotes         string
+}
+
+type Node struct {
+	// Internal metadata
+	createdAt            time.Time
+	priority             int64
+	lastNodeWakePriority int64
+
+	// Data
+	MACAddress       string
+	IPAddress        string
+	PoweredOn        bool
+	PortScanRunning  bool
+	LastPortScanDate time.Time
+	Ports            []Port
+	NodeWakeRunning  bool
+	LastNodeWakeDate time.Time
+
+	// Public metadata
+	Vendor       string
+	Registry     string
+	Organization string
+	Address      string
+	Visible      bool
+}
+
+type Network struct {
+	ScannerMetadata  ScannerMetadata
+	NodeScanRunning  bool
+	LastNodeScanDate time.Time
+	Nodes            []Node
+}
+
+type DataProviderChildrenProps struct {
+	Network Network
+
+	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
+	StartNodeWake      func(nodeWakeTimeout int64, macAddress string)
+
+	Error   error
+	Recover func()
 }
 
 type DataProviderComponent struct {
 	app.Compo
 
-	nodes        []*models.Node
-	nodesLock    *sync.Mutex
-	nodesCounter sync.WaitGroup
+	AuthenticatedContext   context.Context
+	MetadataService        proto.MetadataServiceClient
+	NodeAndPortScanService proto.NodeAndPortScanServiceClient
+	NodeWakeService        proto.NodeWakeServiceClient
+	Children               func(DataProviderChildrenProps) app.UI
 
-	IDToken string
+	network     Network
+	networkLock sync.Mutex
 
-	MetadataServiceClient        proto.MetadataServiceClient
-	NodeAndPortScanServiceClient proto.NodeAndPortScanServiceClient
-	Children                     func(DataProviderChildrenProps) app.UI
-
-	connected bool
-	scanning  bool
-
-	subnets []string
-	device  string
+	err error
 }
 
 func (c *DataProviderComponent) Render() app.UI {
 	return c.Children(DataProviderChildrenProps{
-		Nodes: c.nodes,
+		Network: c.network,
 
-		Connected: c.connected,
-		Scanning:  c.scanning,
+		TriggerNetworkScan: c.triggerNetworkScan,
+		StartNodeWake:      c.startNodeWake,
 
-		Subnets: c.subnets,
-		Device:  c.device,
-
-		TriggerNodeScan: c.triggerNodeScan,
+		Error:   c.err,
+		Recover: c.recover,
 	})
 }
 
-func (c *DataProviderComponent) OnMount(ctx app.Context) {
-	c.nodesLock = &sync.Mutex{}
+func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout int64, macAddress string) {
+	// Optimistic UI
+	c.dispatch(func() {
+		// Set the node scan bool
+		c.network.NodeScanRunning = true
 
-	app.Dispatch(func() {
-		c.connected = true
-		c.scanning = false
-
-		c.Update()
+		// Scan for one address
+		if macAddress != "" {
+			for i, node := range c.network.Nodes {
+				if node.MACAddress == macAddress {
+					// Set the port scan bool
+					c.network.Nodes[i].PortScanRunning = true
+				}
+			}
+		}
 	})
 
+	// Start the node scan
+	if _, err := c.NodeAndPortScanService.StartNodeScan(c.AuthenticatedContext, &proto.NodeScanStartMessage{
+		NodeScanTimeout: nodeScanTimeout,
+		PortScanTimeout: portScanTimeout,
+		MACAddress:      macAddress,
+	}); err != nil {
+		c.panic(err)
+
+		return
+	}
+}
+
+func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress string) {
+	// Optimistic UI
+	c.dispatch(func() {
+		for i, node := range c.network.Nodes {
+			if node.MACAddress == macAddress {
+				// Set the node wake bool
+				c.network.Nodes[i].NodeWakeRunning = true
+			}
+		}
+	})
+
+	// Start the node wake
+	if _, err := c.NodeWakeService.StartNodeWake(c.AuthenticatedContext, &proto.NodeWakeStartMessage{
+		NodeWakeTimeout: nodeWakeTimeout,
+		MACAddress:      macAddress,
+	}); err != nil {
+		c.panic(err)
+
+		return
+	}
+}
+
+func (c *DataProviderComponent) recover() {
+	// Clear the error
+	c.err = nil
+
+	// Resubscribe
+	c.OnMount(app.Context{})
+
+	c.Update()
+}
+
+func (c *DataProviderComponent) panic(err error) {
+	// Set the error
+	c.err = err
+
+	c.Update()
+}
+
+func (c *DataProviderComponent) dispatch(action func()) {
+	c.networkLock.Lock()
+
+	action()
+
+	c.Update()
+	c.networkLock.Unlock()
+}
+
+func (c *DataProviderComponent) OnMount(context app.Context) {
+	// Initialize network struct
+	c.dispatch(func() {
+		c.network = Network{
+			ScannerMetadata: ScannerMetadata{
+				Subnets: []string{},
+				Device:  "",
+			},
+			NodeScanRunning:  false,
+			LastNodeScanDate: time.Unix(0, 0),
+			Nodes:            []Node{},
+		}
+	})
+
+	// Get scanner metadata
 	go func() {
-		log.Println("getting metadata")
-
-		metadata, err := c.MetadataServiceClient.GetMetadataForScanner(c.getAuthenticatedContext(), &emptypb.Empty{})
+		// Fetch from service
+		scannerMetadata, err := c.MetadataService.GetMetadataForScanner(c.AuthenticatedContext, &emptypb.Empty{})
 		if err != nil {
-			log.Println("could not get metadata", err)
-
-			c.invalidateConnection()
+			c.panic(err)
 
 			return
 		}
 
-		log.Printf("received metadata: %v\n", metadata)
-
-		app.Dispatch(func() {
-			c.subnets = metadata.GetSubnets()
-			c.device = metadata.GetDevice()
-
-			c.Update()
+		// Write to struct
+		c.dispatch(func() {
+			c.network.ScannerMetadata.Device = scannerMetadata.GetDevice()
+			c.network.ScannerMetadata.Subnets = scannerMetadata.GetSubnets()
 		})
 	}()
 
+	// Subscribe to node scans
 	go func() {
-		log.Println("subscribing to node scans")
-
-		nodeScanStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodeScans(c.getAuthenticatedContext(), &emptypb.Empty{})
+		// Get stream from service
+		nodeScanStream, err := c.NodeAndPortScanService.SubscribeToNodeScans(c.AuthenticatedContext, &emptypb.Empty{})
 		if err != nil {
-			log.Println("could not subscribe to node scans", err)
-
-			c.invalidateConnection()
+			c.panic(err)
 
 			return
 		}
 
+		// Process stream
 		for {
-			nodeScanMessage, err := nodeScanStream.Recv()
+			// Receive scan from stream
+			nodeScan, err := nodeScanStream.Recv()
 			if err != nil {
-				log.Println("could not receive node scan message", err)
+				c.panic(err)
 
-				c.invalidateConnection()
-
-				break
+				return
 			}
 
-			log.Printf("received node scan message: %v\n", nodeScanMessage)
+			// Parse the scan's date
+			nodeScanCreatedAt, err := time.Parse(time.RFC3339, nodeScan.GetCreatedAt())
+			if err != nil {
+				c.panic(err)
 
-			go func(nsm *proto.NodeScanMessage) {
-				nodeMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToNodes(c.getAuthenticatedContext(), nsm)
-				if err != nil {
-					log.Println("could not subscribe to nodes", err)
+				return
+			}
 
-					c.invalidateConnection()
+			// Only continue evaluation if this scan is newer
+			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) || nodeScanCreatedAt.Equal(c.network.LastNodeScanDate) {
+				c.dispatch(func() {
+					// Set the new latest scan date
+					c.network.LastNodeScanDate = nodeScanCreatedAt
 
-					return
-				}
+					// Update the scan indicator
+					if nodeScan.Done {
+						c.network.NodeScanRunning = false
+					} else {
+						c.network.NodeScanRunning = true
+					}
+				})
 
-				for {
-					nodeMessage, err := nodeMessageStream.Recv()
+				// Subscribe to nodes
+				go func(nsm *proto.NodeScanMessage) {
+					// Get stream from service
+					nodeStream, err := c.NodeAndPortScanService.SubscribeToNodes(c.AuthenticatedContext, nsm)
 					if err != nil {
-						if err == io.EOF {
-							log.Println("no more nodes for this scan, continuing to the next scan")
+						c.panic(err)
 
-							break
-						}
-
-						log.Println("could not receive node message", err)
-
-						c.invalidateConnection()
-
-						break
+						return
 					}
 
-					log.Printf("received node message: %v\n", nodeMessage)
-
-					go func(nm *proto.NodeMessage) {
-						nodeMetadataMessage, err := c.MetadataServiceClient.GetMetadataForNode(c.getAuthenticatedContext(), &proto.NodeMetadataReferenceMessage{
-							MACAddress: nm.GetMACAddress(),
-						})
-
+					// Process stream
+					for {
+						// Receive node from stream
+						node, err := nodeStream.Recv()
 						if err != nil {
-							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
-								log.Println("could not find metadata for node, ignoring", err)
-							} else {
-								log.Println("could not get metadata for node", err)
-
-								c.invalidateConnection()
-							}
-
-							return
-						}
-
-						log.Printf("received node metadata: %v\n", nodeMetadataMessage)
-					}(nodeMessage)
-
-					go func(nm *proto.NodeMessage) {
-						portScanStream, err := c.NodeAndPortScanServiceClient.SubscribeToPortScans(c.getAuthenticatedContext(), nm)
-						if err != nil {
-							log.Println("could not subscribe to port scans", err)
-
-							c.invalidateConnection()
-
-							return
-						}
-
-						for {
-							portScanMessage, err := portScanStream.Recv()
-							if err != nil {
-								if err == io.EOF {
-									log.Println("no more port scans for this node, continuing to the next node")
-
-									break
-								}
-
-								log.Println("could not receive node port scan message", err)
-
-								c.invalidateConnection()
-
+							if err == io.EOF {
 								break
 							}
 
-							log.Printf("received port scan message: %v\n", portScanMessage)
+							c.panic(err)
 
-							go func(psm *proto.PortScanMessage) {
-								portMessageStream, err := c.NodeAndPortScanServiceClient.SubscribeToPorts(c.getAuthenticatedContext(), psm)
+							return
+						}
+
+						// Parse the node's date
+						nodeCreatedAt, err := time.Parse(time.RFC3339, node.GetCreatedAt())
+						if err != nil {
+							c.panic(err)
+
+							return
+						}
+
+						// Get the node's metadata
+						nodeMetadata, err := c.MetadataService.GetMetadataForNode(c.AuthenticatedContext, &proto.NodeMetadataReferenceMessage{
+							MACAddress: node.GetMACAddress(),
+						})
+						if err != nil {
+							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+								nodeMetadata = &proto.NodeMetadataMessage{
+									MACAddress:   node.GetMACAddress(),
+									Vendor:       "",
+									Registry:     "",
+									Organization: "",
+									Address:      "",
+									Visible:      true, // The majority are visible, so set it as the default value
+								}
+							} else {
+								c.panic(err)
+
+								return
+							}
+						}
+
+						c.dispatch(func() {
+							// Only continue if this node is newer and has a higher priority
+							lastKnownNodeIndex := -1
+							for i, knownNode := range c.network.Nodes {
+								if knownNode.MACAddress == node.GetMACAddress() {
+									if (nodeCreatedAt.After(knownNode.createdAt) || nodeCreatedAt.Equal(knownNode.createdAt)) && knownNode.priority > node.GetPriority() {
+										// Ignore the node
+										return
+									}
+
+									lastKnownNodeIndex = i
+
+									break
+								}
+							}
+
+							// If an old node exists, remove it, but keep the current scan & wake state
+							ports := []Port{}
+							portScanRunning := false
+							lastPortScanDate := time.Unix(0, 0)
+							nodeWakeRunning := false
+							lastNodeWakeDate := time.Unix(0, 0)
+							lastNodeWakePriority := int64(0)
+							if lastKnownNodeIndex != -1 {
+								ports = c.network.Nodes[lastKnownNodeIndex].Ports
+								portScanRunning = c.network.Nodes[lastKnownNodeIndex].PortScanRunning
+								lastPortScanDate = c.network.Nodes[lastKnownNodeIndex].LastPortScanDate
+								nodeWakeRunning = c.network.Nodes[lastKnownNodeIndex].NodeWakeRunning
+								lastNodeWakeDate = c.network.Nodes[lastKnownNodeIndex].LastNodeWakeDate
+								lastNodeWakePriority = c.network.Nodes[lastKnownNodeIndex].lastNodeWakePriority
+
+								c.network.Nodes = append(c.network.Nodes[:lastKnownNodeIndex], c.network.Nodes[lastKnownNodeIndex+1:]...)
+							}
+
+							// Add the new node
+							c.network.Nodes = append(c.network.Nodes, Node{
+								createdAt:            nodeCreatedAt,
+								priority:             node.GetPriority(),
+								lastNodeWakePriority: lastNodeWakePriority,
+
+								MACAddress:       node.GetMACAddress(),
+								IPAddress:        node.GetIPAddress(),
+								PoweredOn:        node.GetPoweredOn(),
+								PortScanRunning:  portScanRunning,
+								LastPortScanDate: lastPortScanDate,
+								Ports:            ports,
+								NodeWakeRunning:  nodeWakeRunning,
+								LastNodeWakeDate: lastNodeWakeDate,
+
+								Vendor:       nodeMetadata.GetVendor(),
+								Registry:     nodeMetadata.GetRegistry(),
+								Organization: nodeMetadata.GetOrganization(),
+								Address:      nodeMetadata.GetAddress(),
+								Visible:      nodeMetadata.GetVisible(),
+							})
+						})
+
+						// Subscribe to port scans
+						go func(nm *proto.NodeMessage) {
+							// Get stream from service
+							portScanStream, err := c.NodeAndPortScanService.SubscribeToPortScans(c.AuthenticatedContext, nm)
+							if err != nil {
+								c.panic(err)
+
+								return
+							}
+
+							// Process stream
+							for {
+								// Receive scan from stream
+								portScan, err := portScanStream.Recv()
 								if err != nil {
-									log.Println("could not subscribe to ports", err)
+									if err == io.EOF {
+										break
+									}
 
-									c.invalidateConnection()
+									c.panic(err)
 
 									return
 								}
 
-								for {
-									portMessage, err := portMessageStream.Recv()
-									if err != nil {
-										if err == io.EOF {
-											log.Println("no more ports for this scan, continuing to the next scan")
+								// Parse the scan's date
+								portScanCreatedAt, err := time.Parse(time.RFC3339, portScan.GetCreatedAt())
+								if err != nil {
+									c.panic(err)
+
+									return
+								}
+
+								// Check if this port scan is the newest one
+								portScanIsNewest := false
+								c.dispatch(func() {
+									for i, currentNode := range c.network.Nodes {
+										if currentNode.MACAddress == node.GetMACAddress() && (portScanCreatedAt.After(currentNode.LastPortScanDate) || portScanCreatedAt.Equal(currentNode.LastPortScanDate)) {
+											portScanIsNewest = true
+
+											// Set the new latest scan date
+											c.network.Nodes[i].LastPortScanDate = portScanCreatedAt
+
+											// Update the scan indicator
+											if portScan.Done {
+												c.network.Nodes[i].PortScanRunning = false
+											} else {
+												c.network.Nodes[i].PortScanRunning = true
+											}
 
 											break
 										}
-
-										log.Println("could not receive port message", err)
-
-										c.invalidateConnection()
-
-										break
 									}
+								})
 
-									log.Printf("received port message: %v\n", portMessage)
-
-									go func(pm *proto.PortMessage) {
-										portMetadataMessage, err := c.MetadataServiceClient.GetMetadataForPort(c.getAuthenticatedContext(), &proto.PortMetadataReferenceMessage{
-											PortNumber:        pm.PortNumber,
-											TransportProtocol: pm.TransportProtocol,
-										})
-
+								// Only continue evaluation if this scan is newer
+								if portScanIsNewest {
+									// Subscribe to ports
+									go func(ps *proto.PortScanMessage) {
+										// Get stream from service
+										portStream, err := c.NodeAndPortScanService.SubscribeToPorts(c.AuthenticatedContext, ps)
 										if err != nil {
-											if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
-												log.Println("could not find metadata for port, ignoring", err)
-											} else {
-												log.Println("could not get metadata for port", err)
-
-												c.invalidateConnection()
-											}
+											c.panic(err)
 
 											return
 										}
 
-										log.Printf("received port metadata: %v\n", portMetadataMessage)
-									}(portMessage)
+										// Process stream
+										for {
+											// Receive port from stream
+											port, err := portStream.Recv()
+											if err != nil {
+												if err == io.EOF {
+													break
+												}
+
+												c.panic(err)
+
+												return
+											}
+
+											// Parse the port's date
+											portCreatedAt, err := time.Parse(time.RFC3339, port.GetCreatedAt())
+											if err != nil {
+												c.panic(err)
+
+												return
+											}
+
+											// Get the port's metadata
+											portMetadata, err := c.MetadataService.GetMetadataForPort(c.AuthenticatedContext, &proto.PortMetadataReferenceMessage{
+												PortNumber:        port.GetPortNumber(),
+												TransportProtocol: port.GetTransportProtocol(),
+											})
+											if err != nil {
+												if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
+													portMetadata = &proto.PortMetadataMessage{
+														ServiceName:             "",
+														PortNumber:              port.GetPortNumber(),
+														TransportProtocol:       port.GetTransportProtocol(),
+														Description:             "",
+														Assignee:                "",
+														Contact:                 "",
+														RegistrationDate:        "",
+														ModificationDate:        "",
+														Reference:               "",
+														ServiceCode:             "",
+														UnauthorizedUseReported: "",
+														AssignmentNotes:         "",
+													}
+												} else {
+													c.panic(err)
+
+													return
+												}
+											}
+
+											c.dispatch(func() {
+												// Only continue if this port is newer and has a higher priority
+												lastKnownNodeIndex := -1
+												lastKnownPortIndex := -1
+												for nodeIndex, knownNode := range c.network.Nodes {
+													if knownNode.MACAddress == nm.GetMACAddress() {
+														lastKnownNodeIndex = nodeIndex
+
+														for portIndex, knownPort := range knownNode.Ports {
+															if knownPort.PortNumber == port.PortNumber && knownPort.TransportProtocol == port.TransportProtocol {
+																if (portCreatedAt.After(knownPort.createdAt) || portCreatedAt.Equal(knownPort.createdAt)) && knownPort.priority > port.GetPriority() {
+																	// Ignore the port
+																	return
+																}
+
+																lastKnownPortIndex = portIndex
+
+																break
+															}
+														}
+
+														break
+													}
+												}
+
+												// Asynchronity; the node specified in the outer loops might not exist anymore
+												if lastKnownNodeIndex != -1 {
+													// If an old port exists, remove it.
+													if lastKnownPortIndex != -1 {
+														c.network.Nodes[lastKnownNodeIndex].Ports = append(c.network.Nodes[lastKnownNodeIndex].Ports[:lastKnownPortIndex], c.network.Nodes[lastKnownNodeIndex].Ports[lastKnownPortIndex+1:]...)
+													}
+
+													// Add the new port
+													c.network.Nodes[lastKnownNodeIndex].Ports = append(c.network.Nodes[lastKnownNodeIndex].Ports, Port{
+														createdAt: portCreatedAt,
+														priority:  port.GetPriority(),
+
+														PortNumber:        port.GetPortNumber(),
+														TransportProtocol: port.GetTransportProtocol(),
+
+														ServiceName:             portMetadata.ServiceName,
+														Description:             portMetadata.Description,
+														Assignee:                portMetadata.Assignee,
+														Contact:                 portMetadata.Contact,
+														RegistrationDate:        portMetadata.RegistrationDate,
+														ModificationDate:        portMetadata.ModificationDate,
+														Reference:               portMetadata.Reference,
+														ServiceCode:             portMetadata.ServiceCode,
+														UnauthorizedUseReported: portMetadata.UnauthorizedUseReported,
+														AssignmentNotes:         portMetadata.AssignmentNotes,
+													})
+												}
+											})
+										}
+									}(portScan)
 								}
-							}(portScanMessage)
-						}
-					}(nodeMessage)
-				}
-			}(nodeScanMessage)
+							}
+						}(node)
+					}
+				}(nodeScan)
+			}
 		}
 	}()
-}
 
-func (c *DataProviderComponent) triggerNodeScan(nodeScanMessage *proto.NodeScanStartMessage) {
-	app.Dispatch(func() {
-		c.scanning = true
-
-		c.Update()
-	})
-
+	// Subscribe to node wakes
 	go func() {
-		log.Println("starting node scan")
+		retries := 0
 
-		nodeScanMessage, err := c.NodeAndPortScanServiceClient.StartNodeScan(c.getAuthenticatedContext(), nodeScanMessage)
-		if err != nil {
-			log.Println("could not start node scan", err)
+		for {
+			// Get stream from service
+			nodeWakeStream, err := c.NodeWakeService.SubscribeToNodeWakes(c.AuthenticatedContext, &emptypb.Empty{})
+			if err != nil {
+				c.panic(err)
 
-			c.invalidateConnection()
+				return
+			}
 
-			return
+			// Process stream
+			for {
+				// Receive node wake from stream
+				nodeWake, err := nodeWakeStream.Recv()
+				if err != nil {
+					c.panic(err)
+
+					return
+				}
+
+				// Parse the node wake's date
+				nodeWakeCreatedAt, err := time.Parse(time.RFC3339, nodeWake.GetCreatedAt())
+				if err != nil {
+					c.panic(err)
+
+					return
+				}
+
+				// Update the node's wake status if it's newer and it's priority is higher
+				nodeFound := false
+				c.dispatch(func() {
+					for i, currentNode := range c.network.Nodes {
+						if currentNode.MACAddress == nodeWake.GetMACAddress() {
+							nodeFound = true
+
+							if (currentNode.LastNodeWakeDate.After(nodeWakeCreatedAt) || currentNode.LastNodeWakeDate.Equal(nodeWakeCreatedAt)) && currentNode.lastNodeWakePriority > nodeWake.GetPriority() {
+								// Ignore the node wake
+
+								return
+							}
+
+							// Set the new latest node wake date
+							c.network.Nodes[i].LastNodeWakeDate = nodeWakeCreatedAt
+
+							// Update the node wake indicator
+							if nodeWake.Done {
+								c.network.Nodes[i].NodeWakeRunning = false
+								// If the scan is done, also set the powered on status
+								c.network.Nodes[i].PoweredOn = nodeWake.GetPoweredOn()
+							} else {
+								c.network.Nodes[i].NodeWakeRunning = true
+							}
+
+							break
+						}
+					}
+				})
+
+				// If the node could not be found, the nodes have not been fetched yet
+				if !nodeFound && retries <= 1000 {
+					// Re-subscribe to the scan until the race has finished/the node exists
+					// Unless there are manual interventions in the database diverging the node
+					// and port scans from the node wakes this can't lead to an endless loop.
+					// As a safety measure, it gives up after 1000 retries, in case they have.
+					retries++
+
+					time.Sleep(100 * time.Millisecond)
+
+					if err := nodeWakeStream.CloseSend(); err != nil {
+						c.panic(err)
+
+						return
+					}
+
+					break
+				}
+			}
 		}
-
-		log.Printf("received node scan message: %v\n", nodeScanMessage)
 	}()
-}
-
-func (c *DataProviderComponent) invalidateConnection() {
-	app.Dispatch(func() {
-		c.connected = false
-		c.scanning = false
-
-		c.Update()
-	})
-}
-
-func (c *DataProviderComponent) getAuthenticatedContext() context.Context {
-	fmt.Println(c.IDToken)
-
-	return metadata.AppendToOutgoingContext(context.Background(), AUTHORIZATION_METADATA_KEY, c.IDToken)
 }

@@ -1,4 +1,4 @@
-module github.com/pojntfx/liwasc-frontend-web
+module github.com/pojntfx/liwasc-frontend
 
 go 1.16
 
@@ -13,5 +13,4 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
