@@ -1,14 +1,21 @@
-build:
-	@GOARCH=wasm GOOS=js go build -o web/app.wasm cmd/liwasc-frontend-web-app/main.go
-	@go build -o liwasc-frontend-web-server cmd/liwasc-frontend-web-server/main.go
+all: build
 
-build-static: build
-	@rm -rf out
-	@./liwasc-frontend-web-server -backendURL=${BACKEND_URL} -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL} -buildStatic
-	@cp -r web/* out/web/
+wasm:
+	GOARCH=wasm GOOS=js go build -o web/app.wasm cmd/liwasc-frontend/main.go
 
-run: build
-	@./liwasc-frontend-web-server -backendURL=${BACKEND_URL} -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -oidcRedirectURL=${OIDCREDIRECTURL}
+site: wasm
+	rm -rf out
+	go run cmd/liwasc-frontend-builder/main.go -build
+	cp -r web/* out/web
+
+build: wasm site
+
+serve: wasm
+	go run cmd/liwasc-frontend-builder/main.go -serve
+
+generate:
+	go generate ./...
 
 clean:
-	@rm -rf ./pkg/proto/generated
+	rm -rf out
+	rm -rf pkg/proto/generated

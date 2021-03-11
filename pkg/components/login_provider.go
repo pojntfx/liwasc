@@ -1,4 +1,4 @@
-package experimental
+package components
 
 import (
 	"context"
@@ -143,6 +143,7 @@ func (c *LoginProviderComponent) rehydrate() (oauth2.Token, string, oidc.UserInf
 	oauth2Token := oauth2.Token{}
 	idToken := ""
 	userInfo := oidc.UserInfo{}
+
 	if err := app.LocalStorage.Get(c.getKey(oauth2TokenKey), &oauth2Token); err != nil {
 		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}

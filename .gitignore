@@ -1,3 +1,2 @@
-*.wasm
-/liwasc-frontend-web-server
+web/*.wasm
 out

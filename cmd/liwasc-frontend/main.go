@@ -6,8 +6,8 @@ import (
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	"github.com/pojntfx/liwasc-frontend-web/pkg/components/experimental"
-	proto "github.com/pojntfx/liwasc-frontend-web/pkg/proto/generated"
+	components "github.com/pojntfx/liwasc-frontend/pkg/components"
+	proto "github.com/pojntfx/liwasc-frontend/pkg/proto/generated"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -16,16 +16,16 @@ func main() {
 	// Define the routes
 	app.Route("/",
 		// Config provider
-		&experimental.ConfigProviderComponent{
+		&components.ConfigProviderComponent{
 			StoragePrefix: "liwasc.config",
-			Children: func(cpcp experimental.ConfigProviderChildrenProps) app.UI {
+			Children: func(cpcp components.ConfigProviderChildrenProps) app.UI {
 				return app.Div().Body(
 					// Config status
-					&experimental.StatusComponent{
+					&components.StatusComponent{
 						Error: cpcp.Error,
 					},
 					// Config actions
-					&experimental.ConfigActionsComponent{
+					&components.ConfigActionsComponent{
 						BackendURL:      cpcp.BackendURL,
 						OIDCIssuer:      cpcp.OIDCIssuer,
 						OIDCClientID:    cpcp.OIDCClientID,
@@ -39,37 +39,37 @@ func main() {
 					},
 					app.If(cpcp.Ready,
 						// Login provider
-						&experimental.LoginProviderComponent{
+						&components.LoginProviderComponent{
 							Issuer:        cpcp.OIDCIssuer,
 							ClientID:      cpcp.OIDCClientID,
 							RedirectURL:   cpcp.OIDCRedirectURL,
 							HomeURL:       "/",
 							Scopes:        []string{"profile", "email"},
 							StoragePrefix: "liwasc.login",
-							Children: func(lpcp experimental.LoginProviderChildrenProps) app.UI {
+							Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
 								// Login placeholder
 								if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
 									return app.P().Text("Authorizing ...")
 								}
 
 								// gRPC Client
-								conn, err := grpc.Dial(app.Getenv("LIWASC_BACKEND_URL"), grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
+								conn, err := grpc.Dial(cpcp.BackendURL, grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
 								if err != nil {
 									panic(err)
 								}
 
 								return app.Div().Body(
 									// Login status
-									&experimental.StatusComponent{
+									&components.StatusComponent{
 										Error:   lpcp.Error,
 										Recover: lpcp.Recover,
 									},
 									// Login actions
-									&experimental.LoginActionsComponent{
+									&components.LoginActionsComponent{
 										Logout: lpcp.Logout,
 									},
 									// Login output
-									&experimental.JSONOutputComponent{
+									&components.JSONOutputComponent{
 										Object: struct {
 											Email string
 										}{
@@ -77,27 +77,27 @@ func main() {
 										},
 									},
 									// Data provider
-									&experimental.DataProviderComponent{
+									&components.DataProviderComponent{
 										AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
 										MetadataService:        proto.NewMetadataServiceClient(conn),
 										NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
 										NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
-										Children: func(dpcp experimental.DataProviderChildrenProps) app.UI {
+										Children: func(dpcp components.DataProviderChildrenProps) app.UI {
 											return app.Div().Body(
 												// Data status
-												&experimental.StatusComponent{
+												&components.StatusComponent{
 													Error:   dpcp.Error,
 													Recover: dpcp.Recover,
 												},
 												// Data actions
-												&experimental.DataActionsComponent{
+												&components.DataActionsComponent{
 													Nodes: dpcp.Network.Nodes,
 
 													TriggerNetworkScan: dpcp.TriggerNetworkScan,
 													StartNodeWake:      dpcp.StartNodeWake,
 												},
 												// Data output
-												&experimental.JSONOutputComponent{
+												&components.JSONOutputComponent{
 													Object: dpcp.Network,
 												},
 											)

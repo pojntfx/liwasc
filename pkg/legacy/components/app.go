@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
-	"github.com/pojntfx/liwasc-frontend-web/pkg/models"
+	"github.com/pojntfx/liwasc-frontend/pkg/legacy/models"
 )
 
 type AppComponent struct {
