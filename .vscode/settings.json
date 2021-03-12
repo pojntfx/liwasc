@@ -1,0 +1,6 @@
+{
+  "go.toolsEnvVars": {
+    "GOARCH": "wasm",
+    "GOOS": "js"
+  }
+}
