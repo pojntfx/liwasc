@@ -3,10 +3,21 @@ all: build
 backend:
 	go build -o out/liwasc cmd/liwasc-backend/main.go
 
-build: backend
+wasm:
+	GOARCH=wasm GOOS=js go build -o web/app.wasm cmd/liwasc-frontend/main.go
+
+site: wasm
+	rm -rf out
+	go run cmd/liwasc-frontend-builder/main.go -build
+	cp -r web/* out/web
+
+build: wasm site backend
 
 run-backend:
 	sudo out/liwasc -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME}
+
+serve: wasm
+	go run cmd/liwasc-frontend-builder/main.go -serve
 
 generate:
 	go generate ./...
