@@ -1,22 +1,22 @@
 all: build
 
 backend:
-	go build -o out/liwasc cmd/liwasc-backend/main.go
+	go build -o out/backend/liwasc cmd/liwasc-backend/main.go
 
 wasm:
 	GOARCH=wasm GOOS=js go build -o web/app.wasm cmd/liwasc-frontend/main.go
 
 site: wasm
-	rm -rf out
+	rm -rf out/frontend
 	go run cmd/liwasc-frontend-builder/main.go -build
-	cp -r web/* out/web
+	cp -r web/* out/frontend
 
 build: wasm site backend
 
 run-backend:
-	sudo out/liwasc -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME}
+	sudo out/backend/liwasc -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME}
 
-serve: wasm
+run-frontend: wasm
 	go run cmd/liwasc-frontend-builder/main.go -serve
 
 generate:
@@ -37,5 +37,5 @@ deps:
 	sudo curl -L -o /etc/liwasc/service-names-port-numbers.csv https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
 	sudo curl -L -o /etc/liwasc/ports2packets.csv https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv
 	sudo mkdir -p /var/liwasc
-	sudo sqlite3 -batch /var/liwasc/node_and_port_scan.sqlite ".read ./pkg/sql/node_and_port_scan.sql"
-	sudo sqlite3 -batch /var/liwasc/node_wake.sqlite ".read ./pkg/sql/node_wake.sql"
+	sudo sqlite3 -batch /var/liwasc/node_and_port_scan.sqlite ".read pkg/sql/node_and_port_scan.sql"
+	sudo sqlite3 -batch /var/liwasc/node_wake.sqlite ".read pkg/sql/node_wake.sql"

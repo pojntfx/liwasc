@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
-	"github.com/pojntfx/liwasc-frontend/pkg/legacy/models"
-	proto "github.com/pojntfx/liwasc-frontend/pkg/proto/generated"
+	"github.com/pojntfx/liwasc/pkg/legacy/models"
+	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
