@@ -12,7 +12,7 @@ import (
 func main() {
 	// Parse the flags
 	build := flag.Bool("build", false, "Create static build")
-	out := flag.String("out", "out/frontend", "Out directory for static build")
+	out := flag.String("out", "out/frontend-static", "Out directory for static build")
 	path := flag.String("path", "", "Base path for static build")
 	serve := flag.Bool("serve", false, "Build and serve the frontend")
 	laddr := flag.String("laddr", "localhost:15125", "Address to serve the frontend on")

@@ -6,18 +6,27 @@ backend:
 wasm:
 	GOARCH=wasm GOOS=js go build -o web/app.wasm cmd/liwasc-frontend/main.go
 
-site: wasm
-	rm -rf out/frontend
-	go run cmd/liwasc-frontend-builder/main.go -build
-	cp -r web/* out/frontend
+frontend-builder: wasm
+	go build -o out/frontend-builder/liwasc-frontend-builder cmd/liwasc-frontend-builder/main.go
 
-build: wasm site backend
+frontend-static: frontend-builder wasm
+	rm -rf out/frontend-static
+	out/frontend-builder/liwasc-frontend-builder -build
+	cp -r web/* out/frontend-static
 
-run-backend:
-	sudo out/backend/liwasc -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME}
+build: backend frontend-builder frontend-static
 
-run-frontend: wasm
-	go run cmd/liwasc-frontend-builder/main.go -serve
+dev:
+	while inotifywait -r -e modify pkg cmd; do\
+		# Build\
+		$(MAKE) -j2 backend frontend-builder;\
+		# Kill\
+		sudo pkill -9 -P $$BACKEND_PID;\
+		sudo pkill -9 -P $$FRONTEND_PID;\
+		# Run\
+		sudo out/backend/liwasc -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME} & export BACKEND_PID="$$!";\
+		sudo out/frontend-builder/liwasc-frontend-builder -serve & export FRONTEND_PID="$$!";\
+	done
 
 generate:
 	go generate ./...
@@ -27,7 +36,7 @@ clean:
 	rm -rf pkg/proto/generated
 	rm -rf pkg/sql/generated
 
-deps:
+depend:
 	go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 	go install github.com/volatiletech/sqlboiler/v4@latest
 	go install github.com/volatiletech/sqlboiler-sqlite3@latest
