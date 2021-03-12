@@ -17,15 +17,15 @@ func main() {
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
 
-	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", "/var/liwasc/node_and_port_scan.sqlite", "Path to the node and port scan database")
-	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/liwasc/node_wake.sqlite", "Path to the node wake database")
+	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", "/var/lib/liwasc/node_and_port_scan.sqlite", "Path to the node and port scan database")
+	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/lib/liwasc/node_wake.sqlite", "Path to the node wake database")
 
 	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database. Download from https://mac2vendor.com/articles/download")
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
 
-	listenAddress := flag.String("listenAddress", "0.0.0.0:15123", "Listen address")
-	webSocketListenAddress := flag.String("webSocketListenAddress", "0.0.0.0:15124", "Listen address (for the WebSocket proxy)")
+	listenAddress := flag.String("listenAddress", "localhost:15123", "Listen address")
+	webSocketListenAddress := flag.String("webSocketListenAddress", "localhost:15124", "Listen address (for the WebSocket proxy)")
 	maxConcurrentPortScans := flag.Int("maxConcurrentPortScans", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter")
 
 	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/5 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
@@ -130,9 +130,9 @@ func main() {
 	}()
 
 	// Start server
-	log.Printf("Listening on %v", *listenAddress)
+	log.Printf("liwasc backend listening on %v (gRPC) and %v (gRPC-Web)\n", *listenAddress, *webSocketListenAddress)
 
 	if err := liwascServer.ListenAndServe(); err != nil {
-		log.Fatal("could not open liwasc server", err)
+		log.Fatalf("could not open liwasc backend: %v\n", err)
 	}
 }

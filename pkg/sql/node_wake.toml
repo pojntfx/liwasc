@@ -1,2 +1,2 @@
 [sqlite3]
-dbname = "/var/liwasc/node_wake.sqlite"
+dbname = "/var/lib/liwasc/node_wake.sqlite"

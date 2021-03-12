@@ -1,3 +1,5 @@
+// +build !js
+
 package main
 
 import (
@@ -12,7 +14,7 @@ import (
 func main() {
 	// Parse the flags
 	build := flag.Bool("build", false, "Create static build")
-	out := flag.String("out", "out/frontend-static", "Out directory for static build")
+	out := flag.String("out", "out/liwasc-frontend", "Out directory for static build")
 	path := flag.String("path", "", "Base path for static build")
 	serve := flag.Bool("serve", false, "Build and serve the frontend")
 	laddr := flag.String("laddr", "localhost:15125", "Address to serve the frontend on")
@@ -62,16 +64,16 @@ func main() {
 		}
 
 		if err := app.GenerateStaticWebsite(*out, h); err != nil {
-			log.Fatalf("Could not build: %v\n", err)
+			log.Fatalf("could not build: %v\n", err)
 		}
 	}
 
 	// Serve if specified
 	if *serve {
-		log.Printf("Listening on %v\n", *laddr)
+		log.Printf("liwasc frontend listening on %v\n", *laddr)
 
 		if err := http.ListenAndServe(*laddr, compress.Handler(h)); err != nil {
-			log.Fatalf("Could not serve: %v\n", err)
+			log.Fatalf("could not open liwasc frontend: %v\n", err)
 		}
 	}
 }
