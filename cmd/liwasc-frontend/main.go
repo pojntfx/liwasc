@@ -6,8 +6,8 @@ import (
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	components "github.com/pojntfx/liwasc-frontend/pkg/components"
-	proto "github.com/pojntfx/liwasc-frontend/pkg/proto/generated"
+	components "github.com/pojntfx/liwasc/pkg/components"
+	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
