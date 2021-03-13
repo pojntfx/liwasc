@@ -1,4 +1,4 @@
-all: backend frontend
+all: build
 
 backend:
 	go build -o out/liwasc-backend/liwasc-backend cmd/liwasc-backend/main.go
@@ -11,18 +11,17 @@ frontend:
 	/tmp/liwasc-frontend-build -build
 	cp -r web/* out/liwasc-frontend/web
 
-release-backend-amd64:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-linux-gnu-gcc PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig go build -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o out/ci/liwasc-backend/liwasc-backend.linux-amd64 cmd/liwasc-backend/main.go
+build: backend frontend
 
-release-backend-arm64:
-	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-gnu-gcc PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig go build -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o out/ci/liwasc-backend/liwasc-backend.linux-arm64 cmd/liwasc-backend/main.go
+release-backend:
+	CGO_ENABLED=1 go build -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) cmd/liwasc-backend/main.go
 
 release-frontend: frontend
-	rm -rf out/ci/liwasc-frontend
-	mkdir -p out/ci/liwasc-frontend
-	cd out/liwasc-frontend && tar -czvf ../ci/liwasc-frontend/liwasc-frontend.tar.gz .
+	rm -rf out/release/liwasc-frontend
+	mkdir -p out/release/liwasc-frontend
+	cd out/liwasc-frontend && tar -czvf ../release/liwasc-frontend/liwasc-frontend.tar.gz .
 
-release-build: release-backend-amd64 release-backend-arm64 release-frontend
+release: release-backend release-frontend
 
 dev:
 	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd)" ]; do\
