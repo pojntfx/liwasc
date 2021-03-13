@@ -21,7 +21,13 @@ release-frontend: frontend
 	mkdir -p out/release/liwasc-frontend
 	cd out/liwasc-frontend && tar -czvf ../release/liwasc-frontend/liwasc-frontend.tar.gz .
 
-release: release-backend release-frontend
+release-frontend-github-pages: frontend
+	rm -rf out/release/liwasc-frontend-github-pages
+	mkdir -p out/release/liwasc-frontend-github-pages
+	/tmp/liwasc-frontend-build -build -path liwasc -out out/release/liwasc-frontend-github-pages
+	cp -r web/* out/release/liwasc-frontend-github-pages/web
+
+release: release-backend release-frontend release-frontend-github-pages
 
 dev:
 	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd)" ]; do\
