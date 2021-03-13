@@ -16,7 +16,7 @@ jobs:
         with:
           go-version: 1.16
       - name: Set up cross-compilation
-        run: sudo apt install -y libpcap-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+        run: sudo apt install -y sqlite3 libprotobuf-dev protobuf-compiler libpcap-dev gcc-aarch64-linux-gnu libc6-dev-arm64-cross
       - name: Install dependencies
         run: make depend
       - name: Build with Go
