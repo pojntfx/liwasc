@@ -1,0 +1,21 @@
+{
+  "short_name": "liwasc",
+  "name": "liwasc",
+  "icons": [
+    {
+      "src": "/liwasc/web/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/liwasc/",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "scope": "/liwasc/",
+  "start_url": "/liwasc/",
+  "background_color": "#151515",
+  "theme_color": "#151515",
+  "display": "standalone"
+}
