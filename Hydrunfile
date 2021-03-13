@@ -20,7 +20,7 @@ USER=root make depend
 
 # Make release
 if [ "$1" = 'frontend' ]; then
-    make release-frontend
+    make release-frontend release-frontend-github-pages
 else
-    make release-backend release-frontend-github-pages
+    make release-backend
 fi
