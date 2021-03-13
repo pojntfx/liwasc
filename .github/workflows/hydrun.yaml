@@ -33,3 +33,11 @@ jobs:
           files: |
             out/release/liwasc-backend/*
             out/release/liwasc-frontend/*
+      - name: Publish to GitHub pages
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages
+          folder: out/release/liwasc-frontend-github-pages
+          git-config-name: GitHub Pages Bot
+          git-config-email: bot@example.com
