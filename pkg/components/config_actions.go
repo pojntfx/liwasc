@@ -65,64 +65,102 @@ func (c *ConfigActionsComponent) Render() app.UI {
 				Required: true,
 			},
 			// OIDC Issuer Input
-			app.
-				Label().
-				For(oidcIssuerName).
-				Text("OIDC Issuer: "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(oidcIssuerName).
-					ID(oidcIssuerName).
-					Type("url").
-					Required(true).
-					Placeholder(oidcIssuerPlaceholder).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
-					}),
-				Value: c.OIDCIssuer,
+			&FormGroupComponent{
+				Label: app.
+					Label().
+					For(oidcIssuerName).
+					Class("pf-c-form__label").
+					Body(
+						app.
+							Span().
+							Class("pf-c-form__label-text").
+							Text("OIDC Issuer"),
+					),
+				Input: &Controlled{
+					Component: app.
+						Input().
+						Name(oidcIssuerName).
+						ID(oidcIssuerName).
+						Type("url").
+						Required(true).
+						Placeholder(oidcIssuerPlaceholder).
+						Class("pf-c-form-control").
+						OnInput(func(ctx app.Context, e app.Event) {
+							c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
+						}),
+					Value: c.OIDCIssuer,
+				},
+				Required: true,
 			},
 			// OIDC Client ID
-			app.
-				Label().
-				For(oidcClientIDName).
-				Text("OIDC Client ID: "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(oidcClientIDName).
-					ID(oidcClientIDName).
-					Type("text").
-					Required(true).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
-					}),
-				Value: c.OIDCClientID,
+			&FormGroupComponent{
+				Label: app.
+					Label().
+					For(oidcClientIDName).
+					Class("pf-c-form__label").
+					Body(
+						app.
+							Span().
+							Class("pf-c-form__label-text").
+							Text("OIDC Client ID"),
+					),
+				Input: &Controlled{
+					Component: app.
+						Input().
+						Name(oidcClientIDName).
+						ID(oidcClientIDName).
+						Type("text").
+						Required(true).
+						Class("pf-c-form-control").
+						OnInput(func(ctx app.Context, e app.Event) {
+							c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
+						}),
+					Value: c.OIDCClientID,
+				},
+				Required: true,
 			},
 			// OIDC Redirect URL
-			app.
-				Label().
-				For(oidcRedirectURLName).
-				Text("OIDC Redirect URL: "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(oidcRedirectURLName).
-					ID(oidcRedirectURLName).
-					Type("url").
-					Required(true).
-					Placeholder(oidcRedirectURLPlaceholder).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
-					}),
-				Value: c.OIDCRedirectURL,
+			&FormGroupComponent{
+				Label: app.
+					Label().
+					For(oidcRedirectURLName).
+					Class("pf-c-form__label").
+					Body(
+						app.
+							Span().
+							Class("pf-c-form__label-text").
+							Text("OIDC Redirect URL"),
+					),
+				Input: &Controlled{
+					Component: app.
+						Input().
+						Name(oidcRedirectURLName).
+						ID(oidcRedirectURLName).
+						Type("url").
+						Required(true).
+						Placeholder(oidcRedirectURLPlaceholder).
+						Class("pf-c-form-control").
+						OnInput(func(ctx app.Context, e app.Event) {
+							c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
+						}),
+					Value: c.OIDCRedirectURL,
+				},
+				Required: true,
 			},
 			// Configuration Apply Trigger
-			app.
-				Input().
-				Type("submit").
-				Value("Apply Configuration").
-				Class("pf-c-button pf-m-primary"),
+			app.Div().
+				Class("pf-c-form__group pf-m-action").
+				Body(
+					app.Div().
+						Class("pf-c-form__actions").
+						Body(
+							app.
+								Button().
+								Type("submit").
+								Class("pf-c-button pf-m-primary").
+								Text("Apply Configuration"),
+						),
+				),
 		).OnSubmit(func(ctx app.Context, e app.Event) {
 		e.PreventDefault()
 
