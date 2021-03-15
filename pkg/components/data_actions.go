@@ -16,7 +16,7 @@ type DataActionsComponent struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
-	Nodes []Node
+	Network Network
 
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
 	StartNodeWake      func(nodeWakeTimeout int64, macAddress string)
@@ -154,11 +154,11 @@ func (c *DataActionsComponent) Render() app.UI {
 										Value(allMACAddresses).
 										Text("All Addresses"),
 								},
-								app.Range(c.Nodes).Slice(func(i int) app.UI {
+								app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
 									return app.
 										Option().
-										Value(c.Nodes[i].MACAddress).
-										Text(c.Nodes[i].MACAddress)
+										Value(c.Network.Nodes[i].MACAddress).
+										Text(c.Network.Nodes[i].MACAddress)
 								}))...,
 						),
 						Value: c.nodeScanMACAddress,
@@ -175,8 +175,32 @@ func (c *DataActionsComponent) Render() app.UI {
 								app.
 									Button().
 									Type("submit").
-									Class("pf-c-button pf-m-primary").
-									Text("Trigger network scan"),
+									Class(func() string {
+										classes := "pf-c-button pf-m-primary"
+
+										if c.Network.NodeScanRunning {
+											classes += " pf-m-progress pf-m-in-progress"
+										}
+
+										return classes
+									}()).
+									Body(
+										app.If(c.Network.NodeScanRunning,
+											app.Span().
+												Class("pf-c-button__progress").
+												Body(
+													app.Span().
+														Class("pf-c-spinner pf-m-md").
+														Aria("role", "progressbar").
+														Aria("valuetext", "Loading...").
+														Body(
+															app.Span().Class("pf-c-spinner__clipper"),
+															app.Span().Class("pf-c-spinner__lead-ball"),
+															app.Span().Class("pf-c-spinner__tail-ball"),
+														),
+												)),
+										app.Text("Trigger network scan"),
+									),
 							),
 					),
 			).OnSubmit(func(ctx app.Context, e app.Event) {
@@ -255,11 +279,11 @@ func (c *DataActionsComponent) Render() app.UI {
 
 								c.Update()
 							}).Body(
-							app.Range(c.Nodes).Slice(func(i int) app.UI {
+							app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
 								return app.
 									Option().
-									Value(c.Nodes[i].MACAddress).
-									Text(c.Nodes[i].MACAddress)
+									Value(c.Network.Nodes[i].MACAddress).
+									Text(c.Network.Nodes[i].MACAddress)
 							}),
 						),
 						Value: c.nodeWakeMACAddress,

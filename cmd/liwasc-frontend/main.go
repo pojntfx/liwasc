@@ -93,7 +93,7 @@ func main() {
 												},
 												// Data actions
 												&components.DataActionsComponent{
-													Nodes: dpcp.Network.Nodes,
+													Network: dpcp.Network,
 
 													TriggerNetworkScan: dpcp.TriggerNetworkScan,
 													StartNodeWake:      dpcp.StartNodeWake,
