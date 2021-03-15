@@ -49,6 +49,14 @@ func main() {
 							Scopes:        []string{"profile", "email"},
 							StoragePrefix: "liwasc.login",
 							Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
+								// Login status
+								if lpcp.Error != nil {
+									return &components.StatusComponent{
+										Error:   lpcp.Error,
+										Recover: lpcp.Recover,
+									}
+								}
+
 								// Login placeholder
 								if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
 									return app.P().Text("Authorizing ...")
@@ -61,11 +69,6 @@ func main() {
 								}
 
 								return app.Div().Body(
-									// Login status
-									&components.StatusComponent{
-										Error:   lpcp.Error,
-										Recover: lpcp.Recover,
-									},
 									// Login actions
 									&components.LoginActionsComponent{
 										Logout: lpcp.Logout,
