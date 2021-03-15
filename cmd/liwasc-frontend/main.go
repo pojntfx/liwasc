@@ -22,23 +22,6 @@ func main() {
 			StoragePrefix: "liwasc.config",
 			Children: func(cpcp components.ConfigProviderChildrenProps) app.UI {
 				return app.Div().Body(
-					// Config status
-					&components.StatusComponent{
-						Error: cpcp.Error,
-					},
-					// Config actions
-					&components.ConfigActionsComponent{
-						BackendURL:      cpcp.BackendURL,
-						OIDCIssuer:      cpcp.OIDCIssuer,
-						OIDCClientID:    cpcp.OIDCClientID,
-						OIDCRedirectURL: cpcp.OIDCRedirectURL,
-
-						SetBackendURL:      cpcp.SetBackendURL,
-						SetOIDCIssuer:      cpcp.SetOIDCIssuer,
-						SetOIDCClientID:    cpcp.SetOIDCClientID,
-						SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
-						ApplyConfig:        cpcp.ApplyConfig,
-					},
 					app.If(cpcp.Ready,
 						// Login provider
 						&components.LoginProviderComponent{
@@ -110,6 +93,24 @@ func main() {
 									},
 								)
 							},
+						},
+					).Else(
+						// Config status
+						&components.StatusComponent{
+							Error: cpcp.Error,
+						},
+						// Config actions
+						&components.ConfigActionsComponent{
+							BackendURL:      cpcp.BackendURL,
+							OIDCIssuer:      cpcp.OIDCIssuer,
+							OIDCClientID:    cpcp.OIDCClientID,
+							OIDCRedirectURL: cpcp.OIDCRedirectURL,
+
+							SetBackendURL:      cpcp.SetBackendURL,
+							SetOIDCIssuer:      cpcp.SetOIDCIssuer,
+							SetOIDCClientID:    cpcp.SetOIDCClientID,
+							SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
+							ApplyConfig:        cpcp.ApplyConfig,
 						},
 					),
 				)
