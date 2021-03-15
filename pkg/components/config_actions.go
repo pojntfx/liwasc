@@ -33,27 +33,48 @@ const (
 )
 
 func (c *ConfigActionsComponent) Render() app.UI {
-	return app.Div().Body(
-		app.Form().Body(
+	return app.Form().
+		Class("pf-c-form pf-m-horizontal").
+		Body(
 			// Backend URL Input
 			app.
-				Label().
-				For(backendURLName).
-				Text("Backend URL: "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(backendURLName).
-					ID(backendURLName).
-					Type("url").
-					Required(true).
-					Placeholder(backendURLPlaceholder).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.SetBackendURL(ctx.JSSrc.Get("value").String())
-					}),
-				Value: c.BackendURL,
-			},
-			app.Br(),
+				Div().
+				Class("pf-c-form__group").
+				Body(
+					app.Div().
+						Class("pf-c-form__group-label").
+						Body(
+							app.
+								Label().
+								For(backendURLName).
+								Class("pf-c-form__label").
+								Body(
+									app.
+										Span().
+										Class("pf-c-form__label-text").
+										Text("Backend URL"),
+								),
+						),
+					app.
+						Div().
+						Class("pf-c-form__group-control").
+						Body(
+							&Controlled{
+								Component: app.
+									Input().
+									Name(backendURLName).
+									ID(backendURLName).
+									Type("url").
+									Required(true).
+									Placeholder(backendURLPlaceholder).
+									Class("pf-c-form-control").
+									OnInput(func(ctx app.Context, e app.Event) {
+										c.SetBackendURL(ctx.JSSrc.Get("value").String())
+									}),
+								Value: c.BackendURL,
+							},
+						),
+				),
 			// OIDC Issuer Input
 			app.
 				Label().
@@ -72,7 +93,6 @@ func (c *ConfigActionsComponent) Render() app.UI {
 					}),
 				Value: c.OIDCIssuer,
 			},
-			app.Br(),
 			// OIDC Client ID
 			app.
 				Label().
@@ -90,7 +110,6 @@ func (c *ConfigActionsComponent) Render() app.UI {
 					}),
 				Value: c.OIDCClientID,
 			},
-			app.Br(),
 			// OIDC Redirect URL
 			app.
 				Label().
@@ -109,16 +128,15 @@ func (c *ConfigActionsComponent) Render() app.UI {
 					}),
 				Value: c.OIDCRedirectURL,
 			},
-			app.Br(),
 			// Configuration Apply Trigger
 			app.
 				Input().
 				Type("submit").
-				Value("Apply Configuration"),
+				Value("Apply Configuration").
+				Class("pf-c-button pf-m-primary"),
 		).OnSubmit(func(ctx app.Context, e app.Event) {
-			e.PreventDefault()
+		e.PreventDefault()
 
-			go c.ApplyConfig()
-		}),
-	)
+		go c.ApplyConfig()
+	})
 }

@@ -52,6 +52,10 @@ func main() {
 			`<meta property="og:description" content="List, wake and scan nodes in a network.">`,
 			`<meta property="og:image" content="https://liwasc.alphahorizon.io/web/icon.png">`,
 		},
+		Styles: []string{
+			`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css`,
+			`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css`,
+		},
 		ThemeColor: "#151515",
 		Title:      "liwasc",
 	}
