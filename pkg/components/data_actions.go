@@ -42,106 +42,144 @@ const (
 
 func (c *DataActionsComponent) Render() app.UI {
 	return app.Div().Body(
-		app.Form().Body(
-			// Node Scan Timeout Input
-			app.
-				Label().
-				For(nodeScanTimeoutName).
-				Text("Node Scan Timeout (in ms): "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(nodeScanTimeoutName).
-					ID(nodeScanTimeoutName).
-					Type("number").
-					Required(true).
-					Min(1).
-					Step(1).
-					Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
-					OnInput(func(ctx app.Context, e app.Event) {
-						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-						if err != nil || v == 0 {
-							c.Update()
-
-							return
-						}
-
-						c.nodeScanTimeout = int64(v)
-
-						c.Update()
-					}),
-				Value: c.nodeScanTimeout,
-			},
-			app.Br(),
-			// Port Scan Timeout Input
-			app.
-				Label().
-				For(portScanTimeoutName).
-				Text("Port Scan Timeout (in ms): "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(portScanTimeoutName).
-					ID(portScanTimeoutName).
-					Type("number").
-					Required(true).
-					Min(1).
-					Step(1).
-					Placeholder(strconv.Itoa(defaultPortScanTimeout)).
-					OnInput(func(ctx app.Context, e app.Event) {
-						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-						if err != nil || v == 0 {
-							c.Update()
-
-							return
-						}
-
-						c.portScanTimeout = int64(v)
-
-						c.Update()
-					}),
-				Value: c.portScanTimeout,
-			},
-			app.Br(),
-			// Node Scan MAC Address Input
-			app.
-				Label().
-				For(nodeScanMACAddressName).
-				Text("Node Scan MAC Address: "),
-			&Controlled{
-				Component: app.
-					Select().
-					Name(nodeScanMACAddressName).
-					ID(nodeScanMACAddressName).
-					Required(true).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.nodeScanMACAddress = ctx.JSSrc.Get("value").String()
-
-						c.Update()
-					}).Body(
-					append(
-						[]app.UI{
+		app.Form().
+			Class("pf-c-form pf-m-horizontal").
+			Body(
+				// Node Scan Timeout Input
+				&FormGroupComponent{
+					Label: app.
+						Label().
+						For(nodeScanTimeoutName).
+						Class("pf-c-form__label").
+						Body(
 							app.
-								Option().
-								Value(allMACAddresses).
-								Text("All Addresses"),
-						},
-						app.Range(c.Nodes).Slice(func(i int) app.UI {
-							return app.
-								Option().
-								Value(c.Nodes[i].MACAddress).
-								Text(c.Nodes[i].MACAddress)
-						}))...,
-				),
-				Value: c.nodeScanMACAddress,
-			},
-			app.Br(),
-			// Network Scan Input Trigger
-			app.
-				Input().
-				Type("submit").
-				Value("Trigger network scan"),
-		).OnSubmit(func(ctx app.Context, e app.Event) {
+								Span().
+								Class("pf-c-form__label-text").
+								Text("Node Scan Timeout (in ms)"),
+						),
+					Input: &Controlled{
+						Component: app.
+							Input().
+							Name(nodeScanTimeoutName).
+							ID(nodeScanTimeoutName).
+							Type("number").
+							Required(true).
+							Min(1).
+							Step(1).
+							Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
+							Class("pf-c-form-control").
+							OnInput(func(ctx app.Context, e app.Event) {
+								v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+								if err != nil || v == 0 {
+									c.Update()
+
+									return
+								}
+
+								c.nodeScanTimeout = int64(v)
+
+								c.Update()
+							}),
+						Value: c.nodeScanTimeout,
+					},
+					Required: true,
+				},
+				// Port Scan Timeout Input
+				&FormGroupComponent{
+					Label: app.
+						Label().
+						For(portScanTimeoutName).
+						Class("pf-c-form__label").
+						Body(
+							app.
+								Span().
+								Class("pf-c-form__label-text").
+								Text("Port Scan Timeout (in ms)"),
+						),
+					Input: &Controlled{
+						Component: app.
+							Input().
+							Name(portScanTimeoutName).
+							ID(portScanTimeoutName).
+							Type("number").
+							Required(true).
+							Min(1).
+							Step(1).
+							Placeholder(strconv.Itoa(defaultPortScanTimeout)).
+							Class("pf-c-form-control").
+							OnInput(func(ctx app.Context, e app.Event) {
+								v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+								if err != nil || v == 0 {
+									c.Update()
+
+									return
+								}
+
+								c.portScanTimeout = int64(v)
+
+								c.Update()
+							}),
+						Value: c.portScanTimeout,
+					},
+					Required: true,
+				},
+				// Node Scan MAC Address Input
+				&FormGroupComponent{
+					Label: app.
+						Label().
+						For(nodeScanMACAddressName).
+						Class("pf-c-form__label").
+						Body(
+							app.
+								Span().
+								Class("pf-c-form__label-text").
+								Text("Node Scan MAC Address"),
+						),
+					Input: &Controlled{
+						Component: app.
+							Select().
+							Name(nodeScanMACAddressName).
+							ID(nodeScanMACAddressName).
+							Required(true).
+							Class("pf-c-form-control").
+							OnInput(func(ctx app.Context, e app.Event) {
+								c.nodeScanMACAddress = ctx.JSSrc.Get("value").String()
+
+								c.Update()
+							}).Body(
+							append(
+								[]app.UI{
+									app.
+										Option().
+										Value(allMACAddresses).
+										Text("All Addresses"),
+								},
+								app.Range(c.Nodes).Slice(func(i int) app.UI {
+									return app.
+										Option().
+										Value(c.Nodes[i].MACAddress).
+										Text(c.Nodes[i].MACAddress)
+								}))...,
+						),
+						Value: c.nodeScanMACAddress,
+					},
+					Required: true,
+				},
+				// Network Scan Input Trigger
+				app.Div().
+					Class("pf-c-form__group pf-m-action").
+					Body(
+						app.Div().
+							Class("pf-c-form__actions").
+							Body(
+								app.
+									Button().
+									Type("submit").
+									Class("pf-c-button pf-m-primary").
+									Text("Trigger network scan"),
+							),
+					),
+			).OnSubmit(func(ctx app.Context, e app.Event) {
 			e.PreventDefault()
 
 			macAddress := c.nodeScanMACAddress
