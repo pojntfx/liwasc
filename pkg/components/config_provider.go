@@ -241,7 +241,8 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	// If rehydrated from URL, validate & apply
 	if rehydratedFromURL {
 		// Auto-apply if configured
-		c.validate()
+		// Disabled until a flow for handling wrong input details has been implemented
+		// c.validate()
 	}
 
 	// Rehydrate from storage
@@ -250,6 +251,7 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	// If rehydrated from storage, validate & apply
 	if rehydratedFromStorage {
 		// Auto-apply if configured
-		c.validate()
+		// Disabled until a flow for handling wrong input details has been implemented
+		// c.validate()
 	}
 }
