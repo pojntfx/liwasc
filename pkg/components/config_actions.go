@@ -34,7 +34,7 @@ const (
 
 func (c *ConfigActionsComponent) Render() app.UI {
 	return app.Form().
-		Class("pf-c-form pf-m-horizontal").
+		Class("pf-c-form").
 		Body(
 			// Backend URL Input
 			&FormGroupComponent{
