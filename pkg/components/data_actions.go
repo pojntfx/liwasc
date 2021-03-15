@@ -43,7 +43,7 @@ const (
 func (c *DataActionsComponent) Render() app.UI {
 	return app.Div().Body(
 		app.Form().
-			Class("pf-c-form pf-m-horizontal").
+			Class("pf-c-form").
 			Body(
 				// Node Scan Timeout Input
 				&FormGroupComponent{
@@ -189,69 +189,98 @@ func (c *DataActionsComponent) Render() app.UI {
 
 			go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, macAddress)
 		}),
-		app.Form().Body(
-			// Node Wake Timeout Input
-			app.
-				Label().
-				For(nodeWakeTimeoutName).
-				Text("Node Wake Timeout (in ms): "),
-			&Controlled{
-				Component: app.
-					Input().
-					Name(nodeWakeTimeoutName).
-					ID(nodeWakeTimeoutName).
-					Type("number").
-					Required(true).
-					Min(1).
-					Step(1).
-					Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
-					OnInput(func(ctx app.Context, e app.Event) {
-						v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-						if err != nil || v == 0 {
-							c.Update()
+		app.Form().
+			Class("pf-c-form").
+			Body(
+				// Node Wake Timeout Input
+				&FormGroupComponent{
+					Label: app.
+						Label().
+						For(nodeWakeTimeoutName).
+						Class("pf-c-form__label").
+						Body(
+							app.
+								Span().
+								Class("pf-c-form__label-text").
+								Text("Node Wake Timeout (in ms)"),
+						),
+					Input: &Controlled{
+						Component: app.
+							Input().
+							Name(nodeWakeTimeoutName).
+							ID(nodeWakeTimeoutName).
+							Type("number").
+							Required(true).
+							Min(1).
+							Step(1).
+							Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
+							Class("pf-c-form-control").
+							OnInput(func(ctx app.Context, e app.Event) {
+								v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+								if err != nil || v == 0 {
+									c.Update()
 
-							return
-						}
+									return
+								}
 
-						c.nodeWakeTimeout = int64(v)
+								c.nodeWakeTimeout = int64(v)
 
-						c.Update()
-					}),
-				Value: c.nodeWakeTimeout,
-			},
-			app.Br(),
-			// Node Wake MAC Address Input
-			app.
-				Label().
-				For(nodeWakeMACAddressName).
-				Text("Node Wake MAC Address: "),
-			&Controlled{
-				Component: app.
-					Select().
-					Name(nodeWakeMACAddressName).
-					ID(nodeWakeMACAddressName).
-					Required(true).
-					OnInput(func(ctx app.Context, e app.Event) {
-						c.nodeWakeMACAddress = ctx.JSSrc.Get("value").String()
+								c.Update()
+							}),
+						Value: c.nodeWakeTimeout,
+					},
+					Required: true,
+				},
+				// Node Wake MAC Address Input
+				&FormGroupComponent{
+					Label: app.
+						Label().
+						For(nodeWakeMACAddressName).
+						Class("pf-c-form__label").
+						Body(
+							app.
+								Span().
+								Class("pf-c-form__label-text").
+								Text("Node Wake MAC Address"),
+						),
+					Input: &Controlled{
+						Component: app.
+							Select().
+							Name(nodeWakeMACAddressName).
+							ID(nodeWakeMACAddressName).
+							Required(true).
+							Class("pf-c-form-control").
+							OnInput(func(ctx app.Context, e app.Event) {
+								c.nodeWakeMACAddress = ctx.JSSrc.Get("value").String()
 
-						c.Update()
-					}).Body(
-					app.Range(c.Nodes).Slice(func(i int) app.UI {
-						return app.
-							Option().
-							Value(c.Nodes[i].MACAddress).
-							Text(c.Nodes[i].MACAddress)
-					}),
-				),
-				Value: c.nodeWakeMACAddress,
-			},
-			app.Br(),
-			// Node Wake Input Trigger
-			app.
-				Input().
-				Type("submit").
-				Value("Trigger node wake"),
-		).OnSubmit(func(ctx app.Context, e app.Event) {
+								c.Update()
+							}).Body(
+							app.Range(c.Nodes).Slice(func(i int) app.UI {
+								return app.
+									Option().
+									Value(c.Nodes[i].MACAddress).
+									Text(c.Nodes[i].MACAddress)
+							}),
+						),
+						Value: c.nodeWakeMACAddress,
+					},
+					Required: true,
+				},
+				// Node Wake Input Trigger
+				app.Div().
+					Class("pf-c-form__group pf-m-action").
+					Body(
+						app.Div().
+							Class("pf-c-form__actions").
+							Body(
+								app.
+									Button().
+									Type("submit").
+									Class("pf-c-button pf-m-primary").
+									Text("Trigger node wake"),
+							),
+					),
+			).OnSubmit(func(ctx app.Context, e app.Event) {
 			e.PreventDefault()
 
 			go c.StartNodeWake(c.nodeWakeTimeout, c.nodeWakeMACAddress)
