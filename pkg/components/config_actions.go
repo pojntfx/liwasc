@@ -37,44 +37,33 @@ func (c *ConfigActionsComponent) Render() app.UI {
 		Class("pf-c-form pf-m-horizontal").
 		Body(
 			// Backend URL Input
-			app.
-				Div().
-				Class("pf-c-form__group").
-				Body(
-					app.Div().
-						Class("pf-c-form__group-label").
-						Body(
-							app.
-								Label().
-								For(backendURLName).
-								Class("pf-c-form__label").
-								Body(
-									app.
-										Span().
-										Class("pf-c-form__label-text").
-										Text("Backend URL"),
-								),
-						),
-					app.
-						Div().
-						Class("pf-c-form__group-control").
-						Body(
-							&Controlled{
-								Component: app.
-									Input().
-									Name(backendURLName).
-									ID(backendURLName).
-									Type("url").
-									Required(true).
-									Placeholder(backendURLPlaceholder).
-									Class("pf-c-form-control").
-									OnInput(func(ctx app.Context, e app.Event) {
-										c.SetBackendURL(ctx.JSSrc.Get("value").String())
-									}),
-								Value: c.BackendURL,
-							},
-						),
-				),
+			&FormGroupComponent{
+				Label: app.
+					Label().
+					For(backendURLName).
+					Class("pf-c-form__label").
+					Body(
+						app.
+							Span().
+							Class("pf-c-form__label-text").
+							Text("Backend URL"),
+					),
+				Input: &Controlled{
+					Component: app.
+						Input().
+						Name(backendURLName).
+						ID(backendURLName).
+						Type("url").
+						Required(true).
+						Placeholder(backendURLPlaceholder).
+						Class("pf-c-form-control").
+						OnInput(func(ctx app.Context, e app.Event) {
+							c.SetBackendURL(ctx.JSSrc.Get("value").String())
+						}),
+					Value: c.BackendURL,
+				},
+				Required: true,
+			},
 			// OIDC Issuer Input
 			app.
 				Label().
