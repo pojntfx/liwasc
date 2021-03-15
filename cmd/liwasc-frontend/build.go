@@ -55,6 +55,7 @@ func main() {
 		Styles: []string{
 			`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css`,
 			`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css`,
+			`/web/index.css`,
 		},
 		ThemeColor: "#151515",
 		Title:      "liwasc",
