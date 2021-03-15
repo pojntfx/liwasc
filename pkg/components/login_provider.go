@@ -72,6 +72,9 @@ func (c *LoginProviderComponent) panic(err error) {
 		// Set the error
 		c.err = err
 	})
+
+	// Prevent infinite retries
+	time.Sleep(time.Second)
 }
 
 func (c *LoginProviderComponent) recover() {
