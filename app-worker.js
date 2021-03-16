@@ -1,7 +1,7 @@
-const cacheName = "app-" + "a1908c4abd74d3815828981828a34bed95e9cabb";
+const cacheName = "app-" + "615d045ef82379924aa0af230bfbe7c1f2a6e89c";
 
 self.addEventListener("install", event => {
-  console.log("installing app worker a1908c4abd74d3815828981828a34bed95e9cabb");
+  console.log("installing app worker 615d045ef82379924aa0af230bfbe7c1f2a6e89c");
   self.skipWaiting();
 
   event.waitUntil(
@@ -15,6 +15,7 @@ self.addEventListener("install", event => {
         "/liwasc/wasm_exec.js",
         "/liwasc/web/app.wasm",
         "/liwasc/web/icon.png",
+        "/liwasc/web/index.css",
         "https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css",
         "https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css",
         
@@ -35,7 +36,7 @@ self.addEventListener("activate", event => {
       );
     })
   );
-  console.log("app worker a1908c4abd74d3815828981828a34bed95e9cabb is activated");
+  console.log("app worker 615d045ef82379924aa0af230bfbe7c1f2a6e89c is activated");
 });
 
 self.addEventListener("fetch", event => {
