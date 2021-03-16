@@ -1,3 +1,7 @@
-.pc-x-c-brand--main {
+.pf-x-c-brand--main {
   max-width: 12.5rem;
+}
+
+.pf-x-c-brand--nav {
+  height: 50px;
 }
