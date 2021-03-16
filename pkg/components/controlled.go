@@ -11,7 +11,9 @@ type Controlled struct {
 
 func (c *Controlled) Render() app.UI {
 	app.Dispatch(func() {
-		c.JSValue().Set("value", c.Value)
+		if c.JSValue() != nil {
+			c.JSValue().Set("value", c.Value)
+		}
 	})
 
 	return c.Component

@@ -222,6 +222,21 @@ func (c *ConfigProviderComponent) rehydrateFromStorage() bool {
 	return false
 }
 
+func (c *ConfigProviderComponent) rehydrateAuthenticationFromURL() bool {
+	// Read state from URL
+	query := app.Window().URL().Query()
+
+	state := query.Get(StateQueryParameter)
+	code := query.Get(CodeQueryParameter)
+
+	// If all values are set, set them in the data provider
+	if state != "" && code != "" {
+		return true
+	}
+
+	return false
+}
+
 func (c *ConfigProviderComponent) getKey(key string) string {
 	// Get a prefixed key
 	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
@@ -235,23 +250,26 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	c.oidcRedirectURL = ""
 	c.ready = false
 
-	// Rehydrate from URL
-	rehydratedFromURL := c.rehydrateFromURL()
-
 	// If rehydrated from URL, validate & apply
-	if rehydratedFromURL {
+	if c.rehydrateFromURL() {
 		// Auto-apply if configured
 		// Disabled until a flow for handling wrong input details has been implemented
 		// c.validate()
 	}
 
-	// Rehydrate from storage
-	rehydratedFromStorage := c.rehydrateFromStorage()
-
 	// If rehydrated from storage, validate & apply
-	if rehydratedFromStorage {
+	if c.rehydrateFromStorage() {
 		// Auto-apply if configured
 		// Disabled until a flow for handling wrong input details has been implemented
 		// c.validate()
+	}
+
+	// If rehydrated authentication from URL, continue
+	if c.rehydrateAuthenticationFromURL() {
+		// Auto-apply if configured; set ready state
+		c.dispatch(func() {
+			c.err = nil
+			c.ready = true
+		})
 	}
 }
