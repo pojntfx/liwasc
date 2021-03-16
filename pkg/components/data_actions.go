@@ -17,7 +17,8 @@ type DataActionsComponent struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
-	menuExpanded bool
+	desktopMenuExpanded bool
+	mobileMenuExpanded  bool
 
 	Network  Network
 	UserInfo oidc.UserInfo
@@ -75,27 +76,101 @@ func (c *DataActionsComponent) Render() app.UI {
 							),
 							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").Body(
 								app.Button().Class("pf-c-button pf-m-plain").Type("button").Aria("label", "Help").Body(
-									app.I().Class("pf-icon pf-icon-help").Aria("hidden", true),
+									app.I().Class("fas fa-question-circle").Aria("hidden", true),
 								),
 							),
 						),
 						app.Div().Class("pf-c-page__header-tools-group").Body(
-							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden-on-lg").Body(
-								app.Div().Class("pf-c-dropdown").Body(
-									app.Button().Class("pf-c-dropdown__toggle pf-m-plain").ID("page-default-nav-example-dropdown-kebab-1-button").Aria("expanded", false).Type("button").Aria("label", "Actions").Body(
-										app.I().Class("fas fa-ellipsis-v").Aria("hidden", true),
-									),
-									app.Ul().Class("pf-c-dropdown__menu pf-m-align-right").Aria("aria-labelledby", "page-default-nav-example-dropdown-kebab-1-button").Hidden(true).Body(
-										app.Li().Body(
-											app.Ul().Class("pf-c-dropdown__menu").Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").Hidden(true).Body(
-												app.Li().Body(
-													app.A().Class("pf-c-dropdown__menu-item").Href("#").Text("Link"),
+							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden-on-lg").
+								Body(
+									app.Div().
+										Class(func() string {
+											classes := "pf-c-dropdown"
+
+											if c.mobileMenuExpanded {
+												classes += " pf-m-expanded"
+											}
+
+											return classes
+										}()).
+										Body(
+											app.Button().
+												Class("pf-c-dropdown__toggle pf-m-plain").
+												ID("page-default-nav-example-dropdown-kebab-1-button").
+												Aria("expanded", c.mobileMenuExpanded).Type("button").
+												Aria("label", "Actions").
+												Body(
+													app.I().
+														Class("fas fa-ellipsis-v").
+														Aria("hidden", true),
+												).OnClick(func(ctx app.Context, e app.Event) {
+												c.dispatch(func() {
+													c.mobileMenuExpanded = !c.mobileMenuExpanded
+												})
+											}),
+											app.Ul().
+												Class("pf-c-dropdown__menu pf-m-align-right").
+												Aria("aria-labelledby", "page-default-nav-example-dropdown-kebab-1-button").
+												Hidden(!c.mobileMenuExpanded).
+												Body(
+													app.Li().
+														Body(
+															app.Button().
+																Class("pf-c-button pf-c-dropdown__menu-item").
+																Type("button").
+																Body(
+																	app.Span().
+																		Class("pf-c-button__icon pf-m-start").
+																		Body(
+																			app.I().
+																				Class("fas fa-cog").
+																				Aria("hidden", true),
+																		),
+																	app.Text("Settings"),
+																),
+														),
+													app.Li().
+														Body(
+															app.Button().
+																Class("pf-c-button pf-c-dropdown__menu-item").
+																Type("button").
+																Body(
+																	app.Span().
+																		Class("pf-c-button__icon pf-m-start").
+																		Body(
+																			app.I().
+																				Class("fas fa-question-circle").
+																				Aria("hidden", true),
+																		),
+																	app.Text("Help"),
+																),
+														),
+													app.Li().
+														Class("pf-c-divider pf-u-display-none-on-md").
+														Aria("role", "separator"),
+													app.Li().
+														Class("pf-u-display-none-on-md").
+														Body(
+															app.Button().
+																Class("pf-c-button pf-c-dropdown__menu-item").
+																Type("button").
+																Body(
+																	app.Span().
+																		Class("pf-c-button__icon pf-m-start").
+																		Body(
+																			app.I().
+																				Class("fas fa-sign-out-alt").
+																				Aria("hidden", true),
+																		),
+																	app.Text("Logout"),
+																).
+																OnClick(func(ctx app.Context, e app.Event) {
+																	go c.Logout()
+																}),
+														),
 												),
-											),
 										),
-									),
 								),
-							),
 							app.Div().
 								Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-md").
 								Body(
@@ -103,7 +178,7 @@ func (c *DataActionsComponent) Render() app.UI {
 										Class(func() string {
 											classes := "pf-c-dropdown"
 
-											if c.menuExpanded {
+											if c.desktopMenuExpanded {
 												classes += " pf-m-expanded"
 											}
 
@@ -113,7 +188,7 @@ func (c *DataActionsComponent) Render() app.UI {
 											app.Button().
 												Class("pf-c-dropdown__toggle pf-m-plain").
 												ID("page-layout-horizontal-nav-dropdown-kebab-2-button").
-												Aria("expanded", c.menuExpanded).
+												Aria("expanded", c.desktopMenuExpanded).
 												Type("button").
 												Body(
 													app.Span().
@@ -129,19 +204,28 @@ func (c *DataActionsComponent) Render() app.UI {
 														),
 												).OnClick(func(ctx app.Context, e app.Event) {
 												c.dispatch(func() {
-													c.menuExpanded = !c.menuExpanded
+													c.desktopMenuExpanded = !c.desktopMenuExpanded
 												})
 											}),
 											app.Ul().
 												Class("pf-c-dropdown__menu").
 												Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").
-												Hidden(!c.menuExpanded).
+												Hidden(!c.desktopMenuExpanded).
 												Body(
 													app.Li().Body(
 														app.Button().
-															Class("pf-c-dropdown__menu-item").
+															Class("pf-c-button pf-c-dropdown__menu-item").
 															Type("button").
-															Text("Logout").
+															Body(
+																app.Span().
+																	Class("pf-c-button__icon pf-m-start").
+																	Body(
+																		app.I().
+																			Class("fas fa-sign-out-alt").
+																			Aria("hidden", true),
+																	),
+																app.Text("Logout"),
+															).
 															OnClick(func(ctx app.Context, e app.Event) {
 																go c.Logout()
 															}),
