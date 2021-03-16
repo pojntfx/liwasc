@@ -241,18 +241,6 @@ func (c *DataActionsComponent) Render() app.UI {
 			app.Main().Class("pf-c-page__main").TabIndex(-1).ID("main-content-page-layout-horizontal-nav").Body(
 				app.Section().Class("pf-c-page__main-section pf-m-limit-width").Body(
 					app.Div().Class("pf-c-page__main-section").Body(
-						// Login actions
-						&LoginActionsComponent{
-							Logout: c.Logout,
-						},
-						// Login output
-						&JSONOutputComponent{
-							Object: struct {
-								Email string
-							}{
-								Email: c.UserInfo.Email,
-							},
-						},
 						// Data status
 						&StatusComponent{
 							Error:   c.Error,
