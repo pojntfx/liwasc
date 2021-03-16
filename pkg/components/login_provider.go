@@ -15,8 +15,8 @@ const (
 	idTokenKey     = "idToken"
 	userInfoKey    = "userInfo"
 
-	stateQueryParameter = "state"
-	codeQueryParameter  = "code"
+	StateQueryParameter = "state"
+	CodeQueryParameter  = "code"
 
 	idTokenExtraKey = "id_token"
 )
@@ -50,7 +50,10 @@ type LoginProviderComponent struct {
 }
 
 func (c *LoginProviderComponent) Render() app.UI {
-	c.authorize()
+	// Only continue if there is no error state; this prevents endless loops
+	if c.err == nil {
+		c.authorize()
+	}
 
 	return c.Children(
 		LoginProviderChildrenProps{
@@ -68,13 +71,18 @@ func (c *LoginProviderComponent) Render() app.UI {
 }
 
 func (c *LoginProviderComponent) panic(err error) {
-	c.dispatch(func() {
-		// Set the error
-		c.err = err
-	})
+	go func() {
+		c.dispatch(func() {
+			// Set the error
+			c.err = err
+		})
 
-	// Prevent infinite retries
-	time.Sleep(time.Second)
+		// Prevent infinite retries
+		time.Sleep(time.Second)
+
+		// Unset the error & enable re-trying
+		c.err = err
+	}()
 }
 
 func (c *LoginProviderComponent) recover() {
@@ -214,14 +222,14 @@ func (c *LoginProviderComponent) authorize() {
 	// Log in
 	if oauth2Token.AccessToken == "" || userInfo.Email == "" {
 		// Logged out state, info neither in storage nor in URL: Redirect to login
-		if app.Window().URL().Query().Get(stateQueryParameter) == "" {
+		if app.Window().URL().Query().Get(StateQueryParameter) == "" {
 			app.Navigate(config.AuthCodeURL(c.RedirectURL, oauth2.AccessTypeOffline))
 
 			return
 		}
 
 		// Intermediate state, info is in URL: Parse OAuth2 token
-		oauth2Token, err := config.Exchange(context.Background(), app.Window().URL().Query().Get(codeQueryParameter))
+		oauth2Token, err := config.Exchange(context.Background(), app.Window().URL().Query().Get(CodeQueryParameter))
 		if err != nil {
 			c.panic(err)
 
