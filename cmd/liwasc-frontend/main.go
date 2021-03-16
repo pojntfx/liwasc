@@ -95,11 +95,7 @@ func main() {
 							},
 						},
 					).Else(
-						// Config status
-						&components.StatusComponent{
-							Error: cpcp.Error,
-						},
-						// Config actions
+						// Config actions and status
 						&components.ConfigActionsComponent{
 							BackendURL:      cpcp.BackendURL,
 							OIDCIssuer:      cpcp.OIDCIssuer,
@@ -111,6 +107,8 @@ func main() {
 							SetOIDCClientID:    cpcp.SetOIDCClientID,
 							SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
 							ApplyConfig:        cpcp.ApplyConfig,
+
+							Error: cpcp.Error,
 						},
 					),
 				)
