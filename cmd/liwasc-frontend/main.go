@@ -32,11 +32,21 @@ func main() {
 							Scopes:        []string{"profile", "email"},
 							StoragePrefix: "liwasc.login",
 							Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
-								// Login status
+								// Login actions and status
 								if lpcp.Error != nil {
-									return &components.StatusComponent{
-										Error:   lpcp.Error,
-										Recover: lpcp.Recover,
+									return &components.ConfigActionsComponent{
+										BackendURL:      cpcp.BackendURL,
+										OIDCIssuer:      cpcp.OIDCIssuer,
+										OIDCClientID:    cpcp.OIDCClientID,
+										OIDCRedirectURL: cpcp.OIDCRedirectURL,
+
+										SetBackendURL:      cpcp.SetBackendURL,
+										SetOIDCIssuer:      cpcp.SetOIDCIssuer,
+										SetOIDCClientID:    cpcp.SetOIDCClientID,
+										SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
+										ApplyConfig:        cpcp.ApplyConfig,
+
+										Error: lpcp.Error,
 									}
 								}
 
