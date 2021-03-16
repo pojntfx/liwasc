@@ -17,6 +17,8 @@ type DataActionsComponent struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
+	menuExpanded bool
+
 	Network  Network
 	UserInfo oidc.UserInfo
 
@@ -66,33 +68,87 @@ func (c *DataActionsComponent) Render() app.UI {
 				app.Div().Class("pf-c-page__header-tools").Body(
 					app.Div().Class("pf-c-page__header-tools-group").Body(
 						app.Div().Class("pf-c-page__header-tools-group").Body(
-							app.Div().Class("pf-c-page__header-tools-item").Body(
+							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").Body(
 								app.Button().Class("pf-c-button pf-m-plain").Type("button").Aria("label", "Settings").Body(
 									app.I().Class("fas fa-cog").Aria("hidden", true),
 								),
 							),
-							app.Div().Class("pf-c-page__header-tools-item").Body(
+							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").Body(
 								app.Button().Class("pf-c-button pf-m-plain").Type("button").Aria("label", "Help").Body(
 									app.I().Class("pf-icon pf-icon-help").Aria("hidden", true),
 								),
 							),
 						),
 						app.Div().Class("pf-c-page__header-tools-group").Body(
-							app.Div().Class("pf-c-page__header-tools-item").Body(
+							app.Div().Class("pf-c-page__header-tools-item pf-m-hidden-on-lg").Body(
 								app.Div().Class("pf-c-dropdown").Body(
-									app.Button().Class("pf-c-dropdown__toggle pf-m-plain").ID("page-layout-horizontal-nav-dropdown-kebab-2-button").Aria("expanded", false).Type("button").Body(
-										app.Span().Class("pf-c-dropdown__toggle-text").Text("Felicitas Pojtinger"),
-										app.Span().Class("pf-c-dropdown__toggle-icon").Body(
-											app.I().Class("fas fa-caret-down").Aria("hidden", true),
-										),
+									app.Button().Class("pf-c-dropdown__toggle pf-m-plain").ID("page-default-nav-example-dropdown-kebab-1-button").Aria("expanded", false).Type("button").Aria("label", "Actions").Body(
+										app.I().Class("fas fa-ellipsis-v").Aria("hidden", true),
 									),
-									app.Ul().Class("pf-c-dropdown__menu").Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").Hidden(true).Body(
+									app.Ul().Class("pf-c-dropdown__menu pf-m-align-right").Aria("aria-labelledby", "page-default-nav-example-dropdown-kebab-1-button").Hidden(true).Body(
 										app.Li().Body(
-											app.A().Class("pf-c-dropdown__menu-item").Href("#").Text("Link"),
+											app.Ul().Class("pf-c-dropdown__menu").Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").Hidden(true).Body(
+												app.Li().Body(
+													app.A().Class("pf-c-dropdown__menu-item").Href("#").Text("Link"),
+												),
+											),
 										),
 									),
 								),
 							),
+							app.Div().
+								Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-md").
+								Body(
+									app.Div().
+										Class(func() string {
+											classes := "pf-c-dropdown"
+
+											if c.menuExpanded {
+												classes += " pf-m-expanded"
+											}
+
+											return classes
+										}()).
+										Body(
+											app.Button().
+												Class("pf-c-dropdown__toggle pf-m-plain").
+												ID("page-layout-horizontal-nav-dropdown-kebab-2-button").
+												Aria("expanded", c.menuExpanded).
+												Type("button").
+												Body(
+													app.Span().
+														Class("pf-c-dropdown__toggle-text").
+														Text(c.UserInfo.Email),
+													app.
+														Span().
+														Class("pf-c-dropdown__toggle-icon").
+														Body(
+															app.I().
+																Class("fas fa-caret-down").
+																Aria("hidden", true),
+														),
+												).OnClick(func(ctx app.Context, e app.Event) {
+												c.dispatch(func() {
+													c.menuExpanded = !c.menuExpanded
+												})
+											}),
+											app.Ul().
+												Class("pf-c-dropdown__menu").
+												Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").
+												Hidden(!c.menuExpanded).
+												Body(
+													app.Li().Body(
+														app.Button().
+															Class("pf-c-dropdown__menu-item").
+															Type("button").
+															Text("Logout").
+															OnClick(func(ctx app.Context, e app.Event) {
+																go c.Logout()
+															}),
+													),
+												),
+										),
+								),
 						),
 						app.Img().Class("pf-c-avatar").Src("https://www.gravatar.com/avatar/db856df33fa4f4bce441819f604c90d5?s=150").Alt("Avatar image"),
 					),
@@ -405,4 +461,10 @@ func (c *DataActionsComponent) OnMount(context app.Context) {
 	// Initialize node wake form
 	c.nodeWakeTimeout = defaultNodeWakeTimeout
 	c.nodeWakeMACAddress = defaultNodeWakeMACAddress
+}
+
+func (c *DataActionsComponent) dispatch(action func()) {
+	action()
+
+	c.Update()
 }
