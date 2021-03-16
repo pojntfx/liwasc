@@ -82,7 +82,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 				app.Div().Class("pf-c-login__container").Body(
 					app.Header().Class("pf-c-login__header").Body(
 						app.Img().
-							Class("pf-c-brand pc-x-c-brand--main").
+							Class("pf-c-brand pf-x-c-brand--main").
 							Src("/web/logo.svg").
 							Alt("liwasc Logo"),
 					),

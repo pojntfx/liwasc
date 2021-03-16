@@ -21,106 +21,83 @@ func main() {
 		&components.ConfigProviderComponent{
 			StoragePrefix: "liwasc.config",
 			Children: func(cpcp components.ConfigProviderChildrenProps) app.UI {
-				return app.Div().Body(
-					app.If(cpcp.Ready,
-						// Login provider
-						&components.LoginProviderComponent{
-							Issuer:        cpcp.OIDCIssuer,
-							ClientID:      cpcp.OIDCClientID,
-							RedirectURL:   cpcp.OIDCRedirectURL,
-							HomeURL:       "/",
-							Scopes:        []string{"profile", "email"},
-							StoragePrefix: "liwasc.login",
-							Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
-								// Login actions and status
-								if lpcp.Error != nil {
-									return &components.ConfigActionsComponent{
-										BackendURL:      cpcp.BackendURL,
-										OIDCIssuer:      cpcp.OIDCIssuer,
-										OIDCClientID:    cpcp.OIDCClientID,
-										OIDCRedirectURL: cpcp.OIDCRedirectURL,
+				return app.If(cpcp.Ready,
+					// Login provider
+					&components.LoginProviderComponent{
+						Issuer:        cpcp.OIDCIssuer,
+						ClientID:      cpcp.OIDCClientID,
+						RedirectURL:   cpcp.OIDCRedirectURL,
+						HomeURL:       "/",
+						Scopes:        []string{"profile", "email"},
+						StoragePrefix: "liwasc.login",
+						Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
+							// Login actions and status
+							if lpcp.Error != nil {
+								return &components.ConfigActionsComponent{
+									BackendURL:      cpcp.BackendURL,
+									OIDCIssuer:      cpcp.OIDCIssuer,
+									OIDCClientID:    cpcp.OIDCClientID,
+									OIDCRedirectURL: cpcp.OIDCRedirectURL,
 
-										SetBackendURL:      cpcp.SetBackendURL,
-										SetOIDCIssuer:      cpcp.SetOIDCIssuer,
-										SetOIDCClientID:    cpcp.SetOIDCClientID,
-										SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
-										ApplyConfig:        cpcp.ApplyConfig,
+									SetBackendURL:      cpcp.SetBackendURL,
+									SetOIDCIssuer:      cpcp.SetOIDCIssuer,
+									SetOIDCClientID:    cpcp.SetOIDCClientID,
+									SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
+									ApplyConfig:        cpcp.ApplyConfig,
 
-										Error: lpcp.Error,
+									Error: lpcp.Error,
+								}
+							}
+
+							// Login placeholder
+							if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
+								return app.P().Text("Authorizing ...")
+							}
+
+							// gRPC Client
+							conn, err := grpc.Dial(cpcp.BackendURL, grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
+							if err != nil {
+								panic(err)
+							}
+
+							// Data provider
+							return &components.DataProviderComponent{
+								AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
+								MetadataService:        proto.NewMetadataServiceClient(conn),
+								NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
+								NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
+								Children: func(dpcp components.DataProviderChildrenProps) app.UI {
+									return &components.DataActionsComponent{
+										Network:  dpcp.Network,
+										UserInfo: lpcp.UserInfo,
+
+										TriggerNetworkScan: dpcp.TriggerNetworkScan,
+										StartNodeWake:      dpcp.StartNodeWake,
+										Logout:             lpcp.Logout,
+
+										Error:   dpcp.Error,
+										Recover: dpcp.Recover,
 									}
-								}
-
-								// Login placeholder
-								if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
-									return app.P().Text("Authorizing ...")
-								}
-
-								// gRPC Client
-								conn, err := grpc.Dial(cpcp.BackendURL, grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
-								if err != nil {
-									panic(err)
-								}
-
-								return app.Div().Body(
-									// Login actions
-									&components.LoginActionsComponent{
-										Logout: lpcp.Logout,
-									},
-									// Login output
-									&components.JSONOutputComponent{
-										Object: struct {
-											Email string
-										}{
-											Email: lpcp.UserInfo.Email,
-										},
-									},
-									// Data provider
-									&components.DataProviderComponent{
-										AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
-										MetadataService:        proto.NewMetadataServiceClient(conn),
-										NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
-										NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
-										Children: func(dpcp components.DataProviderChildrenProps) app.UI {
-											return app.Div().Body(
-												// Data status
-												&components.StatusComponent{
-													Error:   dpcp.Error,
-													Recover: dpcp.Recover,
-												},
-												// Data actions
-												&components.DataActionsComponent{
-													Network: dpcp.Network,
-
-													TriggerNetworkScan: dpcp.TriggerNetworkScan,
-													StartNodeWake:      dpcp.StartNodeWake,
-												},
-												// Data output
-												&components.JSONOutputComponent{
-													Object: dpcp.Network,
-												},
-											)
-										},
-									},
-								)
-							},
+								},
+							}
 						},
-					).Else(
-						// Config actions and status
-						&components.ConfigActionsComponent{
-							BackendURL:      cpcp.BackendURL,
-							OIDCIssuer:      cpcp.OIDCIssuer,
-							OIDCClientID:    cpcp.OIDCClientID,
-							OIDCRedirectURL: cpcp.OIDCRedirectURL,
+					},
+				).Else(
+					// Config actions and status
+					&components.ConfigActionsComponent{
+						BackendURL:      cpcp.BackendURL,
+						OIDCIssuer:      cpcp.OIDCIssuer,
+						OIDCClientID:    cpcp.OIDCClientID,
+						OIDCRedirectURL: cpcp.OIDCRedirectURL,
 
-							SetBackendURL:      cpcp.SetBackendURL,
-							SetOIDCIssuer:      cpcp.SetOIDCIssuer,
-							SetOIDCClientID:    cpcp.SetOIDCClientID,
-							SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
-							ApplyConfig:        cpcp.ApplyConfig,
+						SetBackendURL:      cpcp.SetBackendURL,
+						SetOIDCIssuer:      cpcp.SetOIDCIssuer,
+						SetOIDCClientID:    cpcp.SetOIDCClientID,
+						SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
+						ApplyConfig:        cpcp.ApplyConfig,
 
-							Error: cpcp.Error,
-						},
-					),
+						Error: cpcp.Error,
+					},
 				)
 			},
 		},
