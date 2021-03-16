@@ -17,6 +17,8 @@ type ConfigActionsComponent struct {
 	SetOIDCClientID,
 	SetOIDCRedirectURL func(string)
 	ApplyConfig func()
+
+	Error error
 }
 
 const (
@@ -33,6 +35,12 @@ const (
 )
 
 func (c *ConfigActionsComponent) Render() app.UI {
+	// Display the error message if error != nil
+	errorMessage := ""
+	if c.Error != nil {
+		errorMessage = c.Error.Error()
+	}
+
 	return app.Div().
 		Body(
 			app.Div().
@@ -91,6 +99,21 @@ func (c *ConfigActionsComponent) Render() app.UI {
 							app.Form().
 								Class("pf-c-form").
 								Body(
+									// Error display
+									app.If(c.Error != nil, app.P().
+										Class("pf-c-form__helper-text pf-m-error").
+										Aria("live", "polite").
+										Body(
+											app.Span().
+												Class("pf-c-form__helper-text-icon").
+												Body(
+													app.I().
+														Class("fas fa-exclamation-circle").
+														Aria("hidden", true),
+												),
+											app.Text(errorMessage),
+										),
+									),
 									// Backend URL Input
 									&FormGroupComponent{
 										Label: app.
@@ -112,6 +135,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 												Required(true).
 												Placeholder(backendURLPlaceholder).
 												Class("pf-c-form-control").
+												Aria("invalid", c.Error != nil).
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetBackendURL(ctx.JSSrc.Get("value").String())
 												}),
@@ -140,6 +164,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 												Required(true).
 												Placeholder(oidcIssuerPlaceholder).
 												Class("pf-c-form-control").
+												Aria("invalid", c.Error != nil).
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
 												}),
@@ -167,6 +192,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 												Type("text").
 												Required(true).
 												Class("pf-c-form-control").
+												Aria("invalid", c.Error != nil).
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
 												}),
@@ -195,6 +221,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 												Required(true).
 												Placeholder(oidcRedirectURLPlaceholder).
 												Class("pf-c-form-control").
+												Aria("invalid", c.Error != nil).
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
 												}),
