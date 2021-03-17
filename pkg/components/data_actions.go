@@ -81,6 +81,11 @@ func (c *DataActionsComponent) Render() app.UI {
 					app.Div().Class("pf-c-page__header-tools").Body(
 						app.Div().Class("pf-c-page__header-tools-group").Body(
 							app.Div().Class("pf-c-page__header-tools-group").Body(
+								app.Div().Class("pf-c-page__header-tools-item").Body(
+									app.Button().Class("pf-c-button pf-m-plain").Type("button").Aria("label", "Unread notifications").Aria("expanded", false).Body(
+										app.I().Class("pf-icon-bell").Aria("hidden", true),
+									),
+								),
 								app.Div().Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").Body(
 									app.Button().Class("pf-c-button pf-m-plain").Type("button").Aria("label", "Settings").Body(
 										app.I().Class("fas fa-cog").Aria("hidden", true),
@@ -114,6 +119,7 @@ func (c *DataActionsComponent) Render() app.UI {
 													).OnClick(func(ctx app.Context, e app.Event) {
 													c.dispatch(func() {
 														c.mobileMenuExpanded = !c.mobileMenuExpanded
+														c.desktopMenuExpanded = false
 													})
 												}),
 												app.Ul().
@@ -221,6 +227,7 @@ func (c *DataActionsComponent) Render() app.UI {
 													).OnClick(func(ctx app.Context, e app.Event) {
 													c.dispatch(func() {
 														c.desktopMenuExpanded = !c.desktopMenuExpanded
+														c.mobileMenuExpanded = false
 													})
 												}),
 												app.Ul().
