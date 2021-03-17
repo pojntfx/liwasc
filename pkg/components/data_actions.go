@@ -86,26 +86,7 @@ func (c *DataActionsComponent) Render() app.UI {
 										app.I().Class("fas fa-cog").Aria("hidden", true),
 									),
 								),
-								app.Div().Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").Body(
-									app.
-										Button().
-										Class("pf-c-button pf-m-plain").
-										Type("button").
-										Aria("label", "Help").
-										OnClick(func(ctx app.Context, e app.Event) {
-											c.dispatch(func() {
-												c.aboutDialogOpen = true
-											})
-										}).
-										Body(
-											app.I().
-												Class("fas fa-question-circle").
-												Aria("hidden", true),
-										),
-								),
-							),
-							app.Div().Class("pf-c-page__header-tools-group").Body(
-								app.Div().Class("pf-c-page__header-tools-item pf-m-hidden-on-lg").
+								app.Div().Class("pf-c-page__header-tools-item").
 									Body(
 										app.Div().
 											Class(func() string {
@@ -125,7 +106,10 @@ func (c *DataActionsComponent) Render() app.UI {
 													Aria("label", "Actions").
 													Body(
 														app.I().
-															Class("fas fa-ellipsis-v").
+															Class("fas fa-ellipsis-v pf-u-display-none-on-lg").
+															Aria("hidden", true),
+														app.I().
+															Class("fas fa-question-circle pf-u-display-none pf-u-display-inline-block-on-lg").
 															Aria("hidden", true),
 													).OnClick(func(ctx app.Context, e app.Event) {
 													c.dispatch(func() {
@@ -140,7 +124,7 @@ func (c *DataActionsComponent) Render() app.UI {
 														app.Li().
 															Body(
 																app.Button().
-																	Class("pf-c-button pf-c-dropdown__menu-item").
+																	Class("pf-c-button pf-c-dropdown__menu-item pf-u-display-none-on-lg").
 																	Type("button").
 																	Body(
 																		app.Span().
@@ -154,6 +138,17 @@ func (c *DataActionsComponent) Render() app.UI {
 																	),
 															),
 														app.Li().
+															Class("pf-c-divider pf-u-display-none-on-lg").
+															Aria("role", "separator"),
+														app.Li().
+															Body(
+																app.A().
+																	Class("pf-c-dropdown__menu-item").
+																	Href("https://github.com/pojntfx/liwasc/wiki").
+																	Text("Documentation").
+																	Target("_blank"),
+															),
+														app.Li().
 															Body(
 																app.Button().
 																	Class("pf-c-button pf-c-dropdown__menu-item").
@@ -161,18 +156,10 @@ func (c *DataActionsComponent) Render() app.UI {
 																	OnClick(func(ctx app.Context, e app.Event) {
 																		c.dispatch(func() {
 																			c.aboutDialogOpen = true
+																			c.mobileMenuExpanded = false
 																		})
 																	}).
-																	Body(
-																		app.Span().
-																			Class("pf-c-button__icon pf-m-start").
-																			Body(
-																				app.I().
-																					Class("fas fa-question-circle").
-																					Aria("hidden", true),
-																			),
-																		app.Text("Help"),
-																	),
+																	Text("About"),
 															),
 														app.Li().
 															Class("pf-c-divider pf-u-display-none-on-md").
