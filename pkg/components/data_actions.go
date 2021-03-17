@@ -480,45 +480,6 @@ func (c *DataActionsComponent) Render() app.UI {
 						app.Form().
 							Class("pf-c-form").
 							Body(
-								// Node Wake Timeout Input
-								&FormGroupComponent{
-									Label: app.
-										Label().
-										For(nodeWakeTimeoutName).
-										Class("pf-c-form__label").
-										Body(
-											app.
-												Span().
-												Class("pf-c-form__label-text").
-												Text("Node Wake Timeout (in ms)"),
-										),
-									Input: &Controlled{
-										Component: app.
-											Input().
-											Name(nodeWakeTimeoutName).
-											ID(nodeWakeTimeoutName).
-											Type("number").
-											Required(true).
-											Min(1).
-											Step(1).
-											Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
-											Class("pf-c-form-control").
-											OnInput(func(ctx app.Context, e app.Event) {
-												v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-												if err != nil || v == 0 {
-													c.Update()
-
-													return
-												}
-
-												c.nodeWakeTimeout = int64(v)
-
-												c.Update()
-											}),
-										Value: c.nodeWakeTimeout,
-									},
-									Required: true,
-								},
 								// Node Wake MAC Address Input
 								&FormGroupComponent{
 									Label: app.
@@ -704,19 +665,64 @@ func (c *DataActionsComponent) Render() app.UI {
 									app.Div().
 										Class("pf-c-modal-box__body").
 										Body(
-										// TODO: Add form elements
+											app.Form().
+												Class("pf-c-form").
+												ID("settings").
+												Body(
+													// Node Wake Timeout Input
+													&FormGroupComponent{
+														Label: app.
+															Label().
+															For(nodeWakeTimeoutName).
+															Class("pf-c-form__label").
+															Body(
+																app.
+																	Span().
+																	Class("pf-c-form__label-text").
+																	Text("Node Wake Timeout (in ms)"),
+															),
+														Input: &Controlled{
+															Component: app.
+																Input().
+																Name(nodeWakeTimeoutName).
+																ID(nodeWakeTimeoutName).
+																Type("number").
+																Required(true).
+																Min(1).
+																Step(1).
+																Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
+																Class("pf-c-form-control").
+																OnInput(func(ctx app.Context, e app.Event) {
+																	v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+																	if err != nil || v == 0 {
+																		c.Update()
+
+																		return
+																	}
+
+																	c.nodeWakeTimeout = int64(v)
+
+																	c.Update()
+																}),
+															Value: c.nodeWakeTimeout,
+														},
+														Required: true,
+													},
+												).OnSubmit(func(ctx app.Context, e app.Event) {
+												e.PreventDefault()
+
+												c.dispatch(func() {
+													c.settingsDialogOpen = false
+												})
+											}),
 										),
 									app.Footer().
 										Class("pf-c-modal-box__footer").
 										Body(
 											app.Button().
 												Class("pf-c-button pf-m-primary").
-												Type("button").
-												OnClick(func(ctx app.Context, e app.Event) {
-													c.dispatch(func() {
-														c.settingsDialogOpen = false
-													})
-												}).
+												Type("submit").
+												Form("settings").
 												Text("Save"),
 											app.Button().
 												Class("pf-c-button pf-m-link").
