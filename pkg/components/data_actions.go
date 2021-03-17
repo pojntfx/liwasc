@@ -311,161 +311,96 @@ func (c *DataActionsComponent) Render() app.UI {
 									Recover: c.Recover,
 								},
 								// Data actions
-								app.Form().
-									Class("pf-c-form").
+								app.
+									Button().
+									Type("submit").
+									Class(func() string {
+										classes := "pf-c-button pf-m-primary"
+
+										if c.Network.NodeScanRunning {
+											classes += " pf-m-progress pf-m-in-progress"
+										}
+
+										return classes
+									}()).
+									OnClick(func(ctx app.Context, e app.Event) {
+										go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
+									}).
 									Body(
-
-										// Node Scan MAC Address Input
-										&FormGroupComponent{
-											Label: app.
-												Label().
-												For(nodeScanMACAddressName).
-												Class("pf-c-form__label").
+										app.If(c.Network.NodeScanRunning,
+											app.Span().
+												Class("pf-c-button__progress").
 												Body(
-													app.
-														Span().
-														Class("pf-c-form__label-text").
-														Text("Node Scan MAC Address"),
-												),
-											Input: &Controlled{
-												Component: app.
-													Select().
-													Name(nodeScanMACAddressName).
-													ID(nodeScanMACAddressName).
-													Required(true).
-													Class("pf-c-form-control").
-													OnInput(func(ctx app.Context, e app.Event) {
-														c.nodeScanMACAddress = ctx.JSSrc.Get("value").String()
-
-														c.Update()
-													}).Body(
-													append(
-														[]app.UI{
-															app.
-																Option().
-																Value(allMACAddresses).
-																Text("All Addresses"),
-														},
-														app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
-															return app.
-																Option().
-																Value(c.Network.Nodes[i].MACAddress).
-																Text(c.Network.Nodes[i].MACAddress)
-														}))...,
-												),
-												Value: c.nodeScanMACAddress,
-											},
-											Required: true,
-										},
-										// Network Scan Input Trigger
-										app.Div().
-											Class("pf-c-form__group pf-m-action").
-											Body(
-												app.Div().
-													Class("pf-c-form__actions").
-													Body(
-														app.
-															Button().
-															Type("submit").
-															Class(func() string {
-																classes := "pf-c-button pf-m-primary"
-
-																if c.Network.NodeScanRunning {
-																	classes += " pf-m-progress pf-m-in-progress"
-																}
-
-																return classes
-															}()).
-															Body(
-																app.If(c.Network.NodeScanRunning,
-																	app.Span().
-																		Class("pf-c-button__progress").
-																		Body(
-																			app.Span().
-																				Class("pf-c-spinner pf-m-md").
-																				Aria("role", "progressbar").
-																				Aria("valuetext", "Loading...").
-																				Body(
-																					app.Span().Class("pf-c-spinner__clipper"),
-																					app.Span().Class("pf-c-spinner__lead-ball"),
-																					app.Span().Class("pf-c-spinner__tail-ball"),
-																				),
-																		)),
-																app.Text("Trigger network scan"),
-															),
-													),
-											),
-									).OnSubmit(func(ctx app.Context, e app.Event) {
-									e.PreventDefault()
-
-									macAddress := c.nodeScanMACAddress
-									if macAddress == allMACAddresses {
-										macAddress = ""
-									}
-
-									go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, macAddress)
-								}),
-								app.Form().
-									Class("pf-c-form").
-									Body(
-										// Node Wake MAC Address Input
-										&FormGroupComponent{
-											Label: app.
-												Label().
-												For(nodeWakeMACAddressName).
-												Class("pf-c-form__label").
-												Body(
-													app.
-														Span().
-														Class("pf-c-form__label-text").
-														Text("Node Wake MAC Address"),
-												),
-											Input: &Controlled{
-												Component: app.
-													Select().
-													Name(nodeWakeMACAddressName).
-													ID(nodeWakeMACAddressName).
-													Required(true).
-													Class("pf-c-form-control").
-													OnInput(func(ctx app.Context, e app.Event) {
-														c.nodeWakeMACAddress = ctx.JSSrc.Get("value").String()
-
-														c.Update()
-													}).Body(
-													app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
-														return app.
-															Option().
-															Value(c.Network.Nodes[i].MACAddress).
-															Text(c.Network.Nodes[i].MACAddress)
-													}),
-												),
-												Value: c.nodeWakeMACAddress,
-											},
-											Required: true,
-										},
-										// Node Wake Input Trigger
-										app.Div().
-											Class("pf-c-form__group pf-m-action").
-											Body(
-												app.Div().
-													Class("pf-c-form__actions").
-													Body(
-														app.
-															Button().
-															Type("submit").
-															Class("pf-c-button pf-m-primary").
-															Text("Trigger node wake"),
-													),
-											),
-									).OnSubmit(func(ctx app.Context, e app.Event) {
-									e.PreventDefault()
-
-									go c.StartNodeWake(c.nodeWakeTimeout, c.nodeWakeMACAddress)
-								}),
+													app.Span().
+														Class("pf-c-spinner pf-m-md").
+														Aria("role", "progressbar").
+														Aria("valuetext", "Loading...").
+														Body(
+															app.Span().Class("pf-c-spinner__clipper"),
+															app.Span().Class("pf-c-spinner__lead-ball"),
+															app.Span().Class("pf-c-spinner__tail-ball"),
+														),
+												)),
+										app.Text("Scan the network"),
+									),
 								// Data output
 								&JSONOutputComponent{
-									Object: c.Network,
+									Object: c.Network.ScannerMetadata,
 								},
+								&JSONOutputComponent{
+									Object: c.Network.LastNodeScanDate,
+								},
+								app.Ul().
+									Class("pf-c-list").
+									Body(
+										app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
+											return app.Li().Body(
+												app.
+													Button().
+													Type("button").
+													Class(func() string {
+														classes := "pf-c-button pf-m-primary"
+
+														if c.Network.Nodes[i].PortScanRunning {
+															classes += " pf-m-progress pf-m-in-progress"
+														}
+
+														return classes
+													}()).
+													OnClick(func(ctx app.Context, e app.Event) {
+														go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
+													}).
+													Body(
+														app.If(c.Network.Nodes[i].PortScanRunning,
+															app.Span().
+																Class("pf-c-button__progress").
+																Body(
+																	app.Span().
+																		Class("pf-c-spinner pf-m-md").
+																		Aria("role", "progressbar").
+																		Aria("valuetext", "Loading...").
+																		Body(
+																			app.Span().Class("pf-c-spinner__clipper"),
+																			app.Span().Class("pf-c-spinner__lead-ball"),
+																			app.Span().Class("pf-c-spinner__tail-ball"),
+																		),
+																)),
+														app.Text("Scan this node"),
+													),
+												app.
+													Button().
+													Type("button").
+													Class("pf-c-button pf-m-primary").
+													OnClick(func(ctx app.Context, e app.Event) {
+														go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
+													}).
+													Text("Wake this node"),
+												&JSONOutputComponent{
+													Object: c.Network.Nodes[i],
+												},
+											)
+										}),
+									),
 							),
 						),
 					),
