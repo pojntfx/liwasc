@@ -305,51 +305,70 @@ func (c *DataActionsComponent) Render() app.UI {
 					Body(
 						app.Section().Class("pf-c-page__main-section pf-m-limit-width").Body(
 							app.Div().Class("pf-c-page__main-section").Body(
+								// Toolbar
+								app.Div().
+									Class("pf-c-toolbar pf-m-page-insets").
+									Body(
+										app.Div().
+											Class("pf-c-toolbar__content").
+											Body(
+												app.Div().
+													Class("pf-c-toolbar__content-section pf-m-nowrap").
+													Body(
+														app.Div().
+															Class("pf-c-toolbar__item").
+															Body(
+																// Data actions
+																app.
+																	Button().
+																	Type("submit").
+																	Class(func() string {
+																		classes := "pf-c-button pf-m-primary"
+
+																		if c.Network.NodeScanRunning {
+																			classes += " pf-m-progress pf-m-in-progress"
+																		}
+
+																		return classes
+																	}()).
+																	OnClick(func(ctx app.Context, e app.Event) {
+																		go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
+																	}).
+																	Body(
+																		app.If(c.Network.NodeScanRunning,
+																			app.Span().
+																				Class("pf-c-button__progress").
+																				Body(
+																					app.Span().
+																						Class("pf-c-spinner pf-m-md").
+																						Aria("role", "progressbar").
+																						Aria("valuetext", "Loading...").
+																						Body(
+																							app.Span().Class("pf-c-spinner__clipper"),
+																							app.Span().Class("pf-c-spinner__lead-ball"),
+																							app.Span().Class("pf-c-spinner__tail-ball"),
+																						),
+																				)),
+																		app.Text("Scan the network"),
+																	),
+															),
+														app.Div().Class("pf-c-toolbar__item pf-m-pagination").Body(
+															&JSONOutputComponent{
+																Object: c.Network.ScannerMetadata,
+															},
+															&JSONOutputComponent{
+																Object: c.Network.LastNodeScanDate,
+															},
+														),
+													),
+											),
+									),
 								// Data status
 								&StatusComponent{
 									Error:   c.Error,
 									Recover: c.Recover,
 								},
-								// Data actions
-								app.
-									Button().
-									Type("submit").
-									Class(func() string {
-										classes := "pf-c-button pf-m-primary"
-
-										if c.Network.NodeScanRunning {
-											classes += " pf-m-progress pf-m-in-progress"
-										}
-
-										return classes
-									}()).
-									OnClick(func(ctx app.Context, e app.Event) {
-										go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
-									}).
-									Body(
-										app.If(c.Network.NodeScanRunning,
-											app.Span().
-												Class("pf-c-button__progress").
-												Body(
-													app.Span().
-														Class("pf-c-spinner pf-m-md").
-														Aria("role", "progressbar").
-														Aria("valuetext", "Loading...").
-														Body(
-															app.Span().Class("pf-c-spinner__clipper"),
-															app.Span().Class("pf-c-spinner__lead-ball"),
-															app.Span().Class("pf-c-spinner__tail-ball"),
-														),
-												)),
-										app.Text("Scan the network"),
-									),
 								// Data output
-								&JSONOutputComponent{
-									Object: c.Network.ScannerMetadata,
-								},
-								&JSONOutputComponent{
-									Object: c.Network.LastNodeScanDate,
-								},
 								app.Ul().
 									Class("pf-c-list").
 									Body(
