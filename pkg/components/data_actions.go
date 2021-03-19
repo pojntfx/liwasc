@@ -352,6 +352,49 @@ func (c *DataActionsComponent) Render() app.UI {
 																		app.Text("Scan the network"),
 																	),
 															),
+														app.Div().
+															Class("pf-c-toolbar__item").
+															Body(
+																app.Div().
+																	Class("pf-c-label-group pf-m-category").
+																	Body(
+																		app.Div().
+																			Class("pf-c-label-group__main").
+																			Body(
+																				app.Span().
+																					Class("pf-c-label-group__label").
+																					Aria("hidden", true).
+																					ID("subnets").
+																					Body(
+																						app.I().
+																							Class("fas fa-network-wired pf-u-mr-xs").
+																							Aria("hidden", true),
+																						app.Text("Subnets"),
+																					),
+																				app.Ul().
+																					Class("pf-c-label-group__list").
+																					Aria("role", "list").
+																					Aria("labelledby", "subnets").
+																					Body(
+																						app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
+																							return app.Li().
+																								Class("pf-c-label-group__list-item").
+																								Body(
+																									app.Span().
+																										Class("pf-c-label").
+																										Body(
+																											app.Span().
+																												Class("pf-c-label__content").
+																												Body(
+																													app.Text(c.Network.ScannerMetadata.Subnets[i]),
+																												),
+																										),
+																								)
+																						}),
+																					),
+																			),
+																	),
+															),
 														app.Div().Class("pf-c-toolbar__item pf-m-pagination").Body(
 															&JSONOutputComponent{
 																Object: c.Network.ScannerMetadata,
