@@ -364,44 +364,112 @@ func (c *DataActionsComponent) Render() app.UI {
 																				app.Span().
 																					Class("pf-c-label-group__label").
 																					Aria("hidden", true).
-																					ID("subnets").
+																					ID("last-scan").
 																					Body(
 																						app.I().
-																							Class("fas fa-network-wired pf-u-mr-xs").
+																							Class("fas fa-history pf-u-mr-xs").
 																							Aria("hidden", true),
-																						app.Text("Subnets"),
+																						app.Text("Last Scan"),
 																					),
 																				app.Ul().
 																					Class("pf-c-label-group__list").
 																					Aria("role", "list").
-																					Aria("labelledby", "subnets").
+																					Aria("labelledby", "last-scan").
 																					Body(
-																						app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
-																							return app.Li().
-																								Class("pf-c-label-group__list-item").
-																								Body(
-																									app.Span().
-																										Class("pf-c-label").
-																										Body(
-																											app.Span().
-																												Class("pf-c-label__content").
-																												Body(
-																													app.Text(c.Network.ScannerMetadata.Subnets[i]),
-																												),
-																										),
-																								)
-																						}),
+																						app.Li().
+																							Class("pf-c-label-group__list-item").
+																							Body(
+																								app.Span().
+																									Class("pf-c-label").
+																									Body(
+																										app.Span().
+																											Class("pf-c-label__content").
+																											Body(
+																												app.Text(c.Network.LastNodeScanDate),
+																											),
+																									),
+																							),
 																					),
 																			),
 																	),
 															),
 														app.Div().Class("pf-c-toolbar__item pf-m-pagination").Body(
-															&JSONOutputComponent{
-																Object: c.Network.ScannerMetadata,
-															},
-															&JSONOutputComponent{
-																Object: c.Network.LastNodeScanDate,
-															},
+															app.Div().
+																Class("pf-c-label-group pf-m-category pf-u-mr-md").
+																Body(
+																	app.Div().
+																		Class("pf-c-label-group__main").
+																		Body(
+																			app.Span().
+																				Class("pf-c-label-group__label").
+																				Aria("hidden", true).
+																				ID("subnets").
+																				Body(
+																					app.I().
+																						Class("fas fa-network-wired pf-u-mr-xs").
+																						Aria("hidden", true),
+																					app.Text("Subnets"),
+																				),
+																			app.Ul().
+																				Class("pf-c-label-group__list").
+																				Aria("role", "list").
+																				Aria("labelledby", "subnets").
+																				Body(
+																					app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
+																						return app.Li().
+																							Class("pf-c-label-group__list-item").
+																							Body(
+																								app.Span().
+																									Class("pf-c-label").
+																									Body(
+																										app.Span().
+																											Class("pf-c-label__content").
+																											Body(
+																												app.Text(c.Network.ScannerMetadata.Subnets[i]),
+																											),
+																									),
+																							)
+																					}),
+																				),
+																		),
+																),
+															app.Div().
+																Class("pf-c-label-group pf-m-category").
+																Body(
+																	app.Div().
+																		Class("pf-c-label-group__main").
+																		Body(
+																			app.Span().
+																				Class("pf-c-label-group__label").
+																				Aria("hidden", true).
+																				ID("device").
+																				Body(
+																					app.I().
+																						Class("fas fa-microchip pf-u-mr-xs").
+																						Aria("hidden", true),
+																					app.Text("Device"),
+																				),
+																			app.Ul().
+																				Class("pf-c-label-group__list").
+																				Aria("role", "list").
+																				Aria("labelledby", "device").
+																				Body(
+																					app.Li().
+																						Class("pf-c-label-group__list-item").
+																						Body(
+																							app.Span().
+																								Class("pf-c-label").
+																								Body(
+																									app.Span().
+																										Class("pf-c-label__content").
+																										Body(
+																											app.Text(c.Network.ScannerMetadata.Device),
+																										),
+																								),
+																						),
+																				),
+																		),
+																),
 														),
 													),
 											),
