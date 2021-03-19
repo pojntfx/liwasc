@@ -348,8 +348,16 @@ func (c *DataActionsComponent) Render() app.UI {
 																							app.Span().Class("pf-c-spinner__lead-ball"),
 																							app.Span().Class("pf-c-spinner__tail-ball"),
 																						),
-																				)),
-																		app.Text("Scan the network"),
+																				)).Else(
+																			app.Span().
+																				Class("pf-c-button__icon pf-m-start").
+																				Body(
+																					app.I().
+																						Class("fas fa-rocket").
+																						Aria("hidden", true),
+																				),
+																		),
+																		app.Text("Trigger Scan"),
 																	),
 															),
 														app.Div().
