@@ -37,6 +37,19 @@ func main() {
 								// Configuration shell
 								if ipcp.Error != nil {
 									return &shells.ConfigurationShell{
+										LogoSrc:          "/web/logo.svg",
+										Title:            "Log in to liwasc",
+										ShortDescription: "List, wake and scan nodes in a network.",
+										LongDescription: `liwasc is a high-performance network and port scanner. It can
+quickly give you a overview of the nodes in your network, the
+services that run on them and manage their power status.`,
+										HelpLink: "https://github.com/pojntfx/liwasc/wiki",
+										Links: map[string]string{
+											"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
+											"Source Code":   "https://github.com/pojntfx/liwasc",
+											"Documentation": "https://github.com/pojntfx/liwasc/wiki",
+										},
+
 										BackendURL:      cpcp.BackendURL,
 										OIDCIssuer:      cpcp.OIDCIssuer,
 										OIDCClientID:    cpcp.OIDCClientID,
@@ -89,6 +102,19 @@ func main() {
 					).Else(
 						// Configuration shell
 						&shells.ConfigurationShell{
+							LogoSrc:          "/web/logo.svg",
+							Title:            "Log in to liwasc",
+							ShortDescription: "List, wake and scan nodes in a network.",
+							LongDescription: `liwasc is a high-performance network and port scanner. It can
+quickly give you a overview of the nodes in your network, the
+services that run on them and manage their power status.`,
+							HelpLink: "https://github.com/pojntfx/liwasc/wiki",
+							Links: map[string]string{
+								"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
+								"Source Code":   "https://github.com/pojntfx/liwasc",
+								"Documentation": "https://github.com/pojntfx/liwasc/wiki",
+							},
+
 							BackendURL:      cpcp.BackendURL,
 							OIDCIssuer:      cpcp.OIDCIssuer,
 							OIDCClientID:    cpcp.OIDCClientID,
