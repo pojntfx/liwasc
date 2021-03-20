@@ -8,6 +8,13 @@ import (
 type ConfigurationShell struct {
 	app.Compo
 
+	LogoSrc          string
+	Title            string
+	ShortDescription string
+	LongDescription  string
+	HelpLink         string
+	Links            map[string]string
+
 	BackendURL      string
 	OIDCIssuer      string
 	OIDCClientID    string
@@ -84,16 +91,16 @@ func (c *ConfigurationShell) Render() app.UI {
 					app.Header().Class("pf-c-login__header").Body(
 						app.Img().
 							Class("pf-c-brand pf-x-c-brand--main").
-							Src("/web/logo.svg").
-							Alt("liwasc Logo"),
+							Src(c.LogoSrc).
+							Alt("Logo"),
 					),
 					app.Main().Class("pf-c-login__main").Body(
 						app.Header().Class("pf-c-login__main-header").Body(
 							app.H1().Class("pf-c-title pf-m-3xl").Text(
-								"Log in to liwasc",
+								c.Title,
 							),
 							app.P().Class("pf-c-login__main-header-desc").Text(
-								"List, wake and scan nodes in a network.",
+								c.ShortDescription,
 							),
 						),
 						app.Div().Class("pf-c-login__main-body").Body(
@@ -251,7 +258,7 @@ func (c *ConfigurationShell) Render() app.UI {
 								app.P().Class("pf-c-login__main-footer-band-item").Body(
 									app.Text("Not sure what to do? "),
 									app.A().
-										Href("https://github.com/pojntfx/liwasc/wiki").
+										Href(c.HelpLink).
 										Target("_blank").
 										Text("Get help."),
 								),
@@ -259,31 +266,19 @@ func (c *ConfigurationShell) Render() app.UI {
 						),
 					),
 					app.Footer().Class("pf-c-login__footer").Body(
-						app.P().Text(`liwasc is a high-performance network and port scanner. It can
-quickly give you a overview of the nodes in your network, the
-services that run on them and manage their power status.`),
+						app.P().Text(
+							c.LongDescription,
+						),
 						app.Ul().Class("pf-c-list pf-m-inline").Body(
-							app.Li().Body(
-								app.
-									A().
-									Target("_blank").
-									Href("https://github.com/pojntfx/liwasc/blob/main/LICENSE").
-									Text("License"),
-							),
-							app.Li().Body(
-								app.
-									A().
-									Target("_blank").
-									Href("https://github.com/pojntfx/liwasc").
-									Text("Source Code"),
-							),
-							app.Li().Body(
-								app.
-									A().
-									Target("_blank").
-									Href("https://github.com/pojntfx/liwasc/wiki").
-									Text("Documentation"),
-							),
+							app.Range(c.Links).Map(func(s string) app.UI {
+								return app.Li().Body(
+									app.
+										A().
+										Target("_blank").
+										Href(c.Links[s]).
+										Text(s),
+								)
+							}),
 						),
 					),
 				),

@@ -253,18 +253,18 @@ func (c *ConfigurationProvider) OnMount(context app.Context) {
 	c.ready = false
 
 	// If rehydrated from URL, validate & apply
-	// if c.rehydrateFromURL() {
-	// Auto-apply if configured
-	// Disabled until a flow for handling wrong input details has been implemented
-	// c.validate()
-	// }
+	if c.rehydrateFromURL() {
+		// Auto-apply if configured
+		// Disabled until a flow for handling wrong input details has been implemented
+		// c.validate()
+	}
 
 	// If rehydrated from storage, validate & apply
-	// if c.rehydrateFromStorage() {
-	// Auto-apply if configured
-	// Disabled until a flow for handling wrong input details has been implemented
-	// c.validate()
-	// }
+	if c.rehydrateFromStorage() {
+		// Auto-apply if configured
+		// Disabled until a flow for handling wrong input details has been implemented
+		// c.validate()
+	}
 
 	// If rehydrated authentication from URL, continue
 	if c.rehydrateAuthenticationFromURL() {
