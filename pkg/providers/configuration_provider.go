@@ -1,4 +1,4 @@
-package components
+package providers
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
-type ConfigProviderChildrenProps struct {
+type ConfigurationProviderChildrenProps struct {
 	BackendURL      string
 	OIDCIssuer      string
 	OIDCClientID    string
@@ -24,11 +24,13 @@ type ConfigProviderChildrenProps struct {
 	Error error
 }
 
-type ConfigProviderComponent struct {
+type ConfigurationProvider struct {
 	app.Compo
 
-	StoragePrefix string
-	Children      func(ConfigProviderChildrenProps) app.UI
+	StoragePrefix       string
+	StateQueryParameter string
+	CodeQueryParameter  string
+	Children            func(ConfigurationProviderChildrenProps) app.UI
 
 	backendURL      string
 	oidcIssuer      string
@@ -46,8 +48,8 @@ const (
 	oidcRedirectURLKey = "oidcRedirectURL"
 )
 
-func (c *ConfigProviderComponent) Render() app.UI {
-	return c.Children(ConfigProviderChildrenProps{
+func (c *ConfigurationProvider) Render() app.UI {
+	return c.Children(ConfigurationProviderChildrenProps{
 		BackendURL:      c.backendURL,
 		OIDCIssuer:      c.oidcIssuer,
 		OIDCClientID:    c.oidcClientID,
@@ -86,7 +88,7 @@ func (c *ConfigProviderComponent) Render() app.UI {
 	})
 }
 
-func (c *ConfigProviderComponent) invalidate(err error) {
+func (c *ConfigurationProvider) invalidate(err error) {
 	// Set the error state
 	c.err = err
 	c.ready = false
@@ -94,13 +96,13 @@ func (c *ConfigProviderComponent) invalidate(err error) {
 	c.Update()
 }
 
-func (c *ConfigProviderComponent) dispatch(action func()) {
+func (c *ConfigurationProvider) dispatch(action func()) {
 	action()
 
 	c.Update()
 }
 
-func (c *ConfigProviderComponent) validate() {
+func (c *ConfigurationProvider) validate() {
 	// Validate fields
 	if c.oidcClientID == "" {
 		c.invalidate(errors.New("invalid OIDC client ID"))
@@ -140,7 +142,7 @@ func (c *ConfigProviderComponent) validate() {
 	})
 }
 
-func (c *ConfigProviderComponent) persist() error {
+func (c *ConfigurationProvider) persist() error {
 	// Write state to storage
 	if err := app.LocalStorage.Set(c.getKey(backendURLKey), c.backendURL); err != nil {
 		return err
@@ -155,7 +157,7 @@ func (c *ConfigProviderComponent) persist() error {
 	return app.LocalStorage.Set(c.getKey(oidcRedirectURLKey), c.oidcRedirectURL)
 }
 
-func (c *ConfigProviderComponent) rehydrateFromURL() bool {
+func (c *ConfigurationProvider) rehydrateFromURL() bool {
 	// Read state from URL
 	query := app.Window().URL().Query()
 
@@ -179,7 +181,7 @@ func (c *ConfigProviderComponent) rehydrateFromURL() bool {
 	return false
 }
 
-func (c *ConfigProviderComponent) rehydrateFromStorage() bool {
+func (c *ConfigurationProvider) rehydrateFromStorage() bool {
 	// Read state from storage
 	backendURL := ""
 	oidcIssuer := ""
@@ -222,12 +224,12 @@ func (c *ConfigProviderComponent) rehydrateFromStorage() bool {
 	return false
 }
 
-func (c *ConfigProviderComponent) rehydrateAuthenticationFromURL() bool {
+func (c *ConfigurationProvider) rehydrateAuthenticationFromURL() bool {
 	// Read state from URL
 	query := app.Window().URL().Query()
 
-	state := query.Get(StateQueryParameter)
-	code := query.Get(CodeQueryParameter)
+	state := query.Get(c.StateQueryParameter)
+	code := query.Get(c.CodeQueryParameter)
 
 	// If all values are set, set them in the data provider
 	if state != "" && code != "" {
@@ -237,12 +239,12 @@ func (c *ConfigProviderComponent) rehydrateAuthenticationFromURL() bool {
 	return false
 }
 
-func (c *ConfigProviderComponent) getKey(key string) string {
+func (c *ConfigurationProvider) getKey(key string) string {
 	// Get a prefixed key
 	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
 }
 
-func (c *ConfigProviderComponent) OnMount(context app.Context) {
+func (c *ConfigurationProvider) OnMount(context app.Context) {
 	// Initialize state
 	c.backendURL = ""
 	c.oidcIssuer = ""
@@ -251,18 +253,18 @@ func (c *ConfigProviderComponent) OnMount(context app.Context) {
 	c.ready = false
 
 	// If rehydrated from URL, validate & apply
-	if c.rehydrateFromURL() {
-		// Auto-apply if configured
-		// Disabled until a flow for handling wrong input details has been implemented
-		// c.validate()
-	}
+	// if c.rehydrateFromURL() {
+	// Auto-apply if configured
+	// Disabled until a flow for handling wrong input details has been implemented
+	// c.validate()
+	// }
 
 	// If rehydrated from storage, validate & apply
-	if c.rehydrateFromStorage() {
-		// Auto-apply if configured
-		// Disabled until a flow for handling wrong input details has been implemented
-		// c.validate()
-	}
+	// if c.rehydrateFromStorage() {
+	// Auto-apply if configured
+	// Disabled until a flow for handling wrong input details has been implemented
+	// c.validate()
+	// }
 
 	// If rehydrated authentication from URL, continue
 	if c.rehydrateAuthenticationFromURL() {

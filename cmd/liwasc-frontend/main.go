@@ -1,5 +1,3 @@
-// +build js,wasm
-
 package main
 
 import (
@@ -8,8 +6,9 @@ import (
 
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	components "github.com/pojntfx/liwasc/pkg/components"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
+	"github.com/pojntfx/liwasc/pkg/providers"
+	"github.com/pojntfx/liwasc/pkg/shells"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -17,25 +16,27 @@ import (
 func main() {
 	// Define the routes
 	app.Route("/",
-		// Config provider
-		&components.ConfigProviderComponent{
-			StoragePrefix: "liwasc.config",
-			Children: func(cpcp components.ConfigProviderChildrenProps) app.UI {
+		// Configuration provider
+		&providers.ConfigurationProvider{
+			StoragePrefix:       "liwasc.configuration",
+			StateQueryParameter: "state",
+			CodeQueryParameter:  "code",
+			Children: func(cpcp providers.ConfigurationProviderChildrenProps) app.UI {
 				// This div is required so that there are no authorization loops
 				return app.Div().Body(
 					app.If(cpcp.Ready,
-						// Login provider
-						&components.LoginProviderComponent{
+						// Identity provider
+						&providers.IdentityProvider{
 							Issuer:        cpcp.OIDCIssuer,
 							ClientID:      cpcp.OIDCClientID,
 							RedirectURL:   cpcp.OIDCRedirectURL,
 							HomeURL:       "/",
 							Scopes:        []string{"profile", "email"},
-							StoragePrefix: "liwasc.login",
-							Children: func(lpcp components.LoginProviderChildrenProps) app.UI {
-								// Login actions and status
-								if lpcp.Error != nil {
-									return &components.ConfigActionsComponent{
+							StoragePrefix: "liwasc.identity",
+							Children: func(ipcp providers.IdentityProviderChildrenProps) app.UI {
+								// Configuration shell
+								if ipcp.Error != nil {
+									return &shells.ConfigurationShell{
 										BackendURL:      cpcp.BackendURL,
 										OIDCIssuer:      cpcp.OIDCIssuer,
 										OIDCClientID:    cpcp.OIDCClientID,
@@ -47,12 +48,12 @@ func main() {
 										SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
 										ApplyConfig:        cpcp.ApplyConfig,
 
-										Error: lpcp.Error,
+										Error: ipcp.Error,
 									}
 								}
 
-								// Login placeholder
-								if lpcp.IDToken == "" || lpcp.UserInfo.Email == "" {
+								// Configuration placeholder
+								if ipcp.IDToken == "" || ipcp.UserInfo.Email == "" {
 									return app.P().Text("Authorizing ...")
 								}
 
@@ -63,19 +64,20 @@ func main() {
 								}
 
 								// Data provider
-								return &components.DataProviderComponent{
-									AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", lpcp.IDToken),
+								return &providers.DataProvider{
+									AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", ipcp.IDToken),
 									MetadataService:        proto.NewMetadataServiceClient(conn),
 									NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
 									NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
-									Children: func(dpcp components.DataProviderChildrenProps) app.UI {
-										return &components.DataActionsComponent{
+									Children: func(dpcp providers.DataProviderChildrenProps) app.UI {
+										// Data shell
+										return &shells.DataShell{
 											Network:  dpcp.Network,
-											UserInfo: lpcp.UserInfo,
+											UserInfo: ipcp.UserInfo,
 
 											TriggerNetworkScan: dpcp.TriggerNetworkScan,
 											StartNodeWake:      dpcp.StartNodeWake,
-											Logout:             lpcp.Logout,
+											Logout:             ipcp.Logout,
 
 											Error:   dpcp.Error,
 											Recover: dpcp.Recover,
@@ -85,8 +87,8 @@ func main() {
 							},
 						},
 					).Else(
-						// Config actions and status
-						&components.ConfigActionsComponent{
+						// Configuration shell
+						&shells.ConfigurationShell{
 							BackendURL:      cpcp.BackendURL,
 							OIDCIssuer:      cpcp.OIDCIssuer,
 							OIDCClientID:    cpcp.OIDCClientID,

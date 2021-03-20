@@ -1,10 +1,11 @@
-package components
+package shells
 
 import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/pojntfx/liwasc/pkg/components"
 )
 
-type ConfigActionsComponent struct {
+type ConfigurationShell struct {
 	app.Compo
 
 	BackendURL      string
@@ -34,7 +35,7 @@ const (
 	oidcRedirectURLPlaceholder = "http://localhost:15125/"
 )
 
-func (c *ConfigActionsComponent) Render() app.UI {
+func (c *ConfigurationShell) Render() app.UI {
 	// Display the error message if error != nil
 	errorMessage := ""
 	if c.Error != nil {
@@ -115,7 +116,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 										),
 									),
 									// Backend URL Input
-									&FormGroupComponent{
+									&components.FormGroup{
 										Label: app.
 											Label().
 											For(backendURLName).
@@ -126,7 +127,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 													Class("pf-c-form__label-text").
 													Text("Backend URL"),
 											),
-										Input: &Controlled{
+										Input: &components.Controlled{
 											Component: app.
 												Input().
 												Name(backendURLName).
@@ -144,7 +145,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 										Required: true,
 									},
 									// OIDC Issuer Input
-									&FormGroupComponent{
+									&components.FormGroup{
 										Label: app.
 											Label().
 											For(oidcIssuerName).
@@ -155,7 +156,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 													Class("pf-c-form__label-text").
 													Text("OIDC Issuer"),
 											),
-										Input: &Controlled{
+										Input: &components.Controlled{
 											Component: app.
 												Input().
 												Name(oidcIssuerName).
@@ -173,7 +174,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 										Required: true,
 									},
 									// OIDC Client ID
-									&FormGroupComponent{
+									&components.FormGroup{
 										Label: app.
 											Label().
 											For(oidcClientIDName).
@@ -184,7 +185,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 													Class("pf-c-form__label-text").
 													Text("OIDC Client ID"),
 											),
-										Input: &Controlled{
+										Input: &components.Controlled{
 											Component: app.
 												Input().
 												Name(oidcClientIDName).
@@ -201,7 +202,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 										Required: true,
 									},
 									// OIDC Redirect URL
-									&FormGroupComponent{
+									&components.FormGroup{
 										Label: app.
 											Label().
 											For(oidcRedirectURLName).
@@ -212,7 +213,7 @@ func (c *ConfigActionsComponent) Render() app.UI {
 													Class("pf-c-form__label-text").
 													Text("OIDC Redirect URL"),
 											),
-										Input: &Controlled{
+										Input: &components.Controlled{
 											Component: app.
 												Input().
 												Name(oidcRedirectURLName).

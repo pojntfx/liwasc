@@ -2,7 +2,7 @@ package components
 
 import "github.com/maxence-charriere/go-app/v7/pkg/app"
 
-type FormGroupComponent struct {
+type FormGroup struct {
 	app.Compo
 
 	Required bool
@@ -10,7 +10,7 @@ type FormGroupComponent struct {
 	Input    app.UI
 }
 
-func (c *FormGroupComponent) Render() app.UI {
+func (c *FormGroup) Render() app.UI {
 	return app.
 		Div().
 		Class("pf-c-form__group").

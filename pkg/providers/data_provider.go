@@ -1,4 +1,4 @@
-package components
+package providers
 
 import (
 	"context"
@@ -81,7 +81,7 @@ type DataProviderChildrenProps struct {
 	Recover func()
 }
 
-type DataProviderComponent struct {
+type DataProvider struct {
 	app.Compo
 
 	AuthenticatedContext   context.Context
@@ -96,7 +96,7 @@ type DataProviderComponent struct {
 	err error
 }
 
-func (c *DataProviderComponent) Render() app.UI {
+func (c *DataProvider) Render() app.UI {
 	return c.Children(DataProviderChildrenProps{
 		Network: c.network,
 
@@ -108,7 +108,7 @@ func (c *DataProviderComponent) Render() app.UI {
 	})
 }
 
-func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout int64, macAddress string) {
+func (c *DataProvider) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout int64, macAddress string) {
 	// Optimistic UI
 	c.dispatch(func() {
 		// Set the node scan bool
@@ -137,7 +137,7 @@ func (c *DataProviderComponent) triggerNetworkScan(nodeScanTimeout int64, portSc
 	}
 }
 
-func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress string) {
+func (c *DataProvider) startNodeWake(nodeWakeTimeout int64, macAddress string) {
 	// Optimistic UI
 	c.dispatch(func() {
 		for i, node := range c.network.Nodes {
@@ -159,7 +159,7 @@ func (c *DataProviderComponent) startNodeWake(nodeWakeTimeout int64, macAddress 
 	}
 }
 
-func (c *DataProviderComponent) recover() {
+func (c *DataProvider) recover() {
 	// Clear the error
 	c.err = nil
 
@@ -169,14 +169,14 @@ func (c *DataProviderComponent) recover() {
 	c.Update()
 }
 
-func (c *DataProviderComponent) panic(err error) {
+func (c *DataProvider) panic(err error) {
 	// Set the error
 	c.err = err
 
 	c.Update()
 }
 
-func (c *DataProviderComponent) dispatch(action func()) {
+func (c *DataProvider) dispatch(action func()) {
 	c.networkLock.Lock()
 
 	action()
@@ -185,7 +185,7 @@ func (c *DataProviderComponent) dispatch(action func()) {
 	c.networkLock.Unlock()
 }
 
-func (c *DataProviderComponent) OnMount(context app.Context) {
+func (c *DataProvider) OnMount(context app.Context) {
 	// Initialize network struct
 	c.dispatch(func() {
 		c.network = Network{

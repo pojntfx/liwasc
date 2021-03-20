@@ -2,14 +2,14 @@ package components
 
 import "github.com/maxence-charriere/go-app/v7/pkg/app"
 
-type StatusComponent struct {
+type Status struct {
 	app.Compo
 
 	Error   error
 	Recover func()
 }
 
-func (c *StatusComponent) Render() app.UI {
+func (c *Status) Render() app.UI {
 	// Display the error message if error != nil
 	errorMessage := ""
 	if c.Error != nil {

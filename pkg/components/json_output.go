@@ -6,13 +6,13 @@ import (
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
 )
 
-type JSONOutputComponent struct {
+type JSONDisplay struct {
 	app.Compo
 
 	Object interface{}
 }
 
-func (c *JSONOutputComponent) Render() app.UI {
+func (c *JSONDisplay) Render() app.UI {
 	output, err := json.MarshalIndent(c.Object, "", "    ")
 	if err != nil {
 		panic(err)
