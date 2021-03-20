@@ -1,4 +1,4 @@
-package components
+package providers
 
 import (
 	"context"
@@ -21,7 +21,7 @@ const (
 	idTokenExtraKey = "id_token"
 )
 
-type LoginProviderChildrenProps struct {
+type IdentityProviderChildrenProps struct {
 	IDToken  string
 	UserInfo oidc.UserInfo
 
@@ -31,7 +31,7 @@ type LoginProviderChildrenProps struct {
 	Recover func()
 }
 
-type LoginProviderComponent struct {
+type IdentityProvider struct {
 	app.Compo
 
 	Issuer        string
@@ -40,7 +40,7 @@ type LoginProviderComponent struct {
 	HomeURL       string
 	Scopes        []string
 	StoragePrefix string
-	Children      func(LoginProviderChildrenProps) app.UI
+	Children      func(IdentityProviderChildrenProps) app.UI
 
 	oauth2Token oauth2.Token
 	idToken     string
@@ -49,14 +49,14 @@ type LoginProviderComponent struct {
 	err error
 }
 
-func (c *LoginProviderComponent) Render() app.UI {
+func (c *IdentityProvider) Render() app.UI {
 	// Only continue if there is no error state; this prevents endless loops
 	if c.err == nil {
 		c.authorize()
 	}
 
 	return c.Children(
-		LoginProviderChildrenProps{
+		IdentityProviderChildrenProps{
 			IDToken:  c.idToken,
 			UserInfo: c.userInfo,
 
@@ -70,7 +70,7 @@ func (c *LoginProviderComponent) Render() app.UI {
 	)
 }
 
-func (c *LoginProviderComponent) panic(err error) {
+func (c *IdentityProvider) panic(err error) {
 	go func() {
 		c.dispatch(func() {
 			// Set the error
@@ -85,7 +85,7 @@ func (c *LoginProviderComponent) panic(err error) {
 	}()
 }
 
-func (c *LoginProviderComponent) recover() {
+func (c *IdentityProvider) recover() {
 	c.dispatch(func() {
 		// Clear the error
 		c.err = nil
@@ -95,13 +95,13 @@ func (c *LoginProviderComponent) recover() {
 	c.logout(false)
 }
 
-func (c *LoginProviderComponent) dispatch(action func()) {
+func (c *IdentityProvider) dispatch(action func()) {
 	action()
 
 	c.Update()
 }
 
-func (c *LoginProviderComponent) watch() {
+func (c *IdentityProvider) watch() {
 	for {
 		// Wait till token expires
 		if c.oauth2Token.Expiry.After(time.Now()) {
@@ -139,7 +139,7 @@ func (c *LoginProviderComponent) watch() {
 	}
 }
 
-func (c *LoginProviderComponent) logout(withRedirect bool) {
+func (c *IdentityProvider) logout(withRedirect bool) {
 	// Remove from storage
 	c.clear()
 
@@ -149,7 +149,7 @@ func (c *LoginProviderComponent) logout(withRedirect bool) {
 	}
 }
 
-func (c *LoginProviderComponent) rehydrate() (oauth2.Token, string, oidc.UserInfo, error) {
+func (c *IdentityProvider) rehydrate() (oauth2.Token, string, oidc.UserInfo, error) {
 	// Read state from storage
 	oauth2Token := oauth2.Token{}
 	idToken := ""
@@ -168,7 +168,7 @@ func (c *LoginProviderComponent) rehydrate() (oauth2.Token, string, oidc.UserInf
 	return oauth2Token, idToken, userInfo, nil
 }
 
-func (c *LoginProviderComponent) persist(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo) error {
+func (c *IdentityProvider) persist(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo) error {
 	// Write state to storage
 	if err := app.LocalStorage.Set(c.getKey(oauth2TokenKey), oauth2Token); err != nil {
 		return err
@@ -179,7 +179,7 @@ func (c *LoginProviderComponent) persist(oauth2Token oauth2.Token, idToken strin
 	return app.LocalStorage.Set(c.getKey(userInfoKey), userInfo)
 }
 
-func (c *LoginProviderComponent) clear() {
+func (c *IdentityProvider) clear() {
 	// Remove from storage
 	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
 	app.LocalStorage.Del(c.getKey(idTokenKey))
@@ -189,12 +189,12 @@ func (c *LoginProviderComponent) clear() {
 	app.Window().Get("document").Set("cookie", "")
 }
 
-func (c *LoginProviderComponent) getKey(key string) string {
+func (c *IdentityProvider) getKey(key string) string {
 	// Get a prefixed key
 	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
 }
 
-func (c *LoginProviderComponent) authorize() {
+func (c *IdentityProvider) authorize() {
 	// Read state from storage
 	oauth2Token, idToken, userInfo, err := c.rehydrate()
 	if err != nil {

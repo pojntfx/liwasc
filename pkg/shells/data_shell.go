@@ -1,13 +1,15 @@
-package components
+package shells
 
 import (
 	"strconv"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/pojntfx/liwasc/pkg/components"
+	"github.com/pojntfx/liwasc/pkg/providers"
 )
 
-type DataActionsComponent struct {
+type DataShell struct {
 	app.Compo
 
 	nodeScanTimeout    int64
@@ -22,7 +24,7 @@ type DataActionsComponent struct {
 	aboutDialogOpen      bool
 	settingsDialogOpen   bool
 
-	Network  Network
+	Network  providers.Network
 	UserInfo oidc.UserInfo
 
 	TriggerNetworkScan func(nodeScanTimeout int64, portScanTimeout int64, macAddress string)
@@ -51,7 +53,7 @@ const (
 	defaultNodeWakeMACAddress = ""
 )
 
-func (c *DataActionsComponent) Render() app.UI {
+func (c *DataShell) Render() app.UI {
 	return app.Div().Body(
 		app.Div().
 			Class("pf-c-page").
@@ -483,7 +485,7 @@ func (c *DataActionsComponent) Render() app.UI {
 											),
 									),
 								// Data status
-								&StatusComponent{
+								&components.Status{
 									Error:   c.Error,
 									Recover: c.Recover,
 								},
@@ -533,7 +535,7 @@ func (c *DataActionsComponent) Render() app.UI {
 														go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
 													}).
 													Text("Wake this node"),
-												&JSONOutputComponent{
+												&components.JSONDisplay{
 													Object: c.Network.Nodes[i],
 												},
 											)
@@ -672,7 +674,7 @@ func (c *DataActionsComponent) Render() app.UI {
 											ID("settings").
 											Body(
 												// Node Scan Timeout Input
-												&FormGroupComponent{
+												&components.FormGroup{
 													Label: app.
 														Label().
 														For(nodeScanTimeoutName).
@@ -683,7 +685,7 @@ func (c *DataActionsComponent) Render() app.UI {
 																Class("pf-c-form__label-text").
 																Text("Node Scan Timeout (in ms)"),
 														),
-													Input: &Controlled{
+													Input: &components.Controlled{
 														Component: app.
 															Input().
 															Name(nodeScanTimeoutName).
@@ -711,7 +713,7 @@ func (c *DataActionsComponent) Render() app.UI {
 													Required: true,
 												},
 												// Port Scan Timeout Input
-												&FormGroupComponent{
+												&components.FormGroup{
 													Label: app.
 														Label().
 														For(portScanTimeoutName).
@@ -722,7 +724,7 @@ func (c *DataActionsComponent) Render() app.UI {
 																Class("pf-c-form__label-text").
 																Text("Port Scan Timeout (in ms)"),
 														),
-													Input: &Controlled{
+													Input: &components.Controlled{
 														Component: app.
 															Input().
 															Name(portScanTimeoutName).
@@ -750,7 +752,7 @@ func (c *DataActionsComponent) Render() app.UI {
 													Required: true,
 												},
 												// Node Wake Timeout Input
-												&FormGroupComponent{
+												&components.FormGroup{
 													Label: app.
 														Label().
 														For(nodeWakeTimeoutName).
@@ -761,7 +763,7 @@ func (c *DataActionsComponent) Render() app.UI {
 																Class("pf-c-form__label-text").
 																Text("Node Wake Timeout (in ms)"),
 														),
-													Input: &Controlled{
+													Input: &components.Controlled{
 														Component: app.
 															Input().
 															Name(nodeWakeTimeoutName).
@@ -820,7 +822,7 @@ func (c *DataActionsComponent) Render() app.UI {
 	)
 }
 
-func (c *DataActionsComponent) OnMount(context app.Context) {
+func (c *DataShell) OnMount(context app.Context) {
 	// Initialize node scan form
 	c.nodeScanTimeout = defaultNodeScanTimeout
 	c.portScanTimeout = defaultPortScanTimeout
@@ -831,7 +833,7 @@ func (c *DataActionsComponent) OnMount(context app.Context) {
 	c.nodeWakeMACAddress = defaultNodeWakeMACAddress
 }
 
-func (c *DataActionsComponent) dispatch(action func()) {
+func (c *DataShell) dispatch(action func()) {
 	action()
 
 	c.Update()
