@@ -13,6 +13,11 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+type Event struct {
+	Message string
+	Time    time.Time
+}
+
 type ScannerMetadata struct {
 	Subnets []string
 	Device  string
@@ -69,6 +74,7 @@ type Network struct {
 	NodeScanRunning  bool
 	LastNodeScanDate time.Time
 	Nodes            []Node
+	Events           []Event
 }
 
 type DataProviderChildrenProps struct {
@@ -196,6 +202,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 			NodeScanRunning:  false,
 			LastNodeScanDate: time.Unix(0, 0),
 			Nodes:            []Node{},
+			Events:           []Event{},
 		}
 	})
 
@@ -243,6 +250,14 @@ func (c *DataProvider) OnMount(context app.Context) {
 
 				return
 			}
+
+			// Log the node scan
+			c.dispatch(func() {
+				c.network.Events = append(c.network.Events, Event{
+					Time:    nodeScanCreatedAt,
+					Message: "Node scan started",
+				})
+			})
 
 			// Only continue evaluation if this scan is newer
 			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) || nodeScanCreatedAt.Equal(c.network.LastNodeScanDate) {
@@ -399,6 +414,14 @@ func (c *DataProvider) OnMount(context app.Context) {
 
 									return
 								}
+
+								// Log the port scan
+								c.dispatch(func() {
+									c.network.Events = append(c.network.Events, Event{
+										Time:    portScanCreatedAt,
+										Message: "Port scan started",
+									})
+								})
 
 								// Check if this port scan is the newest one
 								portScanIsNewest := false

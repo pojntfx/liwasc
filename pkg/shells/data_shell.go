@@ -493,6 +493,9 @@ func (c *DataShell) Render() app.UI {
 								app.Ul().
 									Class("pf-c-list").
 									Body(
+										&components.JSONDisplay{
+											Object: c.Network.Events,
+										},
 										app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
 											return app.Li().Body(
 												app.
