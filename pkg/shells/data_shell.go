@@ -19,10 +19,11 @@ type DataShell struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
-	userMenuExpanded     bool
-	overflowMenuExpanded bool
-	aboutDialogOpen      bool
-	settingsDialogOpen   bool
+	userMenuExpanded        bool
+	overflowMenuExpanded    bool
+	aboutDialogOpen         bool
+	settingsDialogOpen      bool
+	notificationsDrawerOpen bool
 
 	Network  providers.Network
 	UserInfo oidc.UserInfo
@@ -99,10 +100,30 @@ func (c *DataShell) Render() app.UI {
 															Type("button").
 															Aria("label", "Unread notifications").
 															Aria("expanded", false).
+															OnClick(func(ctx app.Context, e app.Event) {
+																c.dispatch(func() {
+																	c.notificationsDrawerOpen = !c.notificationsDrawerOpen
+																	c.settingsDialogOpen = false
+																	c.overflowMenuExpanded = false
+																})
+															}).
 															Body(
-																app.I().
-																	Class("pf-icon-bell").
-																	Aria("hidden", true),
+																app.Span().
+																	Class(
+																		func() string {
+																			classes := "pf-c-notification-badge"
+
+																			if c.notificationsDrawerOpen {
+																				classes += " pf-m-read"
+																			}
+
+																			return classes
+																		}()).
+																	Body(
+																		app.I().
+																			Class("pf-icon-bell").
+																			Aria("hidden", true),
+																	),
 															),
 													),
 												app.Div().
