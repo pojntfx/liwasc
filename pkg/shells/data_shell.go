@@ -93,7 +93,15 @@ func (c *DataShell) Render() app.UI {
 											Class("pf-c-page__header-tools-group").
 											Body(
 												app.Div().
-													Class("pf-c-page__header-tools-item").
+													Class(func() string {
+														classes := "pf-c-page__header-tools-item"
+
+														if c.notificationsDrawerOpen {
+															classes += " pf-m-selected"
+														}
+
+														return classes
+													}()).
 													Body(
 														app.Button().
 															Class("pf-c-button pf-m-plain").
@@ -109,16 +117,7 @@ func (c *DataShell) Render() app.UI {
 															}).
 															Body(
 																app.Span().
-																	Class(
-																		func() string {
-																			classes := "pf-c-notification-badge"
-
-																			if c.notificationsDrawerOpen {
-																				classes += " pf-m-read"
-																			}
-
-																			return classes
-																		}()).
+																	Class("pf-c-notification-badge").
 																	Body(
 																		app.I().
 																			Class("pf-icon-bell").
