@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
+	"golang.org/x/sync/semaphore"
 )
 
 func ScanPort(targetAddress string, targetPort int, timeout time.Duration) (bool, error) {
@@ -117,17 +120,41 @@ func ScanPort(targetAddress string, targetPort int, timeout time.Duration) (bool
 func main() {
 	// Arguments
 	targetAddress := "100.64.154.244"
-	targetPort := 22
-	timeout := time.Second
+	timeout := time.Millisecond * 500
+	ports := 65535
+	jobs := 100
 
-	open, err := ScanPort(targetAddress, targetPort, timeout)
-	if err != nil {
-		log.Fatal(err)
+	// Concurrency
+	wg := sync.WaitGroup{}
+	sem := semaphore.NewWeighted(int64(jobs))
+	wg.Add(ports - 1)
+
+	for port := 1; port < ports; port++ {
+		go func(targetPort int) {
+			// Aquire lock
+			if err := sem.Acquire(context.Background(), 1); err != nil {
+				panic(err)
+			}
+
+			// Release log
+			defer sem.Release(1)
+			defer wg.Done()
+
+			// Start scan
+			open, err := ScanPort(targetAddress, targetPort, timeout)
+			if err != nil {
+				panic(err)
+			}
+
+			// Handle scan result
+			if open {
+				log.Println(targetPort, "open")
+			} else {
+				// log.Println(targetPort, "closed")
+			}
+		}(port)
 	}
 
-	if open {
-		log.Println(targetPort, "open")
-	} else {
-		log.Println(targetPort, "closed")
-	}
+	// Wait till all have finished
+	wg.Wait()
 }
