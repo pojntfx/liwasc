@@ -56,9 +56,7 @@ func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
 	var uniqueNodes models.NodeSlice
 	if err := queries.Raw(
 		fmt.Sprintf(
-			`select * from %v where %v in (select max(%v) from %v group by %v)`,
-			models.TableNames.Nodes,
-			models.NodeColumns.ID,
+			`select *, max(%v) from %v group by %v`,
 			models.NodeColumns.CreatedAt,
 			models.TableNames.Nodes,
 			models.NodeColumns.MacAddress,
