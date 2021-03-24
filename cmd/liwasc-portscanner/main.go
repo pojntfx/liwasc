@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-func ScanPort(targetAddress string, targetPort int, timeout time.Duration) (bool, error) {
+func ScanTCPPort(targetAddress string, targetPort int, timeout time.Duration) (bool, error) {
 	// Get local socket
 	raddr := net.ParseIP(targetAddress).To4()
 	rport := layers.TCPPort(targetPort)
@@ -117,9 +118,48 @@ func ScanPort(targetAddress string, targetPort int, timeout time.Duration) (bool
 	}
 }
 
+func ScanUDPPort(targetAddress string, targetPort int, timeout time.Duration, packetGetter func(port int) ([]byte, error)) (bool, error) {
+	// Create connection
+	con, err := net.Dial("udp", net.JoinHostPort(targetAddress, strconv.Itoa(targetPort)))
+	if err != nil {
+		return false, err
+	}
+
+	// Set timeout
+	if err := con.SetDeadline(time.Now().Add(timeout)); err != nil {
+		return false, err
+	}
+
+	// Get known packet for port
+	packet, err := packetGetter(targetPort)
+	if err != nil {
+		if strings.Contains(err.Error(), "could not find packet for port") {
+			packet = []byte{} // Unknown packet for port, use empty []byte{}
+		} else {
+			return false, err
+		}
+	}
+
+	// Write packet
+	if _, err := con.Write(packet); err != nil {
+		return false, err
+	}
+
+	// Count every response that is at least 1 byte long as a "open port"
+	buffer := make([]byte, 1)
+	if _, err := con.Read(buffer); err != nil {
+		// Port is closed
+		return false, nil
+	} else {
+		// Port is open
+		return true, nil
+	}
+}
+
 func main() {
 	// Arguments
-	targetAddress := "100.64.154.248"
+	targetAddress := "127.0.0.1"
+	protocols := []string{"tcp", "udp"}
 	timeout := time.Millisecond * 500
 	ports := 65535
 	jobs := 1000
@@ -127,43 +167,72 @@ func main() {
 	// Concurrency
 	wg := sync.WaitGroup{}
 	sem := semaphore.NewWeighted(int64(jobs))
-	wg.Add(ports - 1)
+	wg.Add((ports - 1) * len(protocols))
 
 	for port := 1; port < ports; port++ {
-		go func(targetPort int) {
-			// Aquire lock
-			if err := sem.Acquire(context.Background(), 1); err != nil {
-				panic(err)
-			}
+		for _, protocol := range protocols {
+			go func(targetPort int, targetProtocol string) {
+				// Aquire lock
+				if err := sem.Acquire(context.Background(), 1); err != nil {
+					panic(err)
+				}
 
-			// Release log
-			defer sem.Release(1)
-			defer wg.Done()
+				// Release lock
+				defer sem.Release(1)
+				defer wg.Done()
 
-			// Start scan
-			for {
-				open, err := ScanPort(targetAddress, targetPort, timeout)
-				if err != nil {
-					if err.(net.Error).Timeout() {
-						time.Sleep(timeout)
+				// Start scan
+				for {
+					if targetProtocol == "tcp" {
+						// Scan TCP
+						open, err := ScanTCPPort(targetAddress, targetPort, timeout)
+						if err != nil {
+							// Re-try
+							if err.(net.Error).Timeout() || strings.Contains(err.Error(), "too many open files") {
+								time.Sleep(timeout)
 
-						continue
-					} else {
-						panic(err)
+								continue
+							} else {
+								panic(err)
+							}
+						}
+
+						// Handle scan result
+						if open {
+							log.Println(targetPort, "tcp/open")
+						} else {
+							// log.Println(targetPort, "tcp/closed")
+						}
+
+						break
+					} else if targetProtocol == "udp" {
+						// Scan UDP
+						open, err := ScanUDPPort(targetAddress, targetPort, timeout, func(port int) ([]byte, error) {
+							return []byte("Hello, world!"), nil
+						})
+						if err != nil {
+							// Re-try
+							if err.(net.Error).Timeout() || strings.Contains(err.Error(), "too many open files") {
+								time.Sleep(timeout)
+
+								continue
+							} else {
+								panic(err)
+							}
+						}
+
+						// Handle scan result
+						if open {
+							log.Println(targetPort, "udp/open")
+						} else {
+							// log.Println(targetPort, "udp/closed")
+						}
+
+						break
 					}
 				}
-
-				// Handle scan result
-				if open {
-					log.Println(targetPort, "open")
-				} else {
-					// log.Println(targetPort, "closed")
-				}
-
-				break
-			}
-
-		}(port)
+			}(port, protocol)
+		}
 	}
 
 	// Wait till all have finished
