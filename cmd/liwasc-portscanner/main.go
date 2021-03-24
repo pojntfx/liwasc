@@ -119,10 +119,10 @@ func ScanPort(targetAddress string, targetPort int, timeout time.Duration) (bool
 
 func main() {
 	// Arguments
-	targetAddress := "100.64.154.244"
+	targetAddress := "100.64.154.248"
 	timeout := time.Millisecond * 500
 	ports := 65535
-	jobs := 100
+	jobs := 1000
 
 	// Concurrency
 	wg := sync.WaitGroup{}
@@ -141,17 +141,28 @@ func main() {
 			defer wg.Done()
 
 			// Start scan
-			open, err := ScanPort(targetAddress, targetPort, timeout)
-			if err != nil {
-				panic(err)
+			for {
+				open, err := ScanPort(targetAddress, targetPort, timeout)
+				if err != nil {
+					if err.(net.Error).Timeout() {
+						time.Sleep(timeout)
+
+						continue
+					} else {
+						panic(err)
+					}
+				}
+
+				// Handle scan result
+				if open {
+					log.Println(targetPort, "open")
+				} else {
+					// log.Println(targetPort, "closed")
+				}
+
+				break
 			}
 
-			// Handle scan result
-			if open {
-				log.Println(targetPort, "open")
-			} else {
-				// log.Println(targetPort, "closed")
-			}
 		}(port)
 	}
 
