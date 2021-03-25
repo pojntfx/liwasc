@@ -50,6 +50,7 @@ func (c *ConfigurationShell) Render() app.UI {
 	}
 
 	return app.Div().
+		Class("pf-u-h-100").
 		Body(
 			app.Div().
 				Class("pf-c-background-image").
