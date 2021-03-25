@@ -348,6 +348,11 @@ func (c *DataShell) Render() app.UI {
 														Body(
 															app.Section().Class("pf-c-page__main-section pf-m-limit-width").Body(
 																app.Div().Class("pf-c-page__main-section").Body(
+																	// Data status
+																	&components.Status{
+																		Error:   c.Error,
+																		Recover: c.Recover,
+																	},
 																	// Toolbar
 																	app.Div().
 																		Class("pf-c-toolbar pf-m-page-insets").
@@ -525,62 +530,88 @@ func (c *DataShell) Render() app.UI {
 																						),
 																				),
 																		),
-																	// Data status
-																	&components.Status{
-																		Error:   c.Error,
-																		Recover: c.Recover,
-																	},
 																	// Data output
-																	app.Ul().
-																		Class("pf-c-list").
+																	app.Table().
+																		Class("pf-c-table pf-m-grid-md").
+																		Aria("role", "grid").
+																		Aria("label", "Nodes and their status").
 																		Body(
-																			app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
-																				return app.Li().Body(
-																					app.
-																						Button().
-																						Type("button").
-																						Class(func() string {
-																							classes := "pf-c-button pf-m-primary"
-
-																							if c.Network.Nodes[i].PortScanRunning {
-																								classes += " pf-m-progress pf-m-in-progress"
-																							}
-
-																							return classes
-																						}()).
-																						OnClick(func(ctx app.Context, e app.Event) {
-																							go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
-																						}).
+																			app.THead().
+																				Body(
+																					app.Tr().
+																						Aria("role", "row").
 																						Body(
-																							app.If(c.Network.Nodes[i].PortScanRunning,
-																								app.Span().
-																									Class("pf-c-button__progress").
-																									Body(
-																										app.Span().
-																											Class("pf-c-spinner pf-m-md").
-																											Aria("role", "progressbar").
-																											Aria("valuetext", "Loading...").
-																											Body(
-																												app.Span().Class("pf-c-spinner__clipper"),
-																												app.Span().Class("pf-c-spinner__lead-ball"),
-																												app.Span().Class("pf-c-spinner__tail-ball"),
-																											),
-																									)),
-																							app.Text("Scan this node"),
+																							app.Th().
+																								Aria("role", "columnheader").
+																								Scope("col").
+																								Text("Actions"),
+																							app.Th().
+																								Aria("role", "columnheader").
+																								Scope("col").
+																								Text("Data"),
 																						),
-																					app.
-																						Button().
-																						Type("button").
-																						Class("pf-c-button pf-m-primary").
-																						OnClick(func(ctx app.Context, e app.Event) {
-																							go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
-																						}).
-																						Text("Wake this node"),
-																					&components.JSONDisplay{
-																						Object: c.Network.Nodes[i],
-																					},
-																				)
-																			}),
+																				),
+																			app.TBody().
+																				Aria("role", "rowgroup").
+																				Body(
+																					app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
+																						return app.Tr().Aria("role", "row").Body(
+																							app.Td().
+																								Aria("role", "cell").
+																								DataSet("label", "Actions").
+																								Body(
+																									app.
+																										Button().
+																										Type("button").
+																										Class(func() string {
+																											classes := "pf-c-button pf-m-primary"
+
+																											if c.Network.Nodes[i].PortScanRunning {
+																												classes += " pf-m-progress pf-m-in-progress"
+																											}
+
+																											return classes
+																										}()).
+																										OnClick(func(ctx app.Context, e app.Event) {
+																											go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
+																										}).
+																										Body(
+																											app.If(c.Network.Nodes[i].PortScanRunning,
+																												app.Span().
+																													Class("pf-c-button__progress").
+																													Body(
+																														app.Span().
+																															Class("pf-c-spinner pf-m-md").
+																															Aria("role", "progressbar").
+																															Aria("valuetext", "Loading...").
+																															Body(
+																																app.Span().Class("pf-c-spinner__clipper"),
+																																app.Span().Class("pf-c-spinner__lead-ball"),
+																																app.Span().Class("pf-c-spinner__tail-ball"),
+																															),
+																													)),
+																											app.Text("Scan this node"),
+																										),
+																									app.
+																										Button().
+																										Type("button").
+																										Class("pf-c-button pf-m-primary").
+																										OnClick(func(ctx app.Context, e app.Event) {
+																											go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
+																										}).
+																										Text("Wake this node"),
+																								),
+																							app.Td().
+																								Aria("role", "cell").
+																								DataSet("label", "Data").
+																								Body(
+																									&components.JSONDisplay{
+																										Object: c.Network.Nodes[i],
+																									},
+																								),
+																						)
+																					}),
+																				),
 																		),
 																),
 															),
