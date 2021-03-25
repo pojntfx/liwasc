@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
@@ -16,6 +15,7 @@ import (
 	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,7 +28,7 @@ type NodeAndPortScanPortService struct {
 	ports2packetsDatabase   *databases.Ports2PacketDatabase
 	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase
 
-	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter
+	portScannerSemaphore *semaphore.Weighted
 
 	nodeScanMessenger *messenger.Messenger
 	nodeMessenger     *messenger.Messenger
@@ -53,7 +53,7 @@ func NewNodeAndPortScanPortService(
 	ports2packetsDatabase *databases.Ports2PacketDatabase,
 	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase,
 
-	portScannerConcurrencyLimiter *concurrency.GoRoutineLimiter,
+	portScannerSemaphore *semaphore.Weighted,
 
 	periodicScanCronExpression string,
 	periodicNodeScanTimeout int,
@@ -67,7 +67,7 @@ func NewNodeAndPortScanPortService(
 		ports2packetsDatabase:   ports2packetsDatabase,
 		nodeAndPortScanDatabase: nodeAndPortScanDatabase,
 
-		portScannerConcurrencyLimiter: portScannerConcurrencyLimiter,
+		portScannerSemaphore: portScannerSemaphore,
 
 		nodeScanMessenger: messenger.New(0, true),
 		nodeMessenger:     messenger.New(0, true),
@@ -248,10 +248,10 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 					portscanner := scanners.NewPortScanner(
 						dbNode.IPAddress,
 						0,
-						math.MaxInt16,
+						math.MaxUint16,
 						time.Millisecond*time.Duration(nodeScanStartMessage.GetPortScanTimeout()),
 						[]string{"tcp", "udp"},
-						s.portScannerConcurrencyLimiter,
+						s.portScannerSemaphore,
 						func(port int) ([]byte, error) {
 							packet, err := s.ports2packetsDatabase.GetPacket(port)
 							if err != nil {

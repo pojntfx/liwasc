@@ -4,13 +4,13 @@ import (
 	"flag"
 	"log"
 
-	"github.com/pojntfx/liwasc/pkg/concurrency"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/networking"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
+	"golang.org/x/sync/semaphore"
 )
 
 func main() {
@@ -26,9 +26,9 @@ func main() {
 
 	listenAddress := flag.String("listenAddress", "localhost:15123", "Listen address")
 	webSocketListenAddress := flag.String("webSocketListenAddress", "localhost:15124", "Listen address (for the WebSocket proxy)")
-	maxConcurrentPortScans := flag.Int("maxConcurrentPortScans", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter")
+	maxConcurrentPortScans := flag.Int64("maxConcurrentPortScans", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter")
 
-	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/5 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every five minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
+	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/10 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every ten minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
 	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 500, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans")
 	periodicPortScanTimeout := flag.Int("periodicPortScanTimeout", 50, "Time in milliseconds to wait for a response per port in the periodic port scans")
 
@@ -57,7 +57,7 @@ func main() {
 		*deviceName,
 		ports2PacketsDatabase,
 		nodeAndPortScanDatabase,
-		concurrency.NewGoRoutineLimiter(int32(*maxConcurrentPortScans)),
+		semaphore.NewWeighted(*maxConcurrentPortScans),
 		*periodicScanCronExpression,
 		*periodicNodeScanTimeout,
 		*periodicPortScanTimeout,

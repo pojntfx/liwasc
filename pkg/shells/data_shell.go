@@ -50,7 +50,7 @@ const (
 	defaultPortScanTimeout = 50
 	allMACAddresses        = "ff:ff:ff:ff"
 
-	defaultNodeWakeTimeout    = 1000
+	defaultNodeWakeTimeout    = 600000
 	defaultNodeWakeMACAddress = ""
 )
 
