@@ -2,7 +2,9 @@ package providers
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -251,17 +253,15 @@ func (c *DataProvider) OnMount(context app.Context) {
 				return
 			}
 
-			// Log the node scan
-			c.dispatch(func() {
-				c.network.Events = append(c.network.Events, Event{
-					Time:    nodeScanCreatedAt,
-					Message: "Node scan started",
-				})
-			})
-
 			// Only continue evaluation if this scan is newer
 			if nodeScanCreatedAt.After(c.network.LastNodeScanDate) || nodeScanCreatedAt.Equal(c.network.LastNodeScanDate) {
 				c.dispatch(func() {
+					// Log the node scan
+					c.network.Events = append(c.network.Events, Event{
+						Time:    nodeScanCreatedAt,
+						Message: fmt.Sprintf("Received node scan for subnets %v", strings.Join(c.network.ScannerMetadata.Subnets, ", ")),
+					})
+
 					// Set the new latest scan date
 					c.network.LastNodeScanDate = nodeScanCreatedAt
 
@@ -381,6 +381,12 @@ func (c *DataProvider) OnMount(context app.Context) {
 								Address:      nodeMetadata.GetAddress(),
 								Visible:      nodeMetadata.GetVisible(),
 							})
+
+							// Log the node
+							c.network.Events = append(c.network.Events, Event{
+								Time:    nodeCreatedAt,
+								Message: fmt.Sprintf("Received node %v", node.GetMACAddress()),
+							})
 						})
 
 						// Subscribe to port scans
@@ -415,14 +421,6 @@ func (c *DataProvider) OnMount(context app.Context) {
 									return
 								}
 
-								// Log the port scan
-								c.dispatch(func() {
-									c.network.Events = append(c.network.Events, Event{
-										Time:    portScanCreatedAt,
-										Message: "Port scan started",
-									})
-								})
-
 								// Check if this port scan is the newest one
 								portScanIsNewest := false
 								c.dispatch(func() {
@@ -447,6 +445,14 @@ func (c *DataProvider) OnMount(context app.Context) {
 
 								// Only continue evaluation if this scan is newer
 								if portScanIsNewest {
+									// Log the port scan
+									c.dispatch(func() {
+										c.network.Events = append(c.network.Events, Event{
+											Time:    portScanCreatedAt,
+											Message: fmt.Sprintf("Received port scan for node %v", node.GetMACAddress()),
+										})
+									})
+
 									// Subscribe to ports
 									go func(ps *proto.PortScanMessage) {
 										// Get stream from service
@@ -558,6 +564,12 @@ func (c *DataProvider) OnMount(context app.Context) {
 														UnauthorizedUseReported: portMetadata.UnauthorizedUseReported,
 														AssignmentNotes:         portMetadata.AssignmentNotes,
 													})
+
+													// Log the port
+													c.network.Events = append(c.network.Events, Event{
+														Time:    portCreatedAt,
+														Message: fmt.Sprintf("Received port %v/%v on node %v", port.GetPortNumber(), port.GetTransportProtocol(), node.GetMACAddress()),
+													})
 												}
 											})
 										}
@@ -626,6 +638,12 @@ func (c *DataProvider) OnMount(context app.Context) {
 							} else {
 								c.network.Nodes[i].NodeWakeRunning = true
 							}
+
+							// Log the node wake
+							c.network.Events = append(c.network.Events, Event{
+								Time:    nodeWakeCreatedAt,
+								Message: fmt.Sprintf("Received node wake for node %v", nodeWake.GetMACAddress()),
+							})
 
 							break
 						}
