@@ -148,7 +148,9 @@ func (c *ConfigurationShell) Render() app.UI {
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetBackendURL(ctx.JSSrc.Get("value").String())
 												}),
-											Value: c.BackendURL,
+											Properties: map[string]interface{}{
+												"value": c.BackendURL,
+											},
 										},
 										Required: true,
 									},
@@ -177,7 +179,9 @@ func (c *ConfigurationShell) Render() app.UI {
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
 												}),
-											Value: c.OIDCIssuer,
+											Properties: map[string]interface{}{
+												"value": c.OIDCIssuer,
+											},
 										},
 										Required: true,
 									},
@@ -205,7 +209,9 @@ func (c *ConfigurationShell) Render() app.UI {
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
 												}),
-											Value: c.OIDCClientID,
+											Properties: map[string]interface{}{
+												"value": c.OIDCClientID,
+											},
 										},
 										Required: true,
 									},
@@ -234,7 +240,9 @@ func (c *ConfigurationShell) Render() app.UI {
 												OnInput(func(ctx app.Context, e app.Event) {
 													c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
 												}),
-											Value: c.OIDCRedirectURL,
+											Properties: map[string]interface{}{
+												"value": c.OIDCRedirectURL,
+											},
 										},
 										Required: true,
 									},
