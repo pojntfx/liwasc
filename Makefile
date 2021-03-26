@@ -30,7 +30,7 @@ release-frontend-github-pages: frontend
 release: release-backend release-frontend release-frontend-github-pages
 
 dev:
-	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd)" ]; do\
+	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd web/*.css)" ]; do\
 		$(MAKE);\
 		sudo pkill -9 -P $$BACKEND_PID 2>/dev/null 1>&2;\
 		kill -9 $$FRONTEND_PID 2>/dev/null 1>&2;\

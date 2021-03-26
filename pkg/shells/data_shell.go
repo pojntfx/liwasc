@@ -585,17 +585,31 @@ func (c *DataShell) Render() app.UI {
 																											DataSet("label", "Powered On").
 																											Body(
 																												app.Label().
-																													Class("pf-c-switch").
+																													Class("pf-c-switch pf-x-c-tooltip-wrapper").
 																													For(fmt.Sprintf("node-row-%v", i)).
 																													Body(
-																														// TODO: Change the `checked` property like with `Controlled` and block turning off
+																														app.If(
+																															c.Network.Nodes[i].PoweredOn,
+																															app.Div().
+																																Class("pf-c-tooltip pf-x-c-tooltip pf-m-top").
+																																Aria("role", "tooltip").
+																																Body(
+																																	app.Div().
+																																		Class("pf-c-tooltip__arrow"),
+																																	app.Div().
+																																		Class("pf-c-tooltip__content").
+																																		Text("Please turn the node off manually or by using remote access."),
+																																),
+																														),
+																														// TODO: Change the `checked` and `disabled` properties like with `Controlled` and block turning off
 																														app.Input().
 																															Class("pf-c-switch__input").
 																															ID(fmt.Sprintf("node-row-%v", i)).
 																															Aria("label", "Node is off").
 																															Name(fmt.Sprintf("node-row-%v", i)).
 																															Type("checkbox").
-																															Checked(c.Network.Nodes[i].PoweredOn),
+																															Checked(c.Network.Nodes[i].PoweredOn).
+																															Disabled(c.Network.Nodes[i].PoweredOn),
 																														app.Span().
 																															Class("pf-c-switch__toggle").
 																															Body(
