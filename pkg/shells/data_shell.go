@@ -598,18 +598,26 @@ func (c *DataShell) Render() app.UI {
 																																		Class("pf-c-tooltip__arrow"),
 																																	app.Div().
 																																		Class("pf-c-tooltip__content").
-																																		Text("Please turn the node off manually or by using remote access."),
+																																		Text("To turn this node off, please do so manually."),
 																																),
 																														),
-																														// TODO: Change the `checked` and `disabled` properties like with `Controlled` and block turning off
-																														app.Input().
-																															Class("pf-c-switch__input").
-																															ID(fmt.Sprintf("node-row-%v", i)).
-																															Aria("label", "Node is off").
-																															Name(fmt.Sprintf("node-row-%v", i)).
-																															Type("checkbox").
-																															Checked(c.Network.Nodes[i].PoweredOn).
-																															Disabled(c.Network.Nodes[i].PoweredOn),
+																														&components.Controlled{
+																															Component: app.Input().
+																																Class("pf-c-switch__input").
+																																ID(fmt.Sprintf("node-row-%v", i)).
+																																Aria("label", "Node is off").
+																																Name(fmt.Sprintf("node-row-%v", i)).
+																																Type("checkbox").
+																																Checked(c.Network.Nodes[i].PoweredOn).
+																																Disabled(c.Network.Nodes[i].PoweredOn).
+																																OnClick(func(ctx app.Context, e app.Event) {
+																																	go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
+																																}),
+																															Properties: map[string]interface{}{
+																																"checked":  c.Network.Nodes[i].PoweredOn,
+																																"disabled": c.Network.Nodes[i].PoweredOn,
+																															},
+																														},
 																														app.Span().
 																															Class("pf-c-switch__toggle").
 																															Body(
@@ -669,14 +677,6 @@ func (c *DataShell) Render() app.UI {
 																																)),
 																														app.Text("Scan this node"),
 																													),
-																												app.
-																													Button().
-																													Type("button").
-																													Class("pf-c-button pf-m-primary").
-																													OnClick(func(ctx app.Context, e app.Event) {
-																														go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
-																													}).
-																													Text("Wake this node"),
 																											),
 																										app.Td().
 																											Aria("role", "cell").
