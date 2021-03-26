@@ -1,6 +1,7 @@
 package shells
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -514,6 +515,10 @@ func (c *DataShell) Render() app.UI {
 																								app.Th().
 																									Aria("role", "columnheader").
 																									Scope("col").
+																									Text("Powered On"),
+																								app.Th().
+																									Aria("role", "columnheader").
+																									Scope("col").
 																									Text("Actions"),
 																								app.Th().
 																									Aria("role", "columnheader").
@@ -531,7 +536,7 @@ func (c *DataShell) Render() app.UI {
 																								Body(
 																									app.Td().
 																										Aria("role", "cell").
-																										ColSpan(2).
+																										ColSpan(3).
 																										Body(
 																											app.Div().
 																												Class("pf-l-bullseye").
@@ -575,6 +580,45 @@ func (c *DataShell) Render() app.UI {
 																								return app.Tr().
 																									Aria("role", "row").
 																									Body(
+																										app.Td().
+																											Aria("role", "cell").
+																											DataSet("label", "Powered On").
+																											Body(
+																												app.Label().
+																													Class("pf-c-switch").
+																													For(fmt.Sprintf("node-row-%v", i)).
+																													Body(
+																														// TODO: Change the `checked` property like with `Controlled` and block turning off
+																														app.Input().
+																															Class("pf-c-switch__input").
+																															ID(fmt.Sprintf("node-row-%v", i)).
+																															Aria("label", "Node is off").
+																															Name(fmt.Sprintf("node-row-%v", i)).
+																															Type("checkbox").
+																															Checked(c.Network.Nodes[i].PoweredOn),
+																														app.Span().
+																															Class("pf-c-switch__toggle").
+																															Body(
+																																app.Span().
+																																	Class("pf-c-switch__toggle-icon").
+																																	Body(
+																																		app.I().
+																																			Class("fas fa-lightbulb").
+																																			Aria("hidden", true),
+																																	),
+																															),
+																														app.Span().
+																															Class("pf-c-switch__label pf-m-on").
+																															ID(fmt.Sprintf("node-row-%v-on", i)).
+																															Aria("hidden", true).
+																															Text("On"),
+																														app.Span().
+																															Class("pf-c-switch__label pf-m-off").
+																															ID(fmt.Sprintf("node-row-%v-off", i)).
+																															Aria("hidden", true).
+																															Text("Off"),
+																													),
+																											),
 																										app.Td().
 																											Aria("role", "cell").
 																											DataSet("label", "Actions").
