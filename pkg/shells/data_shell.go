@@ -896,7 +896,9 @@ func (c *DataShell) Render() app.UI {
 
 																	c.Update()
 																}),
-															Value: c.nodeScanTimeout,
+															Properties: map[string]interface{}{
+																"value": c.nodeScanTimeout,
+															},
 														},
 														Required: true,
 													},
@@ -935,7 +937,9 @@ func (c *DataShell) Render() app.UI {
 
 																	c.Update()
 																}),
-															Value: c.portScanTimeout,
+															Properties: map[string]interface{}{
+																"value": c.portScanTimeout,
+															},
 														},
 														Required: true,
 													},
@@ -974,7 +978,9 @@ func (c *DataShell) Render() app.UI {
 
 																	c.Update()
 																}),
-															Value: c.nodeWakeTimeout,
+															Properties: map[string]interface{}{
+																"value": c.nodeWakeTimeout,
+															},
 														},
 														Required: true,
 													},

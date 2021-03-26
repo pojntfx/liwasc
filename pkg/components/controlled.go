@@ -5,16 +5,18 @@ import "github.com/maxence-charriere/go-app/v7/pkg/app"
 type Controlled struct {
 	app.Compo
 
-	Component app.UI
-	Value     interface{}
+	Component  app.UI
+	Properties map[string]interface{}
 }
 
 func (c *Controlled) Render() app.UI {
-	app.Dispatch(func() {
-		if c.JSValue() != nil {
-			c.JSValue().Set("value", c.Value)
-		}
-	})
+	for key, value := range c.Properties {
+		app.Dispatch(func() {
+			if c.JSValue() != nil {
+				c.JSValue().Set(key, value)
+			}
+		})
+	}
 
 	return c.Component
 }
