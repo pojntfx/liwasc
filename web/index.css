@@ -9,3 +9,18 @@
 .pf-x-ws-router {
   height: 100vh;
 }
+
+.pf-x-c-tooltip {
+  opacity: 0;
+  width: 10rem;
+  bottom: calc(100% + 1rem);
+  left: 50%;
+  position: absolute;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+
+.pf-x-c-tooltip-wrapper:hover > .pf-x-c-tooltip,
+.pf-x-c-tooltip:hover {
+  opacity: 1;
+}
