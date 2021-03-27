@@ -357,14 +357,13 @@ func (c *DataProvider) OnMount(context app.Context) {
 							}
 
 							// If an old node exists, remove it, but keep the current scan & wake state
-							ports := []Port{}
+							ports := []Port{} // Ignore old ports
 							portScanRunning := false
 							lastPortScanDate := time.Unix(0, 0)
 							nodeWakeRunning := false
 							lastNodeWakeDate := time.Unix(0, 0)
 							lastNodeWakePriority := int64(0)
 							if lastKnownNodeIndex != -1 {
-								ports = c.network.Nodes[lastKnownNodeIndex].Ports
 								portScanRunning = c.network.Nodes[lastKnownNodeIndex].PortScanRunning
 								lastPortScanDate = c.network.Nodes[lastKnownNodeIndex].LastPortScanDate
 								nodeWakeRunning = c.network.Nodes[lastKnownNodeIndex].NodeWakeRunning
