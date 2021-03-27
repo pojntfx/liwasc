@@ -22,7 +22,9 @@ func main() {
 
 	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database. Download from https://mac2vendor.com/articles/download")
 	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
-	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database. Download from https://github.com/pojntfx/ports2packets/releases")
+	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database")
+
+	ports2PacketsDatabaseURL := flag.String("ports2PacketsDatabaseURL", "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv", "URL to the ports2packets database; will be downloaded on the first run")
 
 	listenAddress := flag.String("listenAddress", "localhost:15123", "Listen address")
 	webSocketListenAddress := flag.String("webSocketListenAddress", "localhost:15124", "Listen address (for the WebSocket proxy)")
@@ -40,7 +42,7 @@ func main() {
 	// Create databases
 	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*mac2vendorDatabasePath)
 	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
-	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath)
+	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath, *ports2PacketsDatabaseURL)
 	nodeAndPortScanDatabase := databases.NewNodeAndPortScanDatabase(*nodeAndPortScanDatabasePath)
 	nodeWakeDatabase := databases.NewNodeWakeDatabase(*nodeWakeDatabasePath)
 
