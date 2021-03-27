@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <meta content="text/html; charset=utf-8" httpequiv="Content-Type">
+        <meta httpequiv="Content-Type" content="text/html; charset=utf-8">
         <meta name="author" content="Felicitas Pojtinger">
         <meta name="description" content="List, wake and scan nodes in a network.">
         <meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
@@ -13,12 +13,12 @@
         </title>
         <link rel="icon" type="image/png" href="/liwasc/web/icon.png">
         <link rel="apple-touch-icon" href="/liwasc/web/icon.png">
-        <link rel="manifest" href="/liwasc/manifest.webmanifest">
+        <link href="/liwasc/manifest.webmanifest" rel="manifest">
         <link type="text/css" rel="stylesheet" href="/liwasc/app.css">
         <script defer src="/liwasc/wasm_exec.js"></script>
         <script src="/liwasc/app.js" defer></script>
         <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
-        <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css">
+        <link href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css" type="text/css" rel="stylesheet">
         <link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
         <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 
@@ -31,8 +31,8 @@
     </head>
     <body>
         <div id="app-wasm-layout" class="goapp-app-info">
-            <img src="/liwasc/web/icon.png" id="app-wasm-loader-icon" class="goapp-logo goapp-spin">
-            <p class="goapp-label" id="app-wasm-loader-label">
+            <img class="goapp-logo goapp-spin" src="/liwasc/web/icon.png" id="app-wasm-loader-icon">
+            <p id="app-wasm-loader-label" class="goapp-label">
                 List, wake and scan nodes in a network.
             </p>
         </div>
