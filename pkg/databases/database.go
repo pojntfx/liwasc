@@ -2,6 +2,8 @@ package databases
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
 
 	migrate "github.com/rubenv/sql-migrate"
 )
@@ -14,6 +16,12 @@ type SQLiteDatabase struct {
 }
 
 func (d *SQLiteDatabase) Open() error {
+	// Create leading directories for database
+	leadingDir, _ := filepath.Split(d.DBPath)
+	if err := os.MkdirAll(leadingDir, os.ModeDir); err != nil {
+		return err
+	}
+
 	// Open the DB
 	db, err := sql.Open("sqlite3", d.DBPath)
 	if err != nil {
