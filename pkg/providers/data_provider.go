@@ -1,9 +1,12 @@
 package providers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"net"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -106,7 +109,18 @@ type DataProvider struct {
 
 func (c *DataProvider) Render() app.UI {
 	return c.Children(DataProviderChildrenProps{
-		Network: c.network,
+		Network: func() Network {
+			sortedNetwork := c.network
+
+			sort.Slice(sortedNetwork.Nodes, func(i, j int) bool {
+				ipA := net.ParseIP(sortedNetwork.Nodes[i].IPAddress)
+				ipB := net.ParseIP(sortedNetwork.Nodes[j].IPAddress)
+
+				return bytes.Compare(ipA, ipB) < 0
+			})
+
+			return sortedNetwork
+		}(),
 
 		TriggerNetworkScan: c.triggerNetworkScan,
 		StartNodeWake:      c.startNodeWake,
