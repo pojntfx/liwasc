@@ -20,11 +20,13 @@ func main() {
 	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", "/var/lib/liwasc/node_and_port_scan.sqlite", "Path to the node and port scan database")
 	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/lib/liwasc/node_wake.sqlite", "Path to the node wake database")
 
-	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database. Download from https://mac2vendor.com/articles/download")
-	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services. Download from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml")
+	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database")
+	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services")
 	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database")
 
-	ports2PacketsDatabaseURL := flag.String("ports2PacketsDatabaseURL", "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv", "URL to the ports2packets database; will be downloaded on the first run")
+	mac2vendorDatabaseURL := flag.String("mac2vendorDatabaseURL", "https://mac2vendor.com/download/oui-database.sqlite", "URL to the mac2vendor database; will be downloaded on the first run if it doesn't exist")
+	serviceNamesPortNumbersDatabaseURL := flag.String("serviceNamesPortNumbersDatabaseURL", "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv", "URL to the CSV input file containing the registered services; will be downloaded on the first run if it doesn't exist")
+	ports2PacketsDatabaseURL := flag.String("ports2PacketsDatabaseURL", "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv", "URL to the ports2packets database; will be downloaded on the first run if it doesn't exist")
 
 	listenAddress := flag.String("listenAddress", "localhost:15123", "Listen address")
 	webSocketListenAddress := flag.String("webSocketListenAddress", "localhost:15124", "Listen address (for the WebSocket proxy)")
@@ -40,8 +42,8 @@ func main() {
 	flag.Parse()
 
 	// Create databases
-	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*mac2vendorDatabasePath)
-	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath)
+	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*mac2vendorDatabasePath, *mac2vendorDatabaseURL)
+	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath, *serviceNamesPortNumbersDatabaseURL)
 	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath, *ports2PacketsDatabaseURL)
 	nodeAndPortScanDatabase := databases.NewNodeAndPortScanDatabase(*nodeAndPortScanDatabasePath)
 	nodeWakeDatabase := databases.NewNodeWakeDatabase(*nodeWakeDatabasePath)

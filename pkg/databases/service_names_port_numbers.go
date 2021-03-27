@@ -25,15 +25,28 @@ type Service struct {
 }
 
 type ServiceNamesPortNumbersDatabase struct {
+	*ExternalSource
 	dbPath   string
 	services map[int][]Service
 }
 
-func NewServiceNamesPortNumbersDatabase(dbPath string) *ServiceNamesPortNumbersDatabase {
-	return &ServiceNamesPortNumbersDatabase{dbPath, make(map[int][]Service)}
+func NewServiceNamesPortNumbersDatabase(dbPath string, sourceURL string) *ServiceNamesPortNumbersDatabase {
+	return &ServiceNamesPortNumbersDatabase{
+		ExternalSource: &ExternalSource{
+			SourceURL:       sourceURL,
+			DestinationPath: dbPath,
+		},
+		dbPath:   dbPath,
+		services: make(map[int][]Service),
+	}
 }
 
 func (d *ServiceNamesPortNumbersDatabase) Open() error {
+	// If CSV file does not exist, download & create it
+	if err := d.ExternalSource.PullIfNotExists(); err != nil {
+		return err
+	}
+
 	// Read CSV file
 	contents, err := ioutil.ReadFile(d.dbPath)
 	if err != nil {
