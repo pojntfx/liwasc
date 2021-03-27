@@ -119,6 +119,22 @@ func (c *DataProvider) Render() app.UI {
 				return bytes.Compare(ipA, ipB) < 0
 			})
 
+			for _, node := range sortedNetwork.Nodes {
+				sort.Slice(node.Ports, func(i, j int) bool {
+					protoA := node.Ports[i].TransportProtocol
+					protoB := node.Ports[j].TransportProtocol
+
+					return strings.Compare(protoA, protoB) < 0
+				})
+
+				sort.Slice(node.Ports, func(i, j int) bool {
+					portA := node.Ports[i].PortNumber
+					portB := node.Ports[j].PortNumber
+
+					return portA-portB < 0
+				})
+			}
+
 			return sortedNetwork
 		}(),
 
