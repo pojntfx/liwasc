@@ -712,46 +712,9 @@ func (c *DataShell) Render() app.UI {
 																												},
 																												app.If(
 																													len(c.Network.Nodes[i].Ports) > 0,
-																													app.Div().
-																														Class("pf-c-label-group").
-																														Body(
-																															app.Div().
-																																Class("pf-c-label-group__main").
-																																Body(
-																																	app.Ul().
-																																		Class("pf-c-label-group__list").
-																																		Aria("role", "list").
-																																		Aria("label", "Ports of node").
-																																		Body(
-																																			app.Range(c.Network.Nodes[i].Ports).Slice(func(j int) app.UI {
-																																				port := c.Network.Nodes[i].Ports[j]
-
-																																				return app.Div().Class("pf-c-label-group__list-item").Body(app.Span().
-																																					Class("pf-c-label").
-																																					Body(
-																																						app.
-																																							Span().
-																																							Class("pf-c-label__content").
-																																							Text(
-																																								fmt.Sprintf(
-																																									"%v/%v (%v)",
-																																									port.PortNumber,
-																																									port.TransportProtocol,
-																																									func() string {
-																																										service := port.ServiceName
-																																										if service == "" {
-																																											service = "Unregistered"
-																																										}
-
-																																										return service
-																																									}(),
-																																								),
-																																							),
-																																					))
-																																			}),
-																																		),
-																																),
-																														),
+																													&components.PortList{
+																														Ports: c.Network.Nodes[i].Ports,
+																													},
 																												).Else(
 																													app.Text("No open ports found."),
 																												),
