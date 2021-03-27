@@ -44,7 +44,8 @@ clean:
 	rm -rf pkg/databases/generated
 
 depend:
-	# Initialize working directories
+	# Initialize directories
+	sudo rm -rf /etc/liwasc /var/lib/liwasc
 	sudo mkdir -p /etc/liwasc /var/lib/liwasc
 	sudo chown -R $$USER /etc/liwasc /var/lib/liwasc
 	# Download external databases
@@ -58,8 +59,6 @@ depend:
 	GO111MODULE=on go get github.com/rubenv/sql-migrate/@latest
 	GO111MODULE=on go get github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 	# Migrate databases manually
-	sql-migrate down -env="production" -config pkg/databases/node_and_port_scan.yaml
-	sql-migrate down -env="production" -config pkg/databases/node_wake.yaml
 	sql-migrate up -env="production" -config pkg/databases/node_and_port_scan.yaml
 	sql-migrate up -env="production" -config pkg/databases/node_wake.yaml
 	# Generate database and API bindings
