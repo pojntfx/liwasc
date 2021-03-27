@@ -17,7 +17,7 @@ func (s *ExternalSource) PullIfNotExists() error {
 	if _, err := os.Stat(s.DestinationPath); os.IsNotExist(err) {
 		// Create leading directories
 		leadingDir, _ := filepath.Split(s.DestinationPath)
-		if err := os.MkdirAll(leadingDir, os.ModeDir); err != nil {
+		if err := os.MkdirAll(leadingDir, os.ModePerm); err != nil {
 			return err
 		}
 

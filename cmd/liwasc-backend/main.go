@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/networking"
@@ -14,15 +16,22 @@ import (
 )
 
 func main() {
+	// Get prefix
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("could not get home directory", err)
+	}
+	prefix := filepath.Join(home, ".local", "share", "liwasc")
+
 	// Parse flags
 	deviceName := flag.String("deviceName", "eth0", "Network device name")
 
-	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", "/var/lib/liwasc/node_and_port_scan.sqlite", "Path to the node and port scan database")
-	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", "/var/lib/liwasc/node_wake.sqlite", "Path to the node wake database")
+	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", filepath.Join(prefix, "var", "lib", "liwasc", "node_and_port_scan.sqlite"), "Path to the node and port scan database")
+	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", filepath.Join(prefix, "var", "lib", "liwasc", "node_wake.sqlite"), "Path to the node wake database")
 
-	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", "/etc/liwasc/oui-database.sqlite", "Path to the mac2vendor database")
-	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", "/etc/liwasc/service-names-port-numbers.csv", "Path to the CSV input file containing the registered services")
-	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", "/etc/liwasc/ports2packets.csv", "Path to the ports2packets database")
+	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", filepath.Join(prefix, "etc", "liwasc", "oui-database.sqlite"), "Path to the mac2vendor database")
+	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", filepath.Join(prefix, "etc", "liwasc", "service-names-port-numbers.csv"), "Path to the CSV input file containing the registered services")
+	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", filepath.Join(prefix, "etc", "liwasc", "ports2packets.csv"), "Path to the ports2packets database")
 
 	mac2vendorDatabaseURL := flag.String("mac2vendorDatabaseURL", "https://mac2vendor.com/download/oui-database.sqlite", "URL to the mac2vendor database; will be downloaded on the first run if it doesn't exist")
 	serviceNamesPortNumbersDatabaseURL := flag.String("serviceNamesPortNumbersDatabaseURL", "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv", "URL to the CSV input file containing the registered services; will be downloaded on the first run if it doesn't exist")

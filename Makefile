@@ -32,9 +32,10 @@ release: release-backend release-frontend release-frontend-github-pages
 dev:
 	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd web/*.css)" ]; do\
 		$(MAKE);\
-		sudo pkill -9 -P $$BACKEND_PID 2>/dev/null 1>&2;\
+		pkill -9 -P $$BACKEND_PID 2>/dev/null 1>&2;\
 		kill -9 $$FRONTEND_PID 2>/dev/null 1>&2;\
-		sudo out/liwasc-backend/liwasc-backend -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME} & export BACKEND_PID="$$!";\
+		sudo setcap cap_net_raw+ep out/liwasc-backend/liwasc-backend;\
+		out/liwasc-backend/liwasc-backend -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME} & export BACKEND_PID="$$!";\
 		/tmp/liwasc-frontend-build -serve & export FRONTEND_PID="$$!";\
 	done
 
