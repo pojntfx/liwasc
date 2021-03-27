@@ -231,7 +231,7 @@ func ScanUDPPort(targetAddress string, targetPort int, timeout time.Duration, pa
 	packet, err := packetGetter(targetPort)
 	if err != nil {
 		if strings.Contains(err.Error(), "could not find packet for port") {
-			packet = []byte{} // Unknown packet for port, use empty []byte{}
+			packet = []byte("Hello from liwasc!\n") // Unknown packet for port, send a test string
 		} else {
 			return false, err
 		}
