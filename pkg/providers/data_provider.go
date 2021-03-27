@@ -399,7 +399,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 							// Log the node
 							c.network.Events = append(c.network.Events, Event{
 								Time:    nodeCreatedAt,
-								Message: fmt.Sprintf("Received node %v", node.GetMACAddress()),
+								Message: fmt.Sprintf("Received node %v (%v)", node.GetMACAddress(), node.GetIPAddress()),
 							})
 						})
 
@@ -463,7 +463,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 									c.dispatch(func() {
 										c.network.Events = append(c.network.Events, Event{
 											Time:    portScanCreatedAt,
-											Message: fmt.Sprintf("Received port scan for node %v", node.GetMACAddress()),
+											Message: fmt.Sprintf("Received port scan for node %v (%v)", node.GetMACAddress(), node.GetIPAddress()),
 										})
 									})
 
@@ -582,7 +582,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 													// Log the port
 													c.network.Events = append(c.network.Events, Event{
 														Time:    portCreatedAt,
-														Message: fmt.Sprintf("Received port %v/%v on node %v", port.GetPortNumber(), port.GetTransportProtocol(), node.GetMACAddress()),
+														Message: fmt.Sprintf("Received port %v/%v on node %v (%v)", port.GetPortNumber(), port.GetTransportProtocol(), node.GetMACAddress(), node.GetIPAddress()),
 													})
 												}
 											})
@@ -655,8 +655,21 @@ func (c *DataProvider) OnMount(context app.Context) {
 
 							// Log the node wake
 							c.network.Events = append(c.network.Events, Event{
-								Time:    nodeWakeCreatedAt,
-								Message: fmt.Sprintf("Received node wake for node %v", nodeWake.GetMACAddress()),
+								Time: nodeWakeCreatedAt,
+								Message: fmt.Sprintf("Received node wake for node %v (%v)", nodeWake.GetMACAddress(), func() string {
+									// In order for the node to be found, it has to have an IP address; this will never be `""`
+									ip := ""
+
+									for _, candidate := range c.network.Nodes {
+										if candidate.MACAddress == nodeWake.GetMACAddress() {
+											ip = candidate.IPAddress
+
+											break
+										}
+									}
+
+									return ip
+								}()),
 							})
 
 							break
