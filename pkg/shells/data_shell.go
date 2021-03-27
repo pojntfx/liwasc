@@ -519,11 +519,19 @@ func (c *DataShell) Render() app.UI {
 																								app.Th().
 																									Aria("role", "columnheader").
 																									Scope("col").
-																									Text("Actions"),
+																									Text("MAC Address"),
 																								app.Th().
 																									Aria("role", "columnheader").
 																									Scope("col").
-																									Text("Data"),
+																									Text("IP Address"),
+																								app.Th().
+																									Aria("role", "columnheader").
+																									Scope("col").
+																									Text("Vendor"),
+																								app.Th().
+																									Aria("role", "columnheader").
+																									Scope("col").
+																									Text("Services and Ports"),
 																							),
 																					),
 																				app.TBody().
@@ -536,7 +544,7 @@ func (c *DataShell) Render() app.UI {
 																								Body(
 																									app.Td().
 																										Aria("role", "cell").
-																										ColSpan(3).
+																										ColSpan(5).
 																										Body(
 																											app.Div().
 																												Class("pf-l-bullseye").
@@ -673,48 +681,80 @@ func (c *DataShell) Render() app.UI {
 																											),
 																										app.Td().
 																											Aria("role", "cell").
-																											DataSet("label", "Actions").
-																											Body(
-																												app.
-																													Button().
-																													Type("button").
-																													Class(func() string {
-																														classes := "pf-c-button pf-m-primary"
-
-																														if c.Network.Nodes[i].PortScanRunning {
-																															classes += " pf-m-progress pf-m-in-progress"
-																														}
-
-																														return classes
-																													}()).
-																													OnClick(func(ctx app.Context, e app.Event) {
-																														go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
-																													}).
-																													Body(
-																														app.If(c.Network.Nodes[i].PortScanRunning,
-																															app.Span().
-																																Class("pf-c-button__progress").
-																																Body(
-																																	app.Span().
-																																		Class("pf-c-spinner pf-m-md").
-																																		Aria("role", "progressbar").
-																																		Aria("valuetext", "Loading...").
-																																		Body(
-																																			app.Span().Class("pf-c-spinner__clipper"),
-																																			app.Span().Class("pf-c-spinner__lead-ball"),
-																																			app.Span().Class("pf-c-spinner__tail-ball"),
-																																		),
-																																)),
-																														app.Text("Scan this node"),
-																													),
-																											),
+																											DataSet("label", "MAC Address").
+																											Text(c.Network.Nodes[i].MACAddress),
 																										app.Td().
 																											Aria("role", "cell").
-																											DataSet("label", "Data").
+																											DataSet("label", "IP Address").
+																											Text(c.Network.Nodes[i].IPAddress),
+																										app.Td().
+																											Aria("role", "cell").
+																											DataSet("label", "Vendor").
+																											Text(func() string {
+																												vendor := c.Network.Nodes[i].Vendor
+																												if vendor == "" {
+																													vendor = "Unregistered"
+																												}
+
+																												return vendor
+																											}()),
+																										app.Td().
+																											Aria("role", "cell").
+																											DataSet("label", "Services and Ports").
 																											Body(
-																												&components.JSONDisplay{
-																													Object: c.Network.Nodes[i],
+																												&components.ProgressButton{
+																													Loading: c.Network.Nodes[i].PortScanRunning,
+																													Icon:    "fas fa-sync",
+
+																													OnClick: func(ctx app.Context, e app.Event) {
+																														go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
+																													},
 																												},
+																												app.If(
+																													len(c.Network.Nodes[i].Ports) > 0,
+																													app.Div().
+																														Class("pf-c-label-group").
+																														Body(
+																															app.Div().
+																																Class("pf-c-label-group__main").
+																																Body(
+																																	app.Ul().
+																																		Class("pf-c-label-group__list").
+																																		Aria("role", "list").
+																																		Aria("label", "Ports of node").
+																																		Body(
+																																			app.Range(c.Network.Nodes[i].Ports).Slice(func(j int) app.UI {
+																																				port := c.Network.Nodes[i].Ports[j]
+
+																																				return app.Div().Class("pf-c-label-group__list-item").Body(app.Span().
+																																					Class("pf-c-label").
+																																					Body(
+																																						app.
+																																							Span().
+																																							Class("pf-c-label__content").
+																																							Text(
+																																								fmt.Sprintf(
+																																									"%v/%v (%v)",
+																																									port.PortNumber,
+																																									port.TransportProtocol,
+																																									func() string {
+																																										service := port.ServiceName
+																																										if service == "" {
+																																											service = "Unregistered"
+																																										}
+
+																																										return service
+																																									}(),
+																																								),
+																																							),
+																																					))
+																																			}),
+																																		),
+																																),
+																														),
+																												).Else(
+																													app.Text("No open ports found."),
+																												),
 																											),
 																									)
 																							}),
