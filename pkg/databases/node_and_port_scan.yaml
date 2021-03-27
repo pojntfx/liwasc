@@ -1,0 +1,4 @@
+production:
+  dialect: sqlite3
+  datasource: /var/lib/liwasc/node_and_port_scan.sqlite
+  dir: pkg/migrations/node_and_port_scan/

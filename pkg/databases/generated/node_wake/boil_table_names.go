@@ -4,13 +4,9 @@
 package models
 
 var TableNames = struct {
-	NodeScans string
-	Nodes     string
-	PortScans string
-	Ports     string
+	GorpMigrations string
+	NodeWakes      string
 }{
-	NodeScans: "node_scans",
-	Nodes:     "nodes",
-	PortScans: "port_scans",
-	Ports:     "ports",
+	GorpMigrations: "gorp_migrations",
+	NodeWakes:      "node_wakes",
 }

@@ -41,20 +41,29 @@ dev:
 clean:
 	rm -rf out
 	rm -rf pkg/proto/generated
-	rm -rf pkg/sql/generated
+	rm -rf pkg/databases/generated
 
 depend:
+	# Initialize working directories
 	sudo mkdir -p /etc/liwasc /var/lib/liwasc
 	sudo chown -R $$USER /etc/liwasc /var/lib/liwasc
+	# Download external databases
 	curl -L -o /etc/liwasc/oui-database.sqlite https://mac2vendor.com/download/oui-database.sqlite
 	curl -L -o /etc/liwasc/service-names-port-numbers.csv https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
 	curl -L -o /etc/liwasc/ports2packets.csv https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv
-	sqlite3 -batch /var/lib/liwasc/node_and_port_scan.sqlite ".read pkg/sql/node_and_port_scan.sql"
-	sqlite3 -batch /var/lib/liwasc/node_wake.sqlite ".read pkg/sql/node_wake.sql"
-	go install github.com/volatiletech/sqlboiler/v4@latest
-	go install github.com/volatiletech/sqlboiler-sqlite3@latest
-	go install github.com/golang/protobuf/protoc-gen-go@latest
+	# Get CLIs
+	GO111MODULE=on go get github.com/volatiletech/sqlboiler/v4@latest
+	GO111MODULE=on go get github.com/volatiletech/sqlboiler-sqlite3@latest
+	GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@latest
+	GO111MODULE=on go get github.com/rubenv/sql-migrate/@latest
+	GO111MODULE=on go get github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+	# Migrate databases manually
+	sql-migrate down -env="production" -config pkg/databases/node_and_port_scan.yaml
+	sql-migrate down -env="production" -config pkg/databases/node_wake.yaml
+	sql-migrate up -env="production" -config pkg/databases/node_and_port_scan.yaml
+	sql-migrate up -env="production" -config pkg/databases/node_wake.yaml
+	# Generate database and API bindings
 	go generate ./...
+	# Build
 	go get ./...
-	go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 	

@@ -12,50 +12,63 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrations)
 	t.Run("NodeWakes", testNodeWakes)
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsDelete)
 	t.Run("NodeWakes", testNodeWakesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsQueryDeleteAll)
 	t.Run("NodeWakes", testNodeWakesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSliceDeleteAll)
 	t.Run("NodeWakes", testNodeWakesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsExists)
 	t.Run("NodeWakes", testNodeWakesExists)
 }
 
 func TestFind(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsFind)
 	t.Run("NodeWakes", testNodeWakesFind)
 }
 
 func TestBind(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsBind)
 	t.Run("NodeWakes", testNodeWakesBind)
 }
 
 func TestOne(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsOne)
 	t.Run("NodeWakes", testNodeWakesOne)
 }
 
 func TestAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsAll)
 	t.Run("NodeWakes", testNodeWakesAll)
 }
 
 func TestCount(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsCount)
 	t.Run("NodeWakes", testNodeWakesCount)
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsHooks)
 	t.Run("NodeWakes", testNodeWakesHooks)
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsInsert)
+	t.Run("GorpMigrations", testGorpMigrationsInsertWhitelist)
 	t.Run("NodeWakes", testNodeWakesInsert)
 	t.Run("NodeWakes", testNodeWakesInsertWhitelist)
 }
@@ -101,21 +114,26 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsReload)
 	t.Run("NodeWakes", testNodeWakesReload)
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsReloadAll)
 	t.Run("NodeWakes", testNodeWakesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSelect)
 	t.Run("NodeWakes", testNodeWakesSelect)
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsUpdate)
 	t.Run("NodeWakes", testNodeWakesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSliceUpdateAll)
 	t.Run("NodeWakes", testNodeWakesSliceUpdateAll)
 }

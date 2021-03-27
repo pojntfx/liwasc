@@ -1,9 +1,4 @@
--- Remove old tables if they exist
-drop table if exists node_scans;
-drop table if exists nodes;
-drop table if exists port_scans;
-drop table if exists ports;
--- Create new tables
+-- +migrate Up
 create table node_scans (
     id integer not null primary key,
     created_at date not null,
@@ -32,3 +27,8 @@ create table ports (
     port_scan_id integer not null,
     foreign key (port_scan_id) references port_scans(id)
 );
+-- +migrate Down
+drop table node_scans;
+drop table nodes;
+drop table port_scans;
+drop table ports;
