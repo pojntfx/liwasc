@@ -630,15 +630,45 @@ func (c *DataShell) Render() app.UI {
 																																	),
 																															),
 																														app.Span().
-																															Class("pf-c-switch__label pf-m-on").
+																															Class("pf-c-switch__label pf-m-on pf-l-flex pf-m-justify-content-center pf-m-align-items-center").
 																															ID(fmt.Sprintf("node-row-%v-on", i)).
 																															Aria("hidden", true).
-																															Text("On"),
+																															Body(
+																																app.If(
+																																	c.Network.Nodes[i].NodeWakeRunning,
+																																	app.Span().
+																																		Class("pf-c-spinner pf-m-md").
+																																		Aria("role", "progressbar").
+																																		Aria("valuetext", "Loading...").
+																																		Body(
+																																			app.Span().Class("pf-c-spinner__clipper"),
+																																			app.Span().Class("pf-c-spinner__lead-ball"),
+																																			app.Span().Class("pf-c-spinner__tail-ball"),
+																																		),
+																																).Else(
+																																	app.Text("On"),
+																																),
+																															),
 																														app.Span().
-																															Class("pf-c-switch__label pf-m-off").
+																															Class("pf-c-switch__label pf-m-off pf-l-flex pf-m-justify-content-center pf-m-align-items-center").
 																															ID(fmt.Sprintf("node-row-%v-off", i)).
 																															Aria("hidden", true).
-																															Text("Off"),
+																															Body(
+																																app.If(
+																																	c.Network.Nodes[i].NodeWakeRunning,
+																																	app.Span().
+																																		Class("pf-c-spinner pf-m-md").
+																																		Aria("role", "progressbar").
+																																		Aria("valuetext", "Loading...").
+																																		Body(
+																																			app.Span().Class("pf-c-spinner__clipper"),
+																																			app.Span().Class("pf-c-spinner__lead-ball"),
+																																			app.Span().Class("pf-c-spinner__tail-ball"),
+																																		),
+																																).Else(
+																																	app.Text("Off"),
+																																),
+																															),
 																													),
 																											),
 																										app.Td().
