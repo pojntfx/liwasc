@@ -120,12 +120,12 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 	}
 
 	// Validate
-	if nodeScanStartMessage.GetNodeScanTimeout() < 250 {
-		return nil, status.Error(codes.InvalidArgument, "node scan timeout can't be lower than 250")
+	if nodeScanStartMessage.GetNodeScanTimeout() < 1 {
+		return nil, status.Error(codes.InvalidArgument, "node scan timeout can't be lower than 1")
 	}
 
-	if nodeScanStartMessage.GetPortScanTimeout() < 50 {
-		return nil, status.Error(codes.InvalidArgument, "port scan timeout can't be lower than 50")
+	if nodeScanStartMessage.GetPortScanTimeout() < 1 {
+		return nil, status.Error(codes.InvalidArgument, "port scan timeout can't be lower than 1")
 	}
 
 	// Start the node scan

@@ -48,7 +48,7 @@ const (
 
 	// Default values
 	defaultNodeScanTimeout = 500
-	defaultPortScanTimeout = 50
+	defaultPortScanTimeout = 10
 	allMACAddresses        = "ff:ff:ff:ff"
 
 	defaultNodeWakeTimeout    = 600000

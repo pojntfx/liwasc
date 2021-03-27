@@ -30,7 +30,7 @@ func main() {
 
 	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/10 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every ten minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
 	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 500, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans")
-	periodicPortScanTimeout := flag.Int("periodicPortScanTimeout", 50, "Time in milliseconds to wait for a response per port in the periodic port scans")
+	periodicPortScanTimeout := flag.Int("periodicPortScanTimeout", 10, "Time in milliseconds to wait for a response per port in the periodic port scans")
 
 	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
 	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
