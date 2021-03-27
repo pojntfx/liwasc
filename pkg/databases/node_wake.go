@@ -3,19 +3,28 @@ package databases
 import (
 	"context"
 
-	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
+	"github.com/gobuffalo/packr/v2"
+	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_wake"
+	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_wake -c pkg/sql/node_wake.toml"
+//go:generate sqlboiler sqlite3 -o generated/node_wake -c node_wake.toml
 
 type NodeWakeDatabase struct {
 	*SQLiteDatabase
 }
 
 func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
-	return &NodeWakeDatabase{&SQLiteDatabase{dbPath, nil}}
+	return &NodeWakeDatabase{
+		&SQLiteDatabase{
+			DBPath: dbPath,
+			Migrations: migrate.PackrMigrationSource{
+				Box: packr.New("nodeWakeDatabaseMigrations", "../migrations/node_wake/"),
+			},
+		},
+	}
 }
 
 func (d *NodeWakeDatabase) CreateNodeWake(nodeWake *models.NodeWake) error {

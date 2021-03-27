@@ -4,20 +4,29 @@ import (
 	"context"
 	"fmt"
 
-	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
+	"github.com/gobuffalo/packr/v2"
+	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_and_port_scan"
+	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sh -c "cd ../../ && sqlboiler sqlite3 -o pkg/sql/generated/node_and_port_scan -c pkg/sql/node_and_port_scan.toml"
+//go:generate sqlboiler sqlite3 -o generated/node_and_port_scan -c node_and_port_scan.toml
 
 type NodeAndPortScanDatabase struct {
 	*SQLiteDatabase
 }
 
 func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
-	return &NodeAndPortScanDatabase{&SQLiteDatabase{dbPath, nil}}
+	return &NodeAndPortScanDatabase{
+		&SQLiteDatabase{
+			DBPath: dbPath,
+			Migrations: migrate.PackrMigrationSource{
+				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../migrations/node_and_port_scan/"),
+			},
+		},
+	}
 }
 
 func (d *NodeAndPortScanDatabase) CreateNodeScan(nodeScan *models.NodeScan) error {

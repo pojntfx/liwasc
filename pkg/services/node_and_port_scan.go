@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pojntfx/liwasc/pkg/databases"
+	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_and_port_scan"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
-	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_and_port_scan"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"

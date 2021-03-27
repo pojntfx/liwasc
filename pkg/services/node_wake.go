@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pojntfx/liwasc/pkg/databases"
+	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_wake"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
-	models "github.com/pojntfx/liwasc/pkg/sql/generated/node_wake"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"

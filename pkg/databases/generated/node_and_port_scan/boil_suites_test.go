@@ -12,6 +12,7 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrations)
 	t.Run("NodeScans", testNodeScans)
 	t.Run("Nodes", testNodes)
 	t.Run("PortScans", testPortScans)
@@ -19,6 +20,7 @@ func TestParent(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsDelete)
 	t.Run("NodeScans", testNodeScansDelete)
 	t.Run("Nodes", testNodesDelete)
 	t.Run("PortScans", testPortScansDelete)
@@ -26,6 +28,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsQueryDeleteAll)
 	t.Run("NodeScans", testNodeScansQueryDeleteAll)
 	t.Run("Nodes", testNodesQueryDeleteAll)
 	t.Run("PortScans", testPortScansQueryDeleteAll)
@@ -33,6 +36,7 @@ func TestQueryDeleteAll(t *testing.T) {
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSliceDeleteAll)
 	t.Run("NodeScans", testNodeScansSliceDeleteAll)
 	t.Run("Nodes", testNodesSliceDeleteAll)
 	t.Run("PortScans", testPortScansSliceDeleteAll)
@@ -40,6 +44,7 @@ func TestSliceDeleteAll(t *testing.T) {
 }
 
 func TestExists(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsExists)
 	t.Run("NodeScans", testNodeScansExists)
 	t.Run("Nodes", testNodesExists)
 	t.Run("PortScans", testPortScansExists)
@@ -47,6 +52,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsFind)
 	t.Run("NodeScans", testNodeScansFind)
 	t.Run("Nodes", testNodesFind)
 	t.Run("PortScans", testPortScansFind)
@@ -54,6 +60,7 @@ func TestFind(t *testing.T) {
 }
 
 func TestBind(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsBind)
 	t.Run("NodeScans", testNodeScansBind)
 	t.Run("Nodes", testNodesBind)
 	t.Run("PortScans", testPortScansBind)
@@ -61,6 +68,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestOne(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsOne)
 	t.Run("NodeScans", testNodeScansOne)
 	t.Run("Nodes", testNodesOne)
 	t.Run("PortScans", testPortScansOne)
@@ -68,6 +76,7 @@ func TestOne(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsAll)
 	t.Run("NodeScans", testNodeScansAll)
 	t.Run("Nodes", testNodesAll)
 	t.Run("PortScans", testPortScansAll)
@@ -75,6 +84,7 @@ func TestAll(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsCount)
 	t.Run("NodeScans", testNodeScansCount)
 	t.Run("Nodes", testNodesCount)
 	t.Run("PortScans", testPortScansCount)
@@ -82,6 +92,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsHooks)
 	t.Run("NodeScans", testNodeScansHooks)
 	t.Run("Nodes", testNodesHooks)
 	t.Run("PortScans", testPortScansHooks)
@@ -89,6 +100,8 @@ func TestHooks(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsInsert)
+	t.Run("GorpMigrations", testGorpMigrationsInsertWhitelist)
 	t.Run("NodeScans", testNodeScansInsert)
 	t.Run("NodeScans", testNodeScansInsertWhitelist)
 	t.Run("Nodes", testNodesInsert)
@@ -156,6 +169,7 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsReload)
 	t.Run("NodeScans", testNodeScansReload)
 	t.Run("Nodes", testNodesReload)
 	t.Run("PortScans", testPortScansReload)
@@ -163,6 +177,7 @@ func TestReload(t *testing.T) {
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsReloadAll)
 	t.Run("NodeScans", testNodeScansReloadAll)
 	t.Run("Nodes", testNodesReloadAll)
 	t.Run("PortScans", testPortScansReloadAll)
@@ -170,6 +185,7 @@ func TestReloadAll(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSelect)
 	t.Run("NodeScans", testNodeScansSelect)
 	t.Run("Nodes", testNodesSelect)
 	t.Run("PortScans", testPortScansSelect)
@@ -177,6 +193,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsUpdate)
 	t.Run("NodeScans", testNodeScansUpdate)
 	t.Run("Nodes", testNodesUpdate)
 	t.Run("PortScans", testPortScansUpdate)
@@ -184,6 +201,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("GorpMigrations", testGorpMigrationsSliceUpdateAll)
 	t.Run("NodeScans", testNodeScansSliceUpdateAll)
 	t.Run("Nodes", testNodesSliceUpdateAll)
 	t.Run("PortScans", testPortScansSliceUpdateAll)

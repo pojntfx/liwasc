@@ -1,0 +1,4 @@
+production:
+  dialect: sqlite3
+  datasource: /var/lib/liwasc/node_wake.sqlite
+  dir: pkg/migrations/node_wake/
