@@ -14,14 +14,28 @@ import (
 
 type MAC2VendorDatabase struct {
 	*SQLiteDatabase
+	*ExternalSource
 }
 
-func NewMAC2VendorDatabase(dbPath string) *MAC2VendorDatabase {
+func NewMAC2VendorDatabase(dbPath string, sourceURL string) *MAC2VendorDatabase {
 	return &MAC2VendorDatabase{
 		&SQLiteDatabase{
 			DBPath: dbPath,
 		},
+		&ExternalSource{
+			SourceURL:       sourceURL,
+			DestinationPath: dbPath,
+		},
 	}
+}
+
+func (d *MAC2VendorDatabase) Open() error {
+	// If database file does not exist, download & create it
+	if err := d.ExternalSource.PullIfNotExists(); err != nil {
+		return err
+	}
+
+	return d.SQLiteDatabase.Open()
 }
 
 func (d *MAC2VendorDatabase) GetVendor(mac string) (*mac2vendorModels.Vendordb, error) {
