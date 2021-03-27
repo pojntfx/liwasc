@@ -13,13 +13,13 @@
         </title>
         <link rel="icon" type="image/png" href="/liwasc/web/icon.png">
         <link rel="apple-touch-icon" href="/liwasc/web/icon.png">
-        <link href="/liwasc/manifest.webmanifest" rel="manifest">
-        <link type="text/css" rel="stylesheet" href="/liwasc/app.css">
-        <script defer src="/liwasc/wasm_exec.js"></script>
-        <script src="/liwasc/app.js" defer></script>
+        <link rel="manifest" href="/liwasc/manifest.webmanifest">
+        <link rel="stylesheet" href="/liwasc/app.css" type="text/css">
+        <script src="/liwasc/wasm_exec.js" defer></script>
+        <script defer src="/liwasc/app.js"></script>
         <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
-        <link href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css" type="text/css" rel="stylesheet">
-        <link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
+        <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css">
+        <link href="/liwasc/web/index.css" type="text/css" rel="stylesheet">
         <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 
         <meta property="og:title" content="liwasc">
@@ -31,7 +31,7 @@
     </head>
     <body>
         <div id="app-wasm-layout" class="goapp-app-info">
-            <img class="goapp-logo goapp-spin" src="/liwasc/web/icon.png" id="app-wasm-loader-icon">
+            <img id="app-wasm-loader-icon" class="goapp-logo goapp-spin" src="/liwasc/web/icon.png">
             <p id="app-wasm-loader-label" class="goapp-label">
                 List, wake and scan nodes in a network.
             </p>
