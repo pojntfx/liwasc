@@ -48,6 +48,8 @@ func main() {
 	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
 	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
 
+	prepareOnly := flag.Bool("prepareOnly", false, "Only download external databases & prepare them, then exit")
+
 	flag.Parse()
 
 	// Create databases
@@ -122,6 +124,11 @@ func main() {
 	}
 	if err := nodeWakeDatabase.Open(); err != nil {
 		log.Fatal("could not open nodeWakeDatabase", err)
+	}
+
+	// Init is done, exit
+	if *prepareOnly {
+		os.Exit(0)
 	}
 
 	// Open utilities

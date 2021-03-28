@@ -1,2 +1,2 @@
 [sqlite3]
-dbname = "/var/lib/liwasc/node_and_port_scan.sqlite"
+dbname = "../../out/tmp/var/lib/liwasc/node_and_port_scan.sqlite"

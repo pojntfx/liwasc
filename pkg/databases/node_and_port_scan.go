@@ -23,7 +23,7 @@ func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
 		&SQLiteDatabase{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../migrations/node_and_port_scan/"),
+				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../migrations/node_and_port_scan"),
 			},
 		},
 	}
