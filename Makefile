@@ -29,6 +29,10 @@ release-frontend-github-pages: frontend
 
 release: release-backend release-frontend release-frontend-github-pages
 
+install: backend
+	sudo install out/liwasc-backend/liwasc-backend /usr/local/bin
+	sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend
+	
 dev:
 	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd web/*.css)" ]; do\
 		$(MAKE);\
@@ -43,27 +47,23 @@ clean:
 	rm -rf out
 	rm -rf pkg/proto/generated
 	rm -rf pkg/databases/generated
+	rm -rf ~/.local/share/liwasc
 
-depend:
-	# Initialize directories
-	sudo rm -rf /etc/liwasc /var/lib/liwasc
-	sudo mkdir -p /etc/liwasc /var/lib/liwasc
-	sudo chown -R $$USER /etc/liwasc /var/lib/liwasc
-	# Download external databases
-	curl -L -o /etc/liwasc/oui-database.sqlite https://mac2vendor.com/download/oui-database.sqlite
-	curl -L -o /etc/liwasc/service-names-port-numbers.csv https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
-	curl -L -o /etc/liwasc/ports2packets.csv https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv
-	# Get CLIs
+depend: clean
+	# Setup working directories
+	mkdir -p out/tmp/etc/liwasc out/tmp/var/lib/liwasc
+	# Setup external databases
+	curl -L -o out/tmp/etc/liwasc/oui-database.sqlite https://mac2vendor.com/download/oui-database.sqlite
+	curl -L -o out/tmp/etc/liwasc/service-names-port-numbers.csv https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
+	curl -L -o out/tmp/etc/liwasc/ports2packets.csv https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv
+	# Setup CLIs
 	GO111MODULE=on go get github.com/volatiletech/sqlboiler/v4@latest
 	GO111MODULE=on go get github.com/volatiletech/sqlboiler-sqlite3@latest
 	GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@latest
-	GO111MODULE=on go get github.com/rubenv/sql-migrate/@latest
+	GO111MODULE=on go get github.com/rubenv/sql-migrate/...
 	GO111MODULE=on go get github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
-	# Migrate databases manually
+	# Setup persistence databases
 	sql-migrate up -env="production" -config pkg/databases/node_and_port_scan.yaml
 	sql-migrate up -env="production" -config pkg/databases/node_wake.yaml
-	# Generate database and API bindings
+	# Generate bindings
 	go generate ./...
-	# Build
-	go get ./...
-	
