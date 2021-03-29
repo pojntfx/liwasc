@@ -36,8 +36,9 @@ install: backend
 dev:
 	while [ -z "$$BACKEND_PID" ] || [ -n "$$(inotifywait -q -r -e modify pkg cmd web/*.css)" ]; do\
 		$(MAKE);\
-		pkill -9 -P $$BACKEND_PID 2>/dev/null 1>&2;\
+		kill -9 $$BACKEND_PID 2>/dev/null 1>&2;\
 		kill -9 $$FRONTEND_PID 2>/dev/null 1>&2;\
+		wait $$BACKEND_PID $$FRONTEND_PID;\
 		sudo setcap cap_net_raw+ep out/liwasc-backend/liwasc-backend;\
 		out/liwasc-backend/liwasc-backend -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME} & export BACKEND_PID="$$!";\
 		/tmp/liwasc-frontend-build -serve & export FRONTEND_PID="$$!";\
