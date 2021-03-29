@@ -20,6 +20,8 @@ type DataShell struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
+	selectedNode string
+
 	userMenuExpanded        bool
 	overflowMenuExpanded    bool
 	aboutDialogOpen         bool
@@ -586,7 +588,29 @@ func (c *DataShell) Render() app.UI {
 																						).Else(
 																							app.Range(c.Network.Nodes).Slice(func(i int) app.UI {
 																								return app.Tr().
+																									Class(func() string {
+																										classes := "pf-m-hoverable"
+
+																										if len(c.Network.Nodes) >= i && c.Network.Nodes[i].MACAddress == c.selectedNode {
+																											classes += " pf-m-selected"
+																										}
+
+																										return classes
+																									}()).
 																									Aria("role", "row").
+																									OnClick(func(ctx app.Context, e app.Event) {
+																										c.dispatch(func() {
+																											// Reset selected node
+																											if c.selectedNode == c.Network.Nodes[i].MACAddress {
+																												c.selectedNode = ""
+
+																												return
+																											}
+
+																											// Set selected node
+																											c.selectedNode = c.Network.Nodes[i].MACAddress
+																										})
+																									}).
 																									Body(
 																										app.Td().
 																											Aria("role", "cell").
