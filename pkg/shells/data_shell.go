@@ -599,7 +599,7 @@ func (c *DataShell) Render() app.UI {
 																														app.If(
 																															c.Network.Nodes[i].PoweredOn,
 																															app.Div().
-																																Class("pf-c-tooltip pf-x-c-tooltip pf-m-top").
+																																Class("pf-c-tooltip pf-x-c-tooltip pf-m-right").
 																																Aria("role", "tooltip").
 																																Body(
 																																	app.Div().

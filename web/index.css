@@ -13,14 +13,14 @@
 .pf-x-c-tooltip {
   opacity: 0;
   width: 10rem;
-  bottom: calc(100% + 1rem);
-  left: 50%;
+  bottom: 50%;
+  transform: translateY(50%);
+  left: calc(100% + 2rem);
   position: absolute;
   z-index: 1;
-  transform: translateX(-50%);
+  pointer-events: none;
 }
 
-.pf-x-c-tooltip-wrapper:hover > .pf-x-c-tooltip,
-.pf-x-c-tooltip:hover {
+.pf-x-c-tooltip-wrapper:hover > .pf-x-c-tooltip {
   opacity: 1;
 }
