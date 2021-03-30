@@ -7,7 +7,7 @@ require (
 	github.com/friendsofgo/errors v0.9.2
 	github.com/fullstorydev/grpcurl v1.8.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
-	github.com/golang/protobuf v1.5.1
+	github.com/golang/protobuf v1.5.2
 	github.com/google/gopacket v1.1.19
 	github.com/j-keck/arping v1.0.1
 	github.com/jszwec/csvutil v1.5.0
