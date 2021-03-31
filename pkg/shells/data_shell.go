@@ -380,7 +380,7 @@ func (c *DataShell) Render() app.UI {
 																								Class("pf-c-toolbar__content").
 																								Body(
 																									app.Div().
-																										Class("pf-c-toolbar__content-section pf-m-nowrap").
+																										Class("pf-c-toolbar__content-section pf-m-nowrap pf-u-display-none pf-u-display-flex-on-lg").
 																										Body(
 																											app.Div().
 																												Class("pf-c-toolbar__item").
@@ -516,6 +516,37 @@ func (c *DataShell) Render() app.UI {
 																													),
 																											),
 																										),
+																									app.Div().
+																										Class("pf-c-toolbar__content-section pf-m-nowrap pf-u-display-flex pf-u-display-none-on-lg").
+																										Body(
+																											app.Div().
+																												Class("pf-c-toolbar__item").
+																												Body(
+																													// Data actions
+																													&components.ProgressButton{
+																														Loading: c.Network.NodeScanRunning,
+																														Icon:    "fas fa-rocket",
+																														Text:    "Trigger Scan",
+
+																														OnClick: func(ctx app.Context, e app.Event) {
+																															go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
+																														},
+																													},
+																												),
+																											app.Div().
+																												Class("pf-c-toolbar__item pf-m-pagination").
+																												Body(
+																													app.Button().
+																														Class("pf-c-button pf-m-plain").
+																														Type("button").
+																														Aria("label", "Metadata").
+																														Body(
+																															app.I().
+																																Class("fas fa-info-circle").
+																																Aria("hidden", true),
+																														),
+																												),
+																										),
 																								),
 																						),
 																					app.Div().
@@ -530,7 +561,6 @@ func (c *DataShell) Render() app.UI {
 																							app.Div().
 																								Class("pf-c-drawer__body pf-m-padding").
 																								Body(
-
 																									// Data output
 																									app.Table().
 																										Class("pf-c-table pf-m-grid-md").
