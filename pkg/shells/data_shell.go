@@ -352,7 +352,7 @@ func (c *DataShell) Render() app.UI {
 															TabIndex(-1).
 															Body(
 																app.Section().
-																	Class("pf-c-page__main-section pf-m-no-padding").
+																	Class("pf-c-page__main-section pf-m-no-padding pf-x-u-h-0px").
 																	Body(
 																		// Primary-detail
 																		app.Div().

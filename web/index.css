@@ -24,3 +24,8 @@
 .pf-x-c-tooltip-wrapper:hover > .pf-x-c-tooltip {
   opacity: 1;
 }
+
+/* Set parent height in nested drawers */
+.pf-x-u-h-0px {
+  height: 0px;
+}
