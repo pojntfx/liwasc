@@ -29,3 +29,8 @@
 .pf-x-u-h-0px {
   height: 0px;
 }
+
+/* Prevent unnecessary horizontal scrolling in nested drawers */
+.pf-x-m-overflow-x-hidden {
+  overflow-x: hidden;
+}

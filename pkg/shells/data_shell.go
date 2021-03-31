@@ -525,7 +525,7 @@ func (c *DataShell) Render() app.UI {
 																				app.Div().Class("pf-c-drawer__main").Body(
 																					// Content
 																					app.Div().
-																						Class("pf-c-drawer__content pf-m-no-background").
+																						Class("pf-c-drawer__content pf-m-no-background pf-x-m-overflow-x-hidden").
 																						Body(
 																							app.Div().
 																								Class("pf-c-drawer__body pf-m-padding").
