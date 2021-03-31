@@ -17,7 +17,7 @@ func (c *Status) Render() app.UI {
 	}
 
 	return app.If(c.Error != nil, app.Div().
-		Class("pf-c-alert pf-m-danger pf-u-mb-lg").
+		Class("pf-c-alert pf-m-danger pf-u-m-lg").
 		Aria("label", "Error").
 		Body(
 			app.Div().
