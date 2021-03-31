@@ -25,12 +25,12 @@
   opacity: 1;
 }
 
-/* Set parent height in nested drawers */
-.pf-x-u-h-0px {
-  height: 0px;
-}
-
 /* Prevent unnecessary horizontal scrolling in nested drawers */
 .pf-x-m-overflow-x-hidden {
   overflow-x: hidden;
+}
+
+/* Remove top border from table without toolbar */
+.pf-x-u-border-t-0 {
+  border-top: 0 !important;
 }
