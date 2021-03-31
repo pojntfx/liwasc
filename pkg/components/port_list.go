@@ -69,6 +69,8 @@ func (c *PortList) Render() app.UI {
 										app.Button().
 											Class("pf-c-label pf-m-overflow").
 											OnClick(func(ctx app.Context, e app.Event) {
+												e.Call("stopPropagation")
+
 												c.dispatch(func() {
 													c.expanded = !c.expanded
 												})
