@@ -27,6 +27,7 @@ type DataShell struct {
 	aboutDialogOpen         bool
 	settingsDialogOpen      bool
 	notificationsDrawerOpen bool
+	metadataDialogOpen      bool
 
 	Network  providers.Network
 	UserInfo oidc.UserInfo
@@ -540,6 +541,11 @@ func (c *DataShell) Render() app.UI {
 																														Class("pf-c-button pf-m-plain").
 																														Type("button").
 																														Aria("label", "Metadata").
+																														OnClick(func(ctx app.Context, e app.Event) {
+																															c.dispatch(func() {
+																																c.metadataDialogOpen = true
+																															})
+																														}).
 																														Body(
 																															app.I().
 																																Class("fas fa-info-circle").
@@ -1171,6 +1177,193 @@ func (c *DataShell) Render() app.UI {
 													})
 												}).
 												Text("Cancel"),
+										),
+								),
+						),
+				),
+			app.Div().
+				Class(func() string {
+					classes := "pf-c-backdrop pf-u-display-none-on-lg"
+
+					if !c.metadataDialogOpen {
+						classes += " pf-u-display-none"
+					}
+
+					return classes
+				}()).
+				Body(
+					app.Div().
+						Class("pf-l-bullseye").
+						Body(
+							app.Div().
+								Class("pf-c-modal-box pf-m-sm").
+								Aria("modal", true).
+								Aria("labelledby", "modal-scroll-title").
+								Aria("describedby", "modal-scroll-description").
+								Body(
+									app.Button().
+										Class("pf-c-button pf-m-plain").
+										Type("button").
+										Aria("label", "Close dialog").
+										OnClick(func(ctx app.Context, e app.Event) {
+											c.dispatch(func() {
+												c.metadataDialogOpen = false
+											})
+										}).
+										Body(
+											app.I().
+												Class("fas fa-times").
+												Aria("hidden", true),
+										),
+									app.Header().
+										Class("pf-c-modal-box__header").
+										Body(
+											app.H1().
+												Class("pf-c-modal-box__title").
+												ID("modal-scroll-title").
+												Text("Metadata"),
+										),
+									app.Div().
+										Class("pf-c-modal-box__body").
+										Body(
+											app.Dl().
+												Class("pf-c-description-list").
+												Body(
+													app.Div().
+														Class("pf-c-description-list__group").
+														Body(
+															app.Dt().
+																Class("pf-c-description-list__term").
+																Body(
+																	app.Span().
+																		Class("pf-c-description-list__text").
+																		ID("last-scan-mobile").
+																		Body(
+																			app.I().
+																				Class("fas fa-history pf-u-mr-xs").
+																				Aria("hidden", true),
+																			app.Text("Last Scan"),
+																		),
+																),
+															app.Dd().
+																Class("pf-c-description-list__description").
+																Body(
+																	app.Div().
+																		Class("pf-c-description-list__text").
+																		Body(
+																			app.Ul().
+																				Class("pf-c-label-group__list").
+																				Aria("role", "list").
+																				Aria("labelledby", "last-scan-mobile").
+																				Body(
+																					app.Li().
+																						Class("pf-c-label-group__list-item").
+																						Body(
+																							app.Span().
+																								Class("pf-c-label").
+																								Body(
+																									app.Span().
+																										Class("pf-c-label__content").
+																										Body(
+																											app.Text(c.Network.LastNodeScanDate),
+																										),
+																								),
+																						),
+																				),
+																		),
+																),
+														),
+													app.Div().
+														Class("pf-c-description-list__group").
+														Body(
+															app.Dt().
+																Class("pf-c-description-list__term").
+																Body(
+																	app.Span().
+																		Class("pf-c-description-list__text").
+																		ID("subnets-mobile").
+																		Body(
+																			app.I().
+																				Class("fas fa-network-wired pf-u-mr-xs").
+																				Aria("hidden", true),
+																			app.Text("Subnets"),
+																		),
+																),
+															app.Dd().
+																Class("pf-c-description-list__description").
+																Body(
+																	app.Div().
+																		Class("pf-c-description-list__text").
+																		Body(
+																			app.Ul().
+																				Class("pf-c-label-group__list").
+																				Aria("role", "list").
+																				Aria("labelledby", "subnets-mobile").
+																				Body(
+																					app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
+																						return app.Li().
+																							Class("pf-c-label-group__list-item").
+																							Body(
+																								app.Span().
+																									Class("pf-c-label").
+																									Body(
+																										app.Span().
+																											Class("pf-c-label__content").
+																											Body(
+																												app.Text(c.Network.ScannerMetadata.Subnets[i]),
+																											),
+																									),
+																							)
+																					}),
+																				),
+																		),
+																),
+														),
+													app.Div().
+														Class("pf-c-description-list__group").
+														Body(
+															app.Dt().
+																Class("pf-c-description-list__term").
+																Body(
+																	app.Span().
+																		Class("pf-c-description-list__text").
+																		ID("device-mobile").
+																		Body(
+																			app.I().
+																				Class("fas fa-microchip pf-u-mr-xs").
+																				Aria("hidden", true),
+																			app.Text("Device"),
+																		),
+																),
+															app.Dd().
+																Class("pf-c-description-list__description").
+																Body(
+																	app.Dd().
+																		Class("pf-c-description-list__description").
+																		Body(
+																			app.Ul().
+																				Class("pf-c-label-group__list").
+																				Aria("role", "list").
+																				Aria("labelledby", "device-mobile").
+																				Body(
+																					app.Li().
+																						Class("pf-c-label-group__list-item").
+																						Body(
+																							app.Span().
+																								Class("pf-c-label").
+																								Body(
+																									app.Span().
+																										Class("pf-c-label__content").
+																										Body(
+																											app.Text(c.Network.ScannerMetadata.Device),
+																										),
+																								),
+																						),
+																				),
+																		),
+																),
+														),
+												),
 										),
 								),
 						),
