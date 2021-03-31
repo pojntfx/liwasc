@@ -347,12 +347,12 @@ func (c *DataShell) Render() app.UI {
 												Body(
 													app.Div().Class("pf-c-drawer__body").Body(
 														app.Main().
-															Class("pf-c-page__main").
+															Class("pf-c-page__main pf-u-h-100").
 															ID("main-content-page-layout-horizontal-nav").
 															TabIndex(-1).
 															Body(
 																app.Section().
-																	Class("pf-c-page__main-section pf-m-no-padding pf-x-u-h-0px").
+																	Class("pf-c-page__main-section pf-m-no-padding").
 																	Body(
 																		// Primary-detail
 																		app.Div().
@@ -565,6 +565,7 @@ func (c *DataShell) Render() app.UI {
 																														),
 																												),
 																											app.TBody().
+																												Class("pf-x-u-border-t-0").
 																												Aria("role", "rowgroup").
 																												Body(
 																													app.If(
