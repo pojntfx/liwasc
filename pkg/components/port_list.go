@@ -17,8 +17,8 @@ type PortList struct {
 
 func (c *PortList) Render() app.UI {
 	portsToDisplay := c.Ports
-	if len(c.Ports) >= 5 && !c.expanded {
-		portsToDisplay = c.Ports[:4]
+	if len(c.Ports) >= 3 && !c.expanded {
+		portsToDisplay = c.Ports[:3]
 	}
 
 	return app.Div().
@@ -62,7 +62,7 @@ func (c *PortList) Render() app.UI {
 							}),
 							app.If(
 								// Only collapse if there are more than five ports
-								len(c.Ports) >= 5,
+								len(c.Ports) >= 3,
 								app.Li().
 									Class("pf-c-label-group__list-item").
 									Body(
@@ -82,11 +82,11 @@ func (c *PortList) Render() app.UI {
 														app.If(
 															c.expanded,
 															app.Text(
-																fmt.Sprintf("%v less", len(c.Ports)-5),
+																fmt.Sprintf("%v less", len(c.Ports)-3),
 															),
 														).Else(
 															app.Text(
-																fmt.Sprintf("%v more", len(c.Ports)-5),
+																fmt.Sprintf("%v more", len(c.Ports)-3),
 															),
 														),
 													),
