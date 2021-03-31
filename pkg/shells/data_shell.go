@@ -671,6 +671,8 @@ func (c *DataShell) Render() app.UI {
 																																							Checked(c.Network.Nodes[i].PoweredOn).
 																																							Disabled(c.Network.Nodes[i].PoweredOn).
 																																							OnClick(func(ctx app.Context, e app.Event) {
+																																								e.Call("stopPropagation")
+
 																																								go c.StartNodeWake(c.nodeWakeTimeout, c.Network.Nodes[i].MACAddress)
 																																							}),
 																																						Properties: map[string]interface{}{
@@ -759,6 +761,8 @@ func (c *DataShell) Render() app.UI {
 																																				Icon:    "fas fa-sync",
 
 																																				OnClick: func(ctx app.Context, e app.Event) {
+																																					e.Call("stopPropagation")
+
 																																					go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, c.Network.Nodes[i].MACAddress)
 																																				},
 																																			},
