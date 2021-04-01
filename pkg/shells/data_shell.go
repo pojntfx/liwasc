@@ -868,6 +868,14 @@ func (c *DataShell) Render() app.UI {
 																										app.Div().
 																											Class("pf-c-drawer__body").
 																											Body(
+																												app.Dl().
+																													Class("pf-c-description-list").
+																													Body(
+																														&components.Property{
+																															Key:   "IP Address",
+																															Value: selectedNode.IPAddress,
+																														},
+																													),
 																												&components.JSONDisplay{
 																													Object: selectedNode,
 																												},
