@@ -20,7 +20,7 @@ type DataShell struct {
 	nodeWakeTimeout    int64
 	nodeWakeMACAddress string
 
-	selectedNode string
+	selectedMACAddress string
 
 	userMenuExpanded        bool
 	overflowMenuExpanded    bool
@@ -59,6 +59,23 @@ const (
 )
 
 func (c *DataShell) Render() app.UI {
+	selectedNode := providers.Node{}
+	if c.selectedMACAddress != "" {
+		// Find selected node
+		for _, candidate := range c.Network.Nodes {
+			if candidate.MACAddress == c.selectedMACAddress {
+				selectedNode = candidate
+
+				break
+			}
+		}
+
+		// If selected node could not be found, clear selected MAC address
+		if selectedNode.MACAddress == "" {
+			c.selectedMACAddress = ""
+		}
+	}
+
 	return app.Div().
 		Class("pf-u-h-100").
 		Body(
@@ -360,7 +377,7 @@ func (c *DataShell) Render() app.UI {
 																			Class(func() string {
 																				classes := "pf-c-drawer pf-m-inline-on-2xl"
 
-																				if c.selectedNode != "" {
+																				if c.selectedMACAddress != "" {
 																					classes += " pf-m-expanded"
 																				}
 
@@ -656,7 +673,7 @@ func (c *DataShell) Render() app.UI {
 																																Class(func() string {
 																																	classes := "pf-m-hoverable"
 
-																																	if len(c.Network.Nodes) >= i && c.Network.Nodes[i].MACAddress == c.selectedNode {
+																																	if len(c.Network.Nodes) >= i && c.Network.Nodes[i].MACAddress == c.selectedMACAddress {
 																																		classes += " pf-m-selected"
 																																	}
 
@@ -666,14 +683,14 @@ func (c *DataShell) Render() app.UI {
 																																OnClick(func(ctx app.Context, e app.Event) {
 																																	c.dispatch(func() {
 																																		// Reset selected node
-																																		if c.selectedNode == c.Network.Nodes[i].MACAddress {
-																																			c.selectedNode = ""
+																																		if c.selectedMACAddress == c.Network.Nodes[i].MACAddress {
+																																			c.selectedMACAddress = ""
 
 																																			return
 																																		}
 
 																																		// Set selected node
-																																		c.selectedNode = c.Network.Nodes[i].MACAddress
+																																		c.selectedMACAddress = c.Network.Nodes[i].MACAddress
 																																	})
 																																}).
 																																Body(
@@ -828,7 +845,7 @@ func (c *DataShell) Render() app.UI {
 																									Class("pf-c-drawer__head").
 																									Body(
 																										app.Span().
-																											Text(fmt.Sprintf("Node %v", c.selectedNode)),
+																											Text(fmt.Sprintf("Node %v", c.selectedMACAddress)),
 																										app.Div().
 																											Class("pf-c-drawer__actions").
 																											Body(
@@ -841,7 +858,7 @@ func (c *DataShell) Render() app.UI {
 																															Aria("label", "Close inspector").
 																															OnClick(func(ctx app.Context, e app.Event) {
 																																c.dispatch(func() {
-																																	c.selectedNode = ""
+																																	c.selectedMACAddress = ""
 																																})
 																															}).Body(
 																															app.I().Class("fas fa-times").Aria("hidden", true),
@@ -852,7 +869,7 @@ func (c *DataShell) Render() app.UI {
 																											Class("pf-c-drawer__body").
 																											Body(
 																												&components.JSONDisplay{
-																													Object: c.selectedNode,
+																													Object: selectedNode,
 																												},
 																											),
 																									),
