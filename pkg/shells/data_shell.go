@@ -953,22 +953,42 @@ func (c *DataShell) Render() app.UI {
 																														),
 																													),
 																											),
-																										app.Div().
-																											Class("pf-c-drawer__body").
-																											Body(
-																												app.Dl().
-																													Class("pf-c-description-list").
-																													Body(
-																														&components.Property{
-																															Key:   "IP Address",
-																															Value: selectedNode.IPAddress,
-																														},
-																													),
-																												&components.JSONDisplay{
-																													Object: selectedNode,
-																												},
-																											),
 																									),
+																							),
+																						app.Div().
+																							Class("pf-c-drawer__body").
+																							Body(
+																								app.Dl().
+																									Class("pf-c-description-list pf-m-2-col").
+																									Body(
+																										&components.Property{
+																											Key:   "IP Address",
+																											Value: selectedNode.IPAddress,
+																										},
+																										&components.Property{
+																											Key:   "Vendor",
+																											Value: selectedNode.Vendor,
+																										},
+																										&components.Property{
+																											Key:   "Registry",
+																											Value: selectedNode.Registry,
+																										},
+																										&components.Property{
+																											Key:   "Organization",
+																											Value: selectedNode.Organization,
+																										},
+																										&components.Property{
+																											Key:   "Address",
+																											Value: selectedNode.Address,
+																										},
+																										&components.Property{
+																											Key:   "Visible",
+																											Value: fmt.Sprintf("%v", selectedNode.Visible),
+																										},
+																									),
+																								&components.JSONDisplay{
+																									Object: selectedNode,
+																								},
 																							),
 																					),
 																				),

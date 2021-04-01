@@ -25,7 +25,14 @@ func (c *Property) Render() app.UI {
 				Body(
 					app.Div().
 						Class("pf-c-description-list__text").
-						Text(c.Value),
+						Body(
+							app.If(
+								c.Value == "",
+								app.Text("Unregistered"),
+							).Else(
+								app.Text(c.Value),
+							),
+						),
 				),
 		)
 }
