@@ -21,6 +21,11 @@
   pointer-events: none;
 }
 
+.pf-x-c-tooltip--bottom {
+  transform: translateY(calc(100% + 2rem));
+  left: -50%;
+}
+
 .pf-x-c-tooltip-wrapper:hover > .pf-x-c-tooltip {
   opacity: 1;
 }
@@ -33,4 +38,10 @@
 /* Remove top border from table without toolbar */
 .pf-x-u-border-t-0 {
   border-top: 0 !important;
+}
+
+.pf-x-c-power-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

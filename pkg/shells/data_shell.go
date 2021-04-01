@@ -849,6 +849,94 @@ func (c *DataShell) Render() app.UI {
 																										app.Div().
 																											Class("pf-c-drawer__actions").
 																											Body(
+																												app.Label().
+																													Class("pf-c-switch pf-x-c-tooltip-wrapper pf-x-c-power-switch pf-u-mr-md").
+																													For("selected-node-inspector-power").
+																													Body(
+																														app.If(
+																															selectedNode.PoweredOn,
+																															app.Div().
+																																Class("pf-c-tooltip pf-x-c-tooltip pf-x-c-tooltip--bottom pf-m-bottom").
+																																Aria("role", "tooltip").
+																																Body(
+																																	app.Div().
+																																		Class("pf-c-tooltip__arrow"),
+																																	app.Div().
+																																		Class("pf-c-tooltip__content").
+																																		Text("To turn this node off, please do so manually."),
+																																),
+																														),
+																														&components.Controlled{
+																															Component: app.Input().
+																																Class("pf-c-switch__input").
+																																ID("selected-node-inspector-power").
+																																Aria("label", "Node is off").
+																																Name("selected-node-inspector-power").
+																																Type("checkbox").
+																																Checked(selectedNode.PoweredOn).
+																																Disabled(selectedNode.PoweredOn).
+																																OnClick(func(ctx app.Context, e app.Event) {
+																																	e.Call("stopPropagation")
+
+																																	go c.StartNodeWake(c.nodeWakeTimeout, selectedNode.MACAddress)
+																																}),
+																															Properties: map[string]interface{}{
+																																"checked":  selectedNode.PoweredOn,
+																																"disabled": selectedNode.PoweredOn,
+																															},
+																														},
+																														app.Span().
+																															Class("pf-c-switch__toggle").
+																															Body(
+																																app.Span().
+																																	Class("pf-c-switch__toggle-icon").
+																																	Body(
+																																		app.I().
+																																			Class("fas fa-lightbulb").
+																																			Aria("hidden", true),
+																																	),
+																															),
+																														app.Span().
+																															Class("pf-c-switch__label pf-m-on pf-l-flex pf-m-justify-content-center pf-m-align-items-center").
+																															ID("selected-node-inspector-power-on").
+																															Aria("hidden", true).
+																															Body(
+																																app.If(
+																																	selectedNode.NodeWakeRunning,
+																																	app.Span().
+																																		Class("pf-c-spinner pf-m-md").
+																																		Aria("role", "progressbar").
+																																		Aria("valuetext", "Loading...").
+																																		Body(
+																																			app.Span().Class("pf-c-spinner__clipper"),
+																																			app.Span().Class("pf-c-spinner__lead-ball"),
+																																			app.Span().Class("pf-c-spinner__tail-ball"),
+																																		),
+																																).Else(
+																																	app.Text("On"),
+																																),
+																															),
+																														app.Span().
+																															Class("pf-c-switch__label pf-m-off pf-l-flex pf-m-justify-content-center pf-m-align-items-center").
+																															ID("selected-node-inspector-power-off").
+																															Aria("hidden", true).
+																															Body(
+																																app.If(
+																																	selectedNode.NodeWakeRunning,
+																																	app.Span().
+																																		Class("pf-c-spinner pf-m-md").
+																																		Aria("role", "progressbar").
+																																		Aria("valuetext", "Loading...").
+																																		Body(
+																																			app.Span().Class("pf-c-spinner__clipper"),
+																																			app.Span().Class("pf-c-spinner__lead-ball"),
+																																			app.Span().Class("pf-c-spinner__tail-ball"),
+																																		),
+																																).Else(
+																																	app.Text("Off"),
+																																),
+																															),
+																													),
 																												app.Div().
 																													Class("pf-c-drawer__close").
 																													Body(
