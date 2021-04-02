@@ -7,9 +7,11 @@ import (
 type ProgressButton struct {
 	app.Compo
 
-	Loading bool
-	Icon    string
-	Text    string
+	Loading   bool
+	Icon      string
+	Text      string
+	Secondary bool
+	Classes   string
 
 	OnClick func(ctx app.Context, e app.Event)
 }
@@ -57,8 +59,16 @@ func (c *ProgressButton) Render() app.UI {
 			Class(func() string {
 				classes := "pf-c-button pf-m-primary"
 
+				if c.Secondary {
+					classes = "pf-c-button pf-m-secondary"
+				}
+
 				if c.Loading {
 					classes += " pf-m-progress pf-m-in-progress"
+				}
+
+				if c.Classes != "" {
+					classes += " " + c.Classes
 				}
 
 				return classes

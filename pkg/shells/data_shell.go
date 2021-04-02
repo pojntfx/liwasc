@@ -986,6 +986,19 @@ func (c *DataShell) Render() app.UI {
 																											Value: fmt.Sprintf("%v", selectedNode.Visible),
 																										},
 																									),
+																								&components.ProgressButton{
+																									Loading:   selectedNode.PortScanRunning,
+																									Icon:      "fas fa-sync",
+																									Text:      "Trigger Port Scan",
+																									Secondary: true,
+																									Classes:   "pf-u-w-100 pf-u-my-lg",
+
+																									OnClick: func(ctx app.Context, e app.Event) {
+																										e.Call("stopPropagation")
+
+																										go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, selectedNode.MACAddress)
+																									},
+																								},
 																								&components.JSONDisplay{
 																									Object: selectedNode,
 																								},
