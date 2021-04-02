@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"golang.org/x/oauth2"
 )
 
@@ -50,18 +50,15 @@ type IdentityProvider struct {
 }
 
 func (c *IdentityProvider) Render() app.UI {
-	// Only continue if there is no error state; this prevents endless loops
-	if c.err == nil {
-		c.authorize()
-	}
-
 	return c.Children(
 		IdentityProviderChildrenProps{
 			IDToken:  c.idToken,
 			UserInfo: c.userInfo,
 
 			Logout: func() {
-				c.logout(true)
+				c.Defer(func(ctx app.Context) {
+					c.logout(true, ctx)
+				})
 			},
 
 			Error:   c.err,
@@ -70,9 +67,27 @@ func (c *IdentityProvider) Render() app.UI {
 	)
 }
 
+func (c *IdentityProvider) OnMount(ctx app.Context) {
+	// Only continue if there is no error state; this prevents endless loops
+	if c.err == nil {
+		c.dispatch(func(ctx app.Context) {
+			c.authorize(ctx)
+		})
+	}
+}
+
+func (c *IdentityProvider) OnNav(ctx app.Context) {
+	// Only continue if there is no error state; this prevents endless loops
+	if c.err == nil {
+		c.dispatch(func(ctx app.Context) {
+			c.authorize(ctx)
+		})
+	}
+}
+
 func (c *IdentityProvider) panic(err error) {
 	go func() {
-		c.dispatch(func() {
+		c.dispatch(func(ctx app.Context) {
 			// Set the error
 			c.err = err
 		})
@@ -86,17 +101,19 @@ func (c *IdentityProvider) panic(err error) {
 }
 
 func (c *IdentityProvider) recover() {
-	c.dispatch(func() {
+	c.dispatch(func(ctx app.Context) {
 		// Clear the error
 		c.err = nil
-	})
 
-	// Logout
-	c.logout(false)
+		// Logout
+		c.logout(false, ctx)
+	})
 }
 
-func (c *IdentityProvider) dispatch(action func()) {
-	action()
+func (c *IdentityProvider) dispatch(action func(ctx app.Context)) {
+	c.Defer(func(ctx app.Context) {
+		action(ctx)
+	})
 
 	c.Update()
 }
@@ -124,66 +141,66 @@ func (c *IdentityProvider) watch() {
 			return
 		}
 
-		// Persist state in storage
-		if err := c.persist(*oauth2Token, idToken, c.userInfo); err != nil {
-			c.panic(err)
-
-			return
-		}
-
 		// Set the login state
-		c.dispatch(func() {
+		c.dispatch(func(ctx app.Context) {
+			// Persist state in storage
+			if err := c.persist(*oauth2Token, idToken, c.userInfo, ctx); err != nil {
+				c.panic(err)
+
+				return
+			}
+
 			c.oauth2Token = *oauth2Token
 			c.idToken = idToken
 		})
 	}
 }
 
-func (c *IdentityProvider) logout(withRedirect bool) {
+func (c *IdentityProvider) logout(withRedirect bool, ctx app.Context) {
 	// Remove from storage
-	c.clear()
+	c.clear(ctx)
 
 	// Reload the app
 	if withRedirect {
-		app.Reload()
+		ctx.Reload()
 	}
 }
 
-func (c *IdentityProvider) rehydrate() (oauth2.Token, string, oidc.UserInfo, error) {
+func (c *IdentityProvider) rehydrate(ctx app.Context) (oauth2.Token, string, oidc.UserInfo, error) {
 	// Read state from storage
 	oauth2Token := oauth2.Token{}
 	idToken := ""
 	userInfo := oidc.UserInfo{}
 
-	if err := app.LocalStorage.Get(c.getKey(oauth2TokenKey), &oauth2Token); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(oauth2TokenKey), &oauth2Token); err != nil {
 		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}
-	if err := app.LocalStorage.Get(c.getKey(idTokenKey), &idToken); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(idTokenKey), &idToken); err != nil {
 		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}
-	if err := app.LocalStorage.Get(c.getKey(userInfoKey), &userInfo); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(userInfoKey), &userInfo); err != nil {
 		return oauth2.Token{}, "", oidc.UserInfo{}, err
 	}
 
 	return oauth2Token, idToken, userInfo, nil
 }
 
-func (c *IdentityProvider) persist(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo) error {
+func (c *IdentityProvider) persist(oauth2Token oauth2.Token, idToken string, userInfo oidc.UserInfo, ctx app.Context) error {
 	// Write state to storage
-	if err := app.LocalStorage.Set(c.getKey(oauth2TokenKey), oauth2Token); err != nil {
+	if err := ctx.LocalStorage().Set(c.getKey(oauth2TokenKey), oauth2Token); err != nil {
 		return err
 	}
-	if err := app.LocalStorage.Set(c.getKey(idTokenKey), idToken); err != nil {
+	if err := ctx.LocalStorage().Set(c.getKey(idTokenKey), idToken); err != nil {
 		return err
 	}
-	return app.LocalStorage.Set(c.getKey(userInfoKey), userInfo)
+	return ctx.LocalStorage().Set(c.getKey(userInfoKey), userInfo)
 }
 
-func (c *IdentityProvider) clear() {
+func (c *IdentityProvider) clear(ctx app.Context) {
 	// Remove from storage
-	app.LocalStorage.Del(c.getKey(oauth2TokenKey))
-	app.LocalStorage.Del(c.getKey(idTokenKey))
-	app.LocalStorage.Del(c.getKey(userInfoKey))
+	ctx.LocalStorage().Del(c.getKey(oauth2TokenKey))
+	ctx.LocalStorage().Del(c.getKey(idTokenKey))
+	ctx.LocalStorage().Del(c.getKey(userInfoKey))
 
 	// Remove cookies
 	app.Window().Get("document").Set("cookie", "")
@@ -194,9 +211,9 @@ func (c *IdentityProvider) getKey(key string) string {
 	return fmt.Sprintf("%v.%v", c.StoragePrefix, key)
 }
 
-func (c *IdentityProvider) authorize() {
+func (c *IdentityProvider) authorize(ctx app.Context) {
 	// Read state from storage
-	oauth2Token, idToken, userInfo, err := c.rehydrate()
+	oauth2Token, idToken, userInfo, err := c.rehydrate(ctx)
 	if err != nil {
 		c.panic(err)
 
@@ -223,7 +240,7 @@ func (c *IdentityProvider) authorize() {
 	if oauth2Token.AccessToken == "" || userInfo.Email == "" {
 		// Logged out state, info neither in storage nor in URL: Redirect to login
 		if app.Window().URL().Query().Get(StateQueryParameter) == "" {
-			app.Navigate(config.AuthCodeURL(c.RedirectURL, oauth2.AccessTypeOffline))
+			ctx.Navigate(config.AuthCodeURL(c.RedirectURL, oauth2.AccessTypeOffline))
 
 			return
 		}
@@ -253,14 +270,14 @@ func (c *IdentityProvider) authorize() {
 		}
 
 		// Persist state in storage
-		if err := c.persist(*oauth2Token, idToken, *userInfo); err != nil {
+		if err := c.persist(*oauth2Token, idToken, *userInfo, ctx); err != nil {
 			c.panic(err)
 
 			return
 		}
 
 		// Test validity of storage
-		if _, _, _, err = c.rehydrate(); err != nil {
+		if _, _, _, err = c.rehydrate(ctx); err != nil {
 			c.panic(err)
 
 			return
@@ -268,7 +285,7 @@ func (c *IdentityProvider) authorize() {
 
 		// Update and navigate to home URL
 		c.Update()
-		app.Navigate(c.HomeURL)
+		ctx.Navigate(c.HomeURL)
 
 		return
 	}
@@ -284,8 +301,8 @@ func (c *IdentityProvider) authorize() {
 	verifier := provider.Verifier(oidcConfig)
 	if _, err := verifier.Verify(context.Background(), idToken); err != nil {
 		// Invalid token; clear and re-authorize
-		c.clear()
-		c.authorize()
+		c.clear(ctx)
+		c.authorize(ctx)
 
 		return
 	}

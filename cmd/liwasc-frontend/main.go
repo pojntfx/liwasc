@@ -1,144 +1,95 @@
-// +build js
-
 package main
 
 import (
-	"context"
-	"time"
+	"flag"
+	"log"
+	"net/http"
 
-	"github.com/maxence-charriere/go-app/v7/pkg/app"
-	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
-	"github.com/pojntfx/liwasc/pkg/providers"
-	"github.com/pojntfx/liwasc/pkg/shells"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
+	"github.com/kataras/compress"
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
+	"github.com/pojntfx/liwasc/pkg/pages"
 )
 
 func main() {
-	// Define the routes
-	app.Route("/",
-		// Configuration provider
-		&providers.ConfigurationProvider{
-			StoragePrefix:       "liwasc.configuration",
-			StateQueryParameter: "state",
-			CodeQueryParameter:  "code",
-			Children: func(cpcp providers.ConfigurationProviderChildrenProps) app.UI {
-				// This div is required so that there are no authorization loops
-				return app.Div().
-					TabIndex(-1).
-					Class("pf-x-ws-router").
-					Body(
-						app.If(cpcp.Ready,
-							// Identity provider
-							&providers.IdentityProvider{
-								Issuer:        cpcp.OIDCIssuer,
-								ClientID:      cpcp.OIDCClientID,
-								RedirectURL:   cpcp.OIDCRedirectURL,
-								HomeURL:       "/",
-								Scopes:        []string{"profile", "email"},
-								StoragePrefix: "liwasc.identity",
-								Children: func(ipcp providers.IdentityProviderChildrenProps) app.UI {
-									// Configuration shell
-									if ipcp.Error != nil {
-										return &shells.ConfigurationShell{
-											LogoSrc:          "/web/logo.svg",
-											Title:            "Log in to liwasc",
-											ShortDescription: "List, wake and scan nodes in a network.",
-											LongDescription: `liwasc is a high-performance network and port scanner. It can
-quickly give you a overview of the nodes in your network, the
-services that run on them and manage their power status.`,
-											HelpLink: "https://github.com/pojntfx/liwasc/wiki",
-											Links: map[string]string{
-												"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
-												"Source Code":   "https://github.com/pojntfx/liwasc",
-												"Documentation": "https://github.com/pojntfx/liwasc/wiki",
-											},
+	// Client-side code
+	{
+		// Define the routes
+		app.Route("/", &pages.Home{})
 
-											BackendURL:      cpcp.BackendURL,
-											OIDCIssuer:      cpcp.OIDCIssuer,
-											OIDCClientID:    cpcp.OIDCClientID,
-											OIDCRedirectURL: cpcp.OIDCRedirectURL,
+		// Start the app
+		app.RunWhenOnBrowser()
+	}
 
-											SetBackendURL:      cpcp.SetBackendURL,
-											SetOIDCIssuer:      cpcp.SetOIDCIssuer,
-											SetOIDCClientID:    cpcp.SetOIDCClientID,
-											SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
-											ApplyConfig:        cpcp.ApplyConfig,
+	// Server-/build-side code
+	{
+		// Parse the flags
+		build := flag.Bool("build", false, "Create static build")
+		out := flag.String("out", "out/liwasc-frontend", "Out directory for static build")
+		path := flag.String("path", "", "Base path for static build")
+		serve := flag.Bool("serve", false, "Build and serve the frontend")
+		laddr := flag.String("laddr", "localhost:15125", "Address to serve the frontend on")
 
-											Error: ipcp.Error,
-										}
-									}
+		flag.Parse()
 
-									// Configuration placeholder
-									if ipcp.IDToken == "" || ipcp.UserInfo.Email == "" {
-										return app.P().Text("Authorizing ...")
-									}
-
-									// gRPC Client
-									conn, err := grpc.Dial(cpcp.BackendURL, grpc.WithContextDialer(websocketproxy.NewWebSocketProxyClient(time.Minute).Dialer), grpc.WithInsecure())
-									if err != nil {
-										panic(err)
-									}
-
-									// Data provider
-									return &providers.DataProvider{
-										AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", ipcp.IDToken),
-										MetadataService:        proto.NewMetadataServiceClient(conn),
-										NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
-										NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
-										Children: func(dpcp providers.DataProviderChildrenProps) app.UI {
-											// Data shell
-											return &shells.DataShell{
-												Network:  dpcp.Network,
-												UserInfo: ipcp.UserInfo,
-
-												TriggerNetworkScan: dpcp.TriggerNetworkScan,
-												StartNodeWake:      dpcp.StartNodeWake,
-												Logout:             ipcp.Logout,
-
-												Error:   dpcp.Error,
-												Recover: dpcp.Recover,
-											}
-										},
-									}
-								},
-							},
-						).Else(
-							// Configuration shell
-							&shells.ConfigurationShell{
-								LogoSrc:          "/web/logo.svg",
-								Title:            "Log in to liwasc",
-								ShortDescription: "List, wake and scan nodes in a network.",
-								LongDescription: `liwasc is a high-performance network and port scanner. It can
-quickly give you a overview of the nodes in your network, the
-services that run on them and manage their power status.`,
-								HelpLink: "https://github.com/pojntfx/liwasc/wiki",
-								Links: map[string]string{
-									"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
-									"Source Code":   "https://github.com/pojntfx/liwasc",
-									"Documentation": "https://github.com/pojntfx/liwasc/wiki",
-								},
-
-								BackendURL:      cpcp.BackendURL,
-								OIDCIssuer:      cpcp.OIDCIssuer,
-								OIDCClientID:    cpcp.OIDCClientID,
-								OIDCRedirectURL: cpcp.OIDCRedirectURL,
-
-								SetBackendURL:      cpcp.SetBackendURL,
-								SetOIDCIssuer:      cpcp.SetOIDCIssuer,
-								SetOIDCClientID:    cpcp.SetOIDCClientID,
-								SetOIDCRedirectURL: cpcp.SetOIDCRedirectURL,
-								ApplyConfig:        cpcp.ApplyConfig,
-
-								Error: cpcp.Error,
-							},
-						),
-					)
+		// Define the handler
+		h := &app.Handler{
+			Author:          "Felicitas Pojtinger",
+			BackgroundColor: "#151515",
+			Description:     "List, wake and scan nodes in a network.",
+			Icon: app.Icon{
+				Default: "/web/icon.png",
 			},
-		},
-	)
+			Keywords: []string{
+				"network",
+				"network-scanner",
+				"port-scanner",
+				"ip-scanner",
+				"arp-scanner",
+				"arp",
+				"iana",
+				"ports2packets",
+				"liwasc",
+				"vendor2mac",
+				"wake-on-lan",
+				"wol",
+				"service-name",
+			},
+			LoadingLabel: "List, wake and scan nodes in a network.",
+			Name:         "liwasc",
+			RawHeaders: []string{
+				`<meta property="og:url" content="https://liwasc.alphahorizon.io/">`,
+				`<meta property="og:title" content="liwasc">`,
+				`<meta property="og:description" content="List, wake and scan nodes in a network.">`,
+				`<meta property="og:image" content="https://liwasc.alphahorizon.io/web/icon.png">`,
+			},
+			Styles: []string{
+				`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css`,
+				`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css`,
+				`/web/index.css`,
+			},
+			ThemeColor: "#151515",
+			Title:      "liwasc",
+		}
 
-	// Start the app
-	app.Run()
+		// Create static build if specified
+		if *build {
+			// Deploy under a path
+			if *path != "" {
+				h.Resources = app.GitHubPages(*path)
+			}
+
+			if err := app.GenerateStaticWebsite(*out, h); err != nil {
+				log.Fatalf("could not build: %v\n", err)
+			}
+		}
+
+		// Serve if specified
+		if *serve {
+			log.Printf("liwasc frontend listening on %v\n", *laddr)
+
+			if err := http.ListenAndServe(*laddr, compress.Handler(h)); err != nil {
+				log.Fatalf("could not open liwasc frontend: %v\n", err)
+			}
+		}
+	}
 }

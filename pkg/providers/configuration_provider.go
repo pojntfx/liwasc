@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
 )
 
 type ConfigurationProviderChildrenProps struct {
@@ -57,25 +57,25 @@ func (c *ConfigurationProvider) Render() app.UI {
 		Ready:           c.ready,
 
 		SetBackendURL: func(s string) {
-			c.dispatch(func() {
+			c.dispatch(func(ctx app.Context) {
 				c.ready = false
 				c.backendURL = s
 			})
 		},
 		SetOIDCIssuer: func(s string) {
-			c.dispatch(func() {
+			c.dispatch(func(ctx app.Context) {
 				c.ready = false
 				c.oidcIssuer = s
 			})
 		},
 		SetOIDCClientID: func(s string) {
-			c.dispatch(func() {
+			c.dispatch(func(ctx app.Context) {
 				c.ready = false
 				c.oidcClientID = s
 			})
 		},
 		SetOIDCRedirectURL: func(s string) {
-			c.dispatch(func() {
+			c.dispatch(func(ctx app.Context) {
 				c.ready = false
 				c.oidcRedirectURL = s
 			})
@@ -96,10 +96,12 @@ func (c *ConfigurationProvider) invalidate(err error) {
 	c.Update()
 }
 
-func (c *ConfigurationProvider) dispatch(action func()) {
-	action()
+func (c *ConfigurationProvider) dispatch(action func(ctx app.Context)) {
+	c.Defer(func(ctx app.Context) {
+		action(ctx)
 
-	c.Update()
+		c.Update()
+	})
 }
 
 func (c *ConfigurationProvider) validate() {
@@ -128,33 +130,33 @@ func (c *ConfigurationProvider) validate() {
 		return
 	}
 
-	// Persist state
-	if err := c.persist(); err != nil {
-		c.invalidate(err)
+	c.dispatch(func(ctx app.Context) {
+		// Persist state
+		if err := c.persist(ctx); err != nil {
+			c.invalidate(err)
 
-		return
-	}
+			return
+		}
 
-	// If all are valid, set ready state
-	c.dispatch(func() {
+		// If all are valid, set ready state
 		c.err = nil
 		c.ready = true
 	})
 }
 
-func (c *ConfigurationProvider) persist() error {
+func (c *ConfigurationProvider) persist(ctx app.Context) error {
 	// Write state to storage
-	if err := app.LocalStorage.Set(c.getKey(backendURLKey), c.backendURL); err != nil {
+	if err := ctx.LocalStorage().Set(c.getKey(backendURLKey), c.backendURL); err != nil {
 		return err
 	}
-	if err := app.LocalStorage.Set(c.getKey(oidcIssuerKey), c.oidcIssuer); err != nil {
+	if err := ctx.LocalStorage().Set(c.getKey(oidcIssuerKey), c.oidcIssuer); err != nil {
 		return err
 	}
-	if err := app.LocalStorage.Set(c.getKey(oidcClientIDKey), c.oidcClientID); err != nil {
+	if err := ctx.LocalStorage().Set(c.getKey(oidcClientIDKey), c.oidcClientID); err != nil {
 		return err
 	}
 
-	return app.LocalStorage.Set(c.getKey(oidcRedirectURLKey), c.oidcRedirectURL)
+	return ctx.LocalStorage().Set(c.getKey(oidcRedirectURLKey), c.oidcRedirectURL)
 }
 
 func (c *ConfigurationProvider) rehydrateFromURL() bool {
@@ -168,7 +170,7 @@ func (c *ConfigurationProvider) rehydrateFromURL() bool {
 
 	// If all values are set, set them in the data provider
 	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
-		c.dispatch(func() {
+		c.dispatch(func(ctx app.Context) {
 			c.backendURL = backendURL
 			c.oidcIssuer = oidcIssuer
 			c.oidcClientID = oidcClientID
@@ -181,29 +183,29 @@ func (c *ConfigurationProvider) rehydrateFromURL() bool {
 	return false
 }
 
-func (c *ConfigurationProvider) rehydrateFromStorage() bool {
+func (c *ConfigurationProvider) rehydrateFromStorage(ctx app.Context) bool {
 	// Read state from storage
 	backendURL := ""
 	oidcIssuer := ""
 	oidcClientID := ""
 	oidcRedirectURL := ""
 
-	if err := app.LocalStorage.Get(c.getKey(backendURLKey), &backendURL); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(backendURLKey), &backendURL); err != nil {
 		c.invalidate(err)
 
 		return false
 	}
-	if err := app.LocalStorage.Get(c.getKey(oidcIssuerKey), &oidcIssuer); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(oidcIssuerKey), &oidcIssuer); err != nil {
 		c.invalidate(err)
 
 		return false
 	}
-	if err := app.LocalStorage.Get(c.getKey(oidcClientIDKey), &oidcClientID); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(oidcClientIDKey), &oidcClientID); err != nil {
 		c.invalidate(err)
 
 		return false
 	}
-	if err := app.LocalStorage.Get(c.getKey(oidcRedirectURLKey), &oidcRedirectURL); err != nil {
+	if err := ctx.LocalStorage().Get(c.getKey(oidcRedirectURLKey), &oidcRedirectURL); err != nil {
 		c.invalidate(err)
 
 		return false
@@ -211,7 +213,7 @@ func (c *ConfigurationProvider) rehydrateFromStorage() bool {
 
 	// If all values are set, set them in the data provider
 	if backendURL != "" && oidcIssuer != "" && oidcClientID != "" && oidcRedirectURL != "" {
-		c.dispatch(func() {
+		c.dispatch(func(ctx app.Context) {
 			c.backendURL = backendURL
 			c.oidcIssuer = oidcIssuer
 			c.oidcClientID = oidcClientID
@@ -260,16 +262,18 @@ func (c *ConfigurationProvider) OnMount(context app.Context) {
 	}
 
 	// If rehydrated from storage, validate & apply
-	if c.rehydrateFromStorage() {
-		// Auto-apply if configured
-		// Disabled until a flow for handling wrong input details has been implemented
-		// c.validate()
-	}
+	c.dispatch(func(ctx app.Context) {
+		if c.rehydrateFromStorage(ctx) {
+			// Auto-apply if configured
+			// Disabled until a flow for handling wrong input details has been implemented
+			// c.validate()
+		}
+	})
 
 	// If rehydrated authentication from URL, continue
 	if c.rehydrateAuthenticationFromURL() {
 		// Auto-apply if configured; set ready state
-		c.dispatch(func() {
+		c.dispatch(func(ctx app.Context) {
 			c.err = nil
 			c.ready = true
 		})

@@ -1,6 +1,6 @@
 package components
 
-import "github.com/maxence-charriere/go-app/v7/pkg/app"
+import "github.com/maxence-charriere/go-app/v8/pkg/app"
 
 type FormGroup struct {
 	app.Compo
