@@ -35,6 +35,10 @@
   overflow-x: hidden;
 }
 
+.pf-x-m-overflow-x-auto {
+  overflow-x: auto;
+}
+
 /* Remove top border from table without toolbar */
 .pf-x-u-border-t-0 {
   border-top: 0 !important;
