@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/liwasc/pkg/providers"
@@ -20,9 +21,33 @@ type Inspector struct {
 	Node   providers.Node
 
 	selectedPort int64
+	portFilter   string
 }
 
 func (c *Inspector) Render() app.UI {
+	filteredPorts := c.Node.Ports
+	if c.portFilter != "" {
+		filteredPorts = []providers.Port{}
+
+		for _, port := range c.Node.Ports {
+			if strings.Contains(fmt.Sprintf(
+				"%v/%v (%v)",
+				port.PortNumber,
+				port.TransportProtocol,
+				func() string {
+					service := port.ServiceName
+					if service == "" {
+						service = "Unregistered"
+					}
+
+					return service
+				}(),
+			), c.portFilter) {
+				filteredPorts = append(filteredPorts, port)
+			}
+		}
+	}
+
 	return app.Div().
 		Class(func() string {
 			classes := "pf-c-drawer pf-m-inline-on-2xl"
@@ -212,60 +237,102 @@ func (c *Inspector) Render() app.UI {
 									c.TriggerNetworkScan()
 								},
 							},
-							app.Ul().
-								Class("pf-c-data-list pf-u-my-lg").
-								ID("ports-in-inspector").
-								Aria("role", "list").
-								Aria("label", "Ports").Body(
-								app.Range(c.Node.Ports).Slice(func(i int) app.UI {
-									return app.Li().
-										Class(func() string {
-											classes := "pf-c-data-list__item pf-m-selectable"
+							app.Div().
+								Class("pf-c-input-group pf-u-mt-lg").
+								Body(
+									&Controlled{
+										Component: app.
+											Input().
+											Type("search").
+											Placeholder("Service name or port number").
+											Class("pf-c-form-control").
+											Aria("label", "Service name or port number").
+											OnInput(func(ctx app.Context, e app.Event) {
+												c.dispatch(func(_ app.Context) {
+													c.portFilter = ctx.JSSrc.Get("value").String()
+												})
+											}),
+										Properties: map[string]interface{}{
+											"value": c.portFilter,
+										},
+									},
+									app.Button().
+										Class("pf-c-button pf-m-control").
+										Type("button").
+										Aria("label", "Search button for service name or port number").Body(
+										app.I().
+											Class("fas fa-search").
+											Aria("hidden", true),
+									),
+								),
+							app.If(
+								len(filteredPorts) > 0,
+								app.Ul().
+									Class("pf-c-data-list pf-u-my-lg").
+									ID("ports-in-inspector").
+									Aria("role", "list").
+									Aria("label", "Ports").Body(
+									app.Range(filteredPorts).Slice(func(i int) app.UI {
+										return app.Li().
+											Class(func() string {
+												classes := "pf-c-data-list__item pf-m-selectable"
 
-											if c.selectedPort == c.Node.Ports[i].PortNumber {
-												classes += " pf-m-selected"
-											}
-
-											return classes
-										}()).
-										Aria("labelledby", "ports-in-inspector").
-										TabIndex(0).
-										OnClick(func(ctx app.Context, e app.Event) {
-											c.dispatch(func(ctx app.Context) {
-												// Reset selected port
-												if c.selectedPort == c.Node.Ports[i].PortNumber {
-													c.selectedPort = -1
-
-													return
+												if c.selectedPort == filteredPorts[i].PortNumber {
+													classes += " pf-m-selected"
 												}
 
-												// Set selected port
-												c.selectedPort = c.Node.Ports[i].PortNumber
-											})
-										}).
-										Body(
-											app.Div().Class("pf-c-data-list__item-row").Body(
-												app.Div().Class("pf-c-data-list__item-content").Body(
-													app.Div().Class("pf-c-data-list__cell").Text(
-														fmt.Sprintf(
-															"%v/%v (%v)",
-															c.Node.Ports[i].PortNumber,
-															c.Node.Ports[i].TransportProtocol,
-															func() string {
-																service := c.Node.Ports[i].ServiceName
-																if service == "" {
-																	service = "Unregistered"
-																}
+												return classes
+											}()).
+											Aria("labelledby", "ports-in-inspector").
+											TabIndex(0).
+											OnClick(func(ctx app.Context, e app.Event) {
+												c.dispatch(func(ctx app.Context) {
+													// Reset selected port
+													if c.selectedPort == filteredPorts[i].PortNumber {
+														c.selectedPort = -1
 
-																return service
-															}(),
+														return
+													}
+
+													// Set selected port
+													c.selectedPort = filteredPorts[i].PortNumber
+												})
+											}).
+											Body(
+												app.Div().Class("pf-c-data-list__item-row").Body(
+													app.Div().Class("pf-c-data-list__item-content").Body(
+														app.Div().Class("pf-c-data-list__cell").Text(
+															fmt.Sprintf(
+																"%v/%v (%v)",
+																filteredPorts[i].PortNumber,
+																filteredPorts[i].TransportProtocol,
+																func() string {
+																	service := filteredPorts[i].ServiceName
+																	if service == "" {
+																		service = "Unregistered"
+																	}
+
+																	return service
+																}(),
+															),
 														),
 													),
 												),
-											),
-										)
-								}),
-							),
+											)
+									}),
+								),
+							).
+								ElseIf(
+									c.portFilter != "",
+									app.Div().Class("pf-u-mt-lg").Text("No open ports found for this filter."),
+								).
+								ElseIf(
+									c.Node.PortScanRunning,
+									app.Div().Class("pf-u-mt-lg").Text("No open ports found yet."),
+								).
+								Else(
+									app.Div().Class("pf-u-mt-lg").Text("No open ports found."),
+								),
 							&JSONDisplay{
 								Object: c.Node,
 							},
