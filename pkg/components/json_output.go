@@ -30,7 +30,7 @@ func (c *JSONDisplay) Render() app.UI {
 			),
 		),
 		app.Div().Class("pf-c-code-editor__main").Body(
-			app.Div().Class("pf-c-code-editor__code").Body(
+			app.Div().Class("pf-c-code-editor__code pf-x-m-overflow-x-auto").Body(
 				app.Pre().Text(string(output)),
 			),
 		),
