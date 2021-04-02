@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 
-	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/liwasc/pkg/providers"
 )
 

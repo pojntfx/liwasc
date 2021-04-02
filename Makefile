@@ -6,7 +6,7 @@ backend:
 frontend:
 	rm -f web/app.wasm
 	GOOS=js GOARCH=wasm go build -o web/app.wasm cmd/liwasc-frontend/main.go
-	go build -o /tmp/liwasc-frontend-build cmd/liwasc-frontend/build.go
+	go build -o /tmp/liwasc-frontend-build cmd/liwasc-frontend/main.go
 	rm -rf out/liwasc-frontend
 	/tmp/liwasc-frontend-build -build
 	cp -r web/* out/liwasc-frontend/web

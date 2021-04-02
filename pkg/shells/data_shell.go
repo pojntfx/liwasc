@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/maxence-charriere/go-app/v7/pkg/app"
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/liwasc/pkg/components"
 	"github.com/pojntfx/liwasc/pkg/providers"
 )
