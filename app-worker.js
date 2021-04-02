@@ -1,14 +1,14 @@
-const cacheName = "app-" + "d52c3df0aec69a423b6bc443dab590a2b332d4d9";
+const cacheName = "app-" + "8ae66ceb2b8453509658ab0ca43ee93bf7b2be4c";
 
 self.addEventListener("install", event => {
-  console.log("installing app worker d52c3df0aec69a423b6bc443dab590a2b332d4d9");
+  console.log("installing app worker 8ae66ceb2b8453509658ab0ca43ee93bf7b2be4c");
   self.skipWaiting();
 
   event.waitUntil(
     caches.open(cacheName).then(cache => {
       return cache.addAll([
+        "",
         "/liwasc",
-        "/liwasc/",
         "/liwasc/app.css",
         "/liwasc/app.js",
         "/liwasc/manifest.webmanifest",
@@ -36,7 +36,7 @@ self.addEventListener("activate", event => {
       );
     })
   );
-  console.log("app worker d52c3df0aec69a423b6bc443dab590a2b332d4d9 is activated");
+  console.log("app worker 8ae66ceb2b8453509658ab0ca43ee93bf7b2be4c is activated");
 });
 
 self.addEventListener("fetch", event => {

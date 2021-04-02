@@ -3,7 +3,6 @@
 // -----------------------------------------------------------------------------
 var goappOnUpdate = function () { };
 
-
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("/liwasc/app-worker.js")
@@ -29,7 +28,7 @@ if ("serviceWorker" in navigator) {
 // -----------------------------------------------------------------------------
 // Init progressive app
 // -----------------------------------------------------------------------------
-const goappEnv = {"GOAPP_ROOT_PREFIX":"/liwasc","GOAPP_STATIC_RESOURCES_URL":"/liwasc","GOAPP_VERSION":"d52c3df0aec69a423b6bc443dab590a2b332d4d9"};
+const goappEnv = {"GOAPP_ROOT_PREFIX":"/liwasc","GOAPP_STATIC_RESOURCES_URL":"/liwasc","GOAPP_VERSION":"8ae66ceb2b8453509658ab0ca43ee93bf7b2be4c"};
 
 function goappGetenv(k) {
   return goappEnv[k];
@@ -41,35 +40,6 @@ window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
 });
-
-// -----------------------------------------------------------------------------
-// Init Web Assembly
-// -----------------------------------------------------------------------------
-if (!WebAssembly.instantiateStreaming) {
-  WebAssembly.instantiateStreaming = async (resp, importObject) => {
-    const source = await (await resp).arrayBuffer();
-    return await WebAssembly.instantiate(source, importObject);
-  };
-}
-
-const go = new Go();
-
-WebAssembly.instantiateStreaming(fetch("/liwasc/web/app.wasm"), go.importObject)
-  .then(result => {
-    const loaderIcon = document.getElementById("app-wasm-loader-icon");
-    loaderIcon.className = "goapp-logo";
-
-    go.run(result.instance);
-  })
-  .catch(err => {
-    const loaderIcon = document.getElementById("app-wasm-loader-icon");
-    loaderIcon.className = "goapp-logo";
-
-    const loaderLabel = document.getElementById("app-wasm-loader-label");
-    loaderLabel.innerText = err;
-
-    console.error("loading wasm failed: " + err);
-  });
 
 // -----------------------------------------------------------------------------
 // Keep body clean
@@ -96,3 +66,37 @@ function goappKeepBodyClean() {
 
   return () => mutationObserver.disconnect();
 }
+
+// -----------------------------------------------------------------------------
+// Init Web Assembly
+// -----------------------------------------------------------------------------
+if (!/bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent)) {
+  if (!WebAssembly.instantiateStreaming) {
+    WebAssembly.instantiateStreaming = async (resp, importObject) => {
+      const source = await (await resp).arrayBuffer();
+      return await WebAssembly.instantiate(source, importObject);
+    };
+  }
+
+  const go = new Go();
+
+  WebAssembly.instantiateStreaming(fetch("/liwasc/web/app.wasm"), go.importObject)
+    .then(result => {
+      const loaderIcon = document.getElementById("app-wasm-loader-icon");
+      loaderIcon.className = "goapp-logo";
+
+      go.run(result.instance);
+    })
+    .catch(err => {
+      const loaderIcon = document.getElementById("app-wasm-loader-icon");
+      loaderIcon.className = "goapp-logo";
+
+      const loaderLabel = document.getElementById("app-wasm-loader-label");
+      loaderLabel.innerText = err;
+
+      console.error("loading wasm failed: " + err);
+    });
+} else {
+  document.getElementById('app-wasm-loader').style.display = "none";
+}
+
