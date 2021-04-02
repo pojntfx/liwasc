@@ -8,10 +8,10 @@
 <meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
 <meta name="theme-color" content="#151515">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
-<meta property="og:url" content="http://127.0.0.1:34001/">
+<meta content="http://127.0.0.1:38869/" property="og:url">
 <meta property="og:title" content="liwasc">
-<meta content="List, wake and scan nodes in a network." property="og:description">
-<meta property="og:type" content="website">
+<meta property="og:description" content="List, wake and scan nodes in a network.">
+<meta content="website" property="og:type">
 <meta property="og:image" content>
 <title>
 liwasc
@@ -19,12 +19,12 @@ liwasc
 <link rel="icon" type="image/png" href="/liwasc/web/icon.png">
 <link rel="apple-touch-icon" href="/liwasc/web/icon.png">
 <link rel="manifest" href="/liwasc/manifest.webmanifest">
-<link type="text/css" rel="stylesheet" href="/liwasc/app.css">
+<link href="/liwasc/app.css" type="text/css" rel="stylesheet">
 <script defer src="/liwasc/wasm_exec.js"></script>
 <script defer src="/liwasc/app.js"></script>
 <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
 <link href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css" type="text/css" rel="stylesheet">
-<link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
+<link href="/liwasc/web/index.css" type="text/css" rel="stylesheet">
 <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
@@ -86,7 +86,7 @@ List, wake and scan nodes in a network.
 <form class="pf-c-form">
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label for="backendURLName" class="pf-c-form__label">
+<label class="pf-c-form__label" for="backendURLName">
 <span class="pf-c-form__label-text">
 Backend URL
 </span>
@@ -96,7 +96,7 @@ Backend URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false" name="backendURLName">
+<input name="backendURLName" id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false">
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -111,7 +111,7 @@ OIDC Issuer
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer" type="url" required placeholder="https://pojntfx.eu.auth0.com/">
+<input placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer" type="url" required>
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -121,7 +121,7 @@ OIDC Issuer
 OIDC Client ID
 </span>
 </label>
-<span aria-hidden="true" class="pf-c-form__label-required">
+<span class="pf-c-form__label-required" aria-hidden="true">
 *
 </span>
 </div>
@@ -131,12 +131,12 @@ OIDC Client ID
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label for="oidcRedirectURL" class="pf-c-form__label">
+<label class="pf-c-form__label" for="oidcRedirectURL">
 <span class="pf-c-form__label-text">
 OIDC Redirect URL
 </span>
 </label>
-<span aria-hidden="true" class="pf-c-form__label-required">
+<span class="pf-c-form__label-required" aria-hidden="true">
 *
 </span>
 </div>
@@ -145,7 +145,7 @@ OIDC Redirect URL
 </div>
 </div>
 <div class="pf-c-form__group pf-m-action">
-<button type="submit" class="pf-c-button pf-m-primary pf-m-block">
+<button class="pf-c-button pf-m-primary pf-m-block" type="submit">
 Log in
 </button>
 </div>
@@ -175,7 +175,7 @@ Documentation
 </a>
 </li>
 <li>
-<a target="_blank" href="https://github.com/pojntfx/liwasc/blob/main/LICENSE">
+<a href="https://github.com/pojntfx/liwasc/blob/main/LICENSE" target="_blank">
 License
 </a>
 </li>
