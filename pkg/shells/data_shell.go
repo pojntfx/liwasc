@@ -384,7 +384,7 @@ func (c *DataShell) Render() app.UI {
 																				go c.StartNodeWake(c.nodeWakeTimeout, selectedNode.MACAddress)
 																			},
 																			TriggerNetworkScan: func() {
-																				go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
+																				go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, selectedNode.MACAddress)
 																			},
 																			Header: []app.UI{
 																				// Data status
@@ -614,7 +614,7 @@ func (c *DataShell) Render() app.UI {
 																						Aria("role", "rowgroup").
 																						Body(
 																							app.If(
-																								len(c.Network.Nodes) == 0,
+																								len(c.Network.Nodes) == 0 && !c.Network.NodeScanRunning,
 																								app.Tr().
 																									Aria("role", "row").
 																									Body(
@@ -632,7 +632,7 @@ func (c *DataShell) Render() app.UI {
 																																	Class("pf-c-empty-state__content").
 																																	Body(
 																																		app.I().
-																																			Class("fas fa- fa-search pf-c-empty-state__icon").
+																																			Class("fas fa-binoculars pf-c-empty-state__icon").
 																																			Aria("hidden", true),
 																																		app.H2().
 																																			Class("pf-c-title pf-m-lg").
