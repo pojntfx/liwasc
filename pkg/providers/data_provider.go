@@ -158,8 +158,11 @@ func (c *DataProvider) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout
 				if node.MACAddress == macAddress {
 					// Set the port scan bool
 					c.network.Nodes[i].PortScanRunning = true
+					c.network.Nodes[i].Ports = []Port{}
 				}
 			}
+		} else {
+			c.network.Nodes = []Node{}
 		}
 	})
 
