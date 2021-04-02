@@ -271,55 +271,11 @@ func (c *Inspector) Render() app.UI {
 								),
 							app.If(
 								len(filteredPorts) > 0,
-								app.Ul().
-									Class("pf-c-data-list pf-u-my-lg").
-									ID("ports-in-inspector").
-									Aria("role", "list").
-									Aria("label", "Ports").
-									Body(
-										app.Range(filteredPorts).Slice(func(i int) app.UI {
-											// Find the selected port
-											port := providers.Port{}
-											for _, candidate := range filteredPorts {
-												if GetPortID(filteredPorts[i]) == GetPortID(candidate) {
-													port = candidate
-
-													break
-												}
-											}
-
-											return app.Li().
-												Class(func() string {
-													classes := "pf-c-data-list__item pf-m-selectable"
-
-													if c.SelectedPort == GetPortID(port) {
-														classes += " pf-m-selected"
-													}
-
-													return classes
-												}()).
-												Aria("labelledby", "ports-in-inspector").
-												TabIndex(0).
-												OnClick(func(ctx app.Context, e app.Event) {
-													// Reset selected port
-													if c.SelectedPort == GetPortID(port) {
-														c.SetSelectedPort("")
-
-														return
-													}
-
-													// Set selected port
-													c.SetSelectedPort(GetPortID(port))
-												}).
-												Body(
-													app.Div().Class("pf-c-data-list__item-row").Body(
-														app.Div().Class("pf-c-data-list__item-content").Body(
-															app.Div().Class("pf-c-data-list__cell").Text(GetPortID(port)),
-														),
-													),
-												)
-										}),
-									),
+								&PortSelectionList{
+									Ports:           filteredPorts,
+									SelectedPort:    c.SelectedPort,
+									SetSelectedPort: c.SetSelectedPort,
+								},
 							).
 								ElseIf(
 									c.PortFilter != "",
