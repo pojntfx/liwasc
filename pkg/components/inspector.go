@@ -18,6 +18,8 @@ type Inspector struct {
 	Header []app.UI
 	Body   app.UI
 	Node   providers.Node
+
+	selectedPort int64
 }
 
 func (c *Inspector) Render() app.UI {
@@ -158,7 +160,7 @@ func (c *Inspector) Render() app.UI {
 														Type("button").
 														Aria("label", "Close inspector").
 														OnClick(func(ctx app.Context, e app.Event) {
-															c.Close()
+															c.close()
 														}).Body(
 														app.I().Class("fas fa-times").Aria("hidden", true),
 													),
@@ -202,7 +204,7 @@ func (c *Inspector) Render() app.UI {
 								Icon:      "fas fa-sync",
 								Text:      "Trigger Port Scan",
 								Secondary: true,
-								Classes:   "pf-u-w-100 pf-u-my-lg",
+								Classes:   "pf-u-w-100 pf-u-mt-lg",
 
 								OnClick: func(ctx app.Context, e app.Event) {
 									e.Call("stopPropagation")
@@ -210,6 +212,60 @@ func (c *Inspector) Render() app.UI {
 									c.TriggerNetworkScan()
 								},
 							},
+							app.Ul().
+								Class("pf-c-data-list pf-u-my-lg").
+								ID("ports-in-inspector").
+								Aria("role", "list").
+								Aria("label", "Ports").Body(
+								app.Range(c.Node.Ports).Slice(func(i int) app.UI {
+									return app.Li().
+										Class(func() string {
+											classes := "pf-c-data-list__item pf-m-selectable"
+
+											if c.selectedPort == c.Node.Ports[i].PortNumber {
+												classes += " pf-m-selected"
+											}
+
+											return classes
+										}()).
+										Aria("labelledby", "ports-in-inspector").
+										TabIndex(0).
+										OnClick(func(ctx app.Context, e app.Event) {
+											c.dispatch(func(ctx app.Context) {
+												// Reset selected port
+												if c.selectedPort == c.Node.Ports[i].PortNumber {
+													c.selectedPort = -1
+
+													return
+												}
+
+												// Set selected port
+												c.selectedPort = c.Node.Ports[i].PortNumber
+											})
+										}).
+										Body(
+											app.Div().Class("pf-c-data-list__item-row").Body(
+												app.Div().Class("pf-c-data-list__item-content").Body(
+													app.Div().Class("pf-c-data-list__cell").Text(
+														fmt.Sprintf(
+															"%v/%v (%v)",
+															c.Node.Ports[i].PortNumber,
+															c.Node.Ports[i].TransportProtocol,
+															func() string {
+																service := c.Node.Ports[i].ServiceName
+																if service == "" {
+																	service = "Unregistered"
+																}
+
+																return service
+															}(),
+														),
+													),
+												),
+											),
+										)
+								}),
+							),
 							&JSONDisplay{
 								Object: c.Node,
 							},
@@ -217,4 +273,20 @@ func (c *Inspector) Render() app.UI {
 				),
 			),
 		)
+}
+
+func (c *Inspector) close() {
+	c.dispatch(func(ctx app.Context) {
+		c.selectedPort = -1
+	})
+
+	c.Close()
+}
+
+func (c *Inspector) dispatch(action func(ctx app.Context)) {
+	c.Defer(func(ctx app.Context) {
+		action(ctx)
+
+		c.Update()
+	})
 }
