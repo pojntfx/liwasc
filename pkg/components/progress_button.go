@@ -30,9 +30,7 @@ func (c *ProgressButton) Render() app.UI {
 				return classes
 			}()).
 			OnClick(func(ctx app.Context, e app.Event) {
-				if !c.Loading {
-					c.OnClick(ctx, e)
-				}
+				c.OnClick(ctx, e)
 			}).
 			Body(
 				app.If(c.Loading,
@@ -74,9 +72,7 @@ func (c *ProgressButton) Render() app.UI {
 				return classes
 			}()).
 			OnClick(func(ctx app.Context, e app.Event) {
-				if !c.Loading {
-					c.OnClick(ctx, e)
-				}
+				c.OnClick(ctx, e)
 			}).
 			Body(
 				app.If(c.Loading,
