@@ -2,29 +2,29 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta content="text/html; charset=utf-8" httpequiv="Content-Type">
+<meta httpequiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="author" content="Felicitas Pojtinger">
 <meta name="description" content="List, wake and scan nodes in a network.">
-<meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
+<meta content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name" name="keywords">
 <meta name="theme-color" content="#151515">
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" name="viewport">
-<meta property="og:url" content="http://127.0.0.1:35683/">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+<meta property="og:url" content="http://127.0.0.1:44933/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
 <meta property="og:type" content="website">
-<meta property="og:image" content>
+<meta content property="og:image">
 <title>
 liwasc
 </title>
 <link type="image/png" href="/liwasc/web/icon.png" rel="icon">
-<link rel="apple-touch-icon" href="/liwasc/web/icon.png">
+<link href="/liwasc/web/icon.png" rel="apple-touch-icon">
 <link rel="manifest" href="/liwasc/manifest.webmanifest">
 <link type="text/css" rel="stylesheet" href="/liwasc/app.css">
-<script defer src="/liwasc/wasm_exec.js"></script>
+<script src="/liwasc/wasm_exec.js" defer></script>
 <script defer src="/liwasc/app.js"></script>
 <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
 <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css">
-<link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
+<link href="/liwasc/web/index.css" type="text/css" rel="stylesheet">
 <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
@@ -86,7 +86,7 @@ List, wake and scan nodes in a network.
 <form class="pf-c-form">
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label class="pf-c-form__label" for="backendURLName">
+<label for="backendURLName" class="pf-c-form__label">
 <span class="pf-c-form__label-text">
 Backend URL
 </span>
@@ -96,7 +96,7 @@ Backend URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false" name="backendURLName" id="backendURLName" type="url" required>
+<input required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false" name="backendURLName" id="backendURLName" type="url">
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -111,12 +111,12 @@ OIDC Issuer
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer" type="url" required placeholder="https://pojntfx.eu.auth0.com/">
+<input type="url" required placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer">
 </div>
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label class="pf-c-form__label" for="oidcClientID">
+<label for="oidcClientID" class="pf-c-form__label">
 <span class="pf-c-form__label-text">
 OIDC Client ID
 </span>
@@ -126,7 +126,7 @@ OIDC Client ID
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input id="oidcClientID" type="text" required class="pf-c-form-control" aria-invalid="false" name="oidcClientID">
+<input name="oidcClientID" id="oidcClientID" type="text" required class="pf-c-form-control" aria-invalid="false">
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -136,12 +136,12 @@ OIDC Client ID
 OIDC Redirect URL
 </span>
 </label>
-<span aria-hidden="true" class="pf-c-form__label-required">
+<span class="pf-c-form__label-required" aria-hidden="true">
 *
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input type="url" required placeholder="http://localhost:15125/" class="pf-c-form-control" aria-invalid="false" name="oidcRedirectURL" id="oidcRedirectURL">
+<input placeholder="http://localhost:15125/" class="pf-c-form-control" aria-invalid="false" name="oidcRedirectURL" id="oidcRedirectURL" type="url" required>
 </div>
 </div>
 <div class="pf-c-form__group pf-m-action">
@@ -192,8 +192,8 @@ Source Code
 </div>
 </div>
 <div id="app-wasm-loader" class="goapp-app-info">
-<img src="/liwasc/web/icon.png" id="app-wasm-loader-icon" class="goapp-logo goapp-spin">
-<p class="goapp-label" id="app-wasm-loader-label">
+<img id="app-wasm-loader-icon" class="goapp-logo goapp-spin" src="/liwasc/web/icon.png">
+<p id="app-wasm-loader-label" class="goapp-label">
 List, wake and scan nodes in a network.
 </p>
 </div>
