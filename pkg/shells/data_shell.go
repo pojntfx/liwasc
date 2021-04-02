@@ -817,6 +817,9 @@ func (c *DataShell) Render() app.UI {
 																														&components.PortList{
 																															Ports: c.Network.Nodes[i].Ports,
 																														},
+																													).ElseIf(
+																														c.Network.Nodes[i].PortScanRunning,
+																														app.Text("No open ports found yet."),
 																													).Else(
 																														app.Text("No open ports found."),
 																													),
