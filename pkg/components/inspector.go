@@ -16,17 +16,18 @@ type Inspector struct {
 	StartNodeWake      func()
 	TriggerNetworkScan func()
 
-	Header []app.UI
-	Body   app.UI
-	Node   providers.Node
-
-	selectedPort int64
-	portFilter   string
+	Header          []app.UI
+	Body            app.UI
+	Node            providers.Node
+	PortFilter      string
+	SetPortFilter   func(string)
+	SelectedPort    int64
+	SetSelectedPort func(int64)
 }
 
 func (c *Inspector) Render() app.UI {
 	filteredPorts := c.Node.Ports
-	if c.portFilter != "" {
+	if c.PortFilter != "" {
 		filteredPorts = []providers.Port{}
 
 		for _, port := range c.Node.Ports {
@@ -42,7 +43,7 @@ func (c *Inspector) Render() app.UI {
 
 					return service
 				}(),
-			), c.portFilter) {
+			), c.PortFilter) {
 				filteredPorts = append(filteredPorts, port)
 			}
 		}
@@ -185,7 +186,7 @@ func (c *Inspector) Render() app.UI {
 														Type("button").
 														Aria("label", "Close inspector").
 														OnClick(func(ctx app.Context, e app.Event) {
-															c.close()
+															c.Close()
 														}).Body(
 														app.I().Class("fas fa-times").Aria("hidden", true),
 													),
@@ -248,12 +249,10 @@ func (c *Inspector) Render() app.UI {
 											Class("pf-c-form-control").
 											Aria("label", "Service name or port number").
 											OnInput(func(ctx app.Context, e app.Event) {
-												c.dispatch(func(_ app.Context) {
-													c.portFilter = ctx.JSSrc.Get("value").String()
-												})
+												c.SetPortFilter(ctx.JSSrc.Get("value").String())
 											}),
 										Properties: map[string]interface{}{
-											"value": c.portFilter,
+											"value": c.PortFilter,
 										},
 									},
 									app.Button().
@@ -277,7 +276,7 @@ func (c *Inspector) Render() app.UI {
 											Class(func() string {
 												classes := "pf-c-data-list__item pf-m-selectable"
 
-												if c.selectedPort == filteredPorts[i].PortNumber {
+												if c.SelectedPort == filteredPorts[i].PortNumber {
 													classes += " pf-m-selected"
 												}
 
@@ -286,17 +285,15 @@ func (c *Inspector) Render() app.UI {
 											Aria("labelledby", "ports-in-inspector").
 											TabIndex(0).
 											OnClick(func(ctx app.Context, e app.Event) {
-												c.dispatch(func(ctx app.Context) {
-													// Reset selected port
-													if c.selectedPort == filteredPorts[i].PortNumber {
-														c.selectedPort = -1
+												// Reset selected port
+												if c.SelectedPort == filteredPorts[i].PortNumber {
+													c.SetSelectedPort(-1)
 
-														return
-													}
+													return
+												}
 
-													// Set selected port
-													c.selectedPort = filteredPorts[i].PortNumber
-												})
+												// Set selected port
+												c.SetSelectedPort(filteredPorts[i].PortNumber)
 											}).
 											Body(
 												app.Div().Class("pf-c-data-list__item-row").Body(
@@ -323,7 +320,7 @@ func (c *Inspector) Render() app.UI {
 								),
 							).
 								ElseIf(
-									c.portFilter != "",
+									c.PortFilter != "",
 									app.Div().Class("pf-u-mt-lg").Text("No open ports found for this filter."),
 								).
 								ElseIf(
@@ -340,20 +337,4 @@ func (c *Inspector) Render() app.UI {
 				),
 			),
 		)
-}
-
-func (c *Inspector) close() {
-	c.dispatch(func(ctx app.Context) {
-		c.selectedPort = -1
-	})
-
-	c.Close()
-}
-
-func (c *Inspector) dispatch(action func(ctx app.Context)) {
-	c.Defer(func(ctx app.Context) {
-		action(ctx)
-
-		c.Update()
-	})
 }

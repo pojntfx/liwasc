@@ -28,6 +28,8 @@ type DataShell struct {
 	settingsDialogOpen      bool
 	notificationsDrawerOpen bool
 	metadataDialogOpen      bool
+	portFilter              string
+	selectedPort            int64
 
 	Network  providers.Network
 	UserInfo oidc.UserInfo
@@ -70,9 +72,11 @@ func (c *DataShell) Render() app.UI {
 			}
 		}
 
-		// If selected node could not be found, clear selected MAC address
+		// If selected node could not be found, clear selected MAC address and port filter
 		if selectedNode.MACAddress == "" {
 			c.selectedMACAddress = ""
+			c.portFilter = ""
+			c.selectedPort = -1
 		}
 	}
 
@@ -378,6 +382,8 @@ func (c *DataShell) Render() app.UI {
 																			Close: func() {
 																				c.dispatch(func() {
 																					c.selectedMACAddress = ""
+																					c.portFilter = ""
+																					c.selectedPort = -1
 																				})
 																			},
 																			StartNodeWake: func() {
@@ -674,6 +680,10 @@ func (c *DataShell) Render() app.UI {
 																										Aria("role", "row").
 																										OnClick(func(ctx app.Context, e app.Event) {
 																											c.dispatch(func() {
+																												// Reset port filter and selected port
+																												c.portFilter = ""
+																												c.selectedPort = -1
+
 																												// Reset selected node
 																												if c.selectedMACAddress == c.Network.Nodes[i].MACAddress {
 																													c.selectedMACAddress = ""
@@ -829,7 +839,19 @@ func (c *DataShell) Render() app.UI {
 																							),
 																						),
 																				),
-																			Node: selectedNode,
+																			Node:       selectedNode,
+																			PortFilter: c.portFilter,
+																			SetPortFilter: func(s string) {
+																				c.dispatch(func() {
+																					c.portFilter = s
+																				})
+																			},
+																			SelectedPort: c.selectedPort,
+																			SetSelectedPort: func(i int64) {
+																				c.dispatch(func() {
+																					c.selectedPort = i
+																				})
+																			},
 																		},
 																	),
 															),
