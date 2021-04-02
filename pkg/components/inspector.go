@@ -39,13 +39,20 @@ func (c *Inspector) Render() app.UI {
 	}
 
 	// Get the selected port
-	selectedPort := providers.Port{}
+	selectedPort := providers.Port{
+		PortNumber: -1,
+	}
 	for _, port := range filteredPorts {
 		if GetPortID(port) == c.SelectedPort {
 			selectedPort = port
 
 			break
 		}
+	}
+
+	// Reset selected port if it does not exist anymore
+	if selectedPort.PortNumber == -1 {
+		c.SelectedPort = ""
 	}
 
 	return app.Div().
@@ -306,9 +313,46 @@ func (c *Inspector) Render() app.UI {
 										app.Div().Class("pf-u-mt-lg").Text("No open ports found."),
 									),
 							).Else(
-								&JSONDisplay{
-									Object: selectedPort,
-								},
+								app.Dl().
+									Class("pf-c-description-list pf-m-2-col").
+									Body(
+										&Property{
+											Key:   "Description",
+											Value: selectedPort.Description,
+										},
+										&Property{
+											Key:   "Assignee",
+											Value: selectedPort.Assignee,
+										},
+										&Property{
+											Key:   "Contact",
+											Value: selectedPort.Contact,
+										},
+										&Property{
+											Key:   "Registration Date",
+											Value: selectedPort.RegistrationDate,
+										},
+										&Property{
+											Key:   "Modification Date",
+											Value: selectedPort.ModificationDate,
+										},
+										&Property{
+											Key:   "Reference",
+											Value: selectedPort.Reference,
+										},
+										&Property{
+											Key:   "Service Code",
+											Value: selectedPort.ServiceCode,
+										},
+										&Property{
+											Key:   "Unauthorized Use Reported",
+											Value: selectedPort.UnauthorizedUseReported,
+										},
+										&Property{
+											Key:   "Assignment Notes",
+											Value: selectedPort.AssignmentNotes,
+										},
+									),
 							),
 						),
 				),
