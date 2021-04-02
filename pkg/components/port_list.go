@@ -42,21 +42,7 @@ func (c *PortList) Render() app.UI {
 												app.
 													Span().
 													Class("pf-c-label__content").
-													Text(
-														fmt.Sprintf(
-															"%v/%v (%v)",
-															portsToDisplay[j].PortNumber,
-															portsToDisplay[j].TransportProtocol,
-															func() string {
-																service := portsToDisplay[j].ServiceName
-																if service == "" {
-																	service = "Unregistered"
-																}
-
-																return service
-															}(),
-														),
-													),
+													Text(GetPortID(portsToDisplay[j])),
 											),
 									)
 							}),

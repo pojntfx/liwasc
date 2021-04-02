@@ -21,31 +21,30 @@ type Inspector struct {
 	Node            providers.Node
 	PortFilter      string
 	SetPortFilter   func(string)
-	SelectedPort    int64
-	SetSelectedPort func(int64)
+	SelectedPort    string
+	SetSelectedPort func(string)
 }
 
 func (c *Inspector) Render() app.UI {
-	filteredPorts := c.Node.Ports
+	// Filter ports with port filter
+	filteredPorts := append([]providers.Port{}, c.Node.Ports...) // Copy to prevent changes from parent
 	if c.PortFilter != "" {
 		filteredPorts = []providers.Port{}
 
 		for _, port := range c.Node.Ports {
-			if strings.Contains(fmt.Sprintf(
-				"%v/%v (%v)",
-				port.PortNumber,
-				port.TransportProtocol,
-				func() string {
-					service := port.ServiceName
-					if service == "" {
-						service = "Unregistered"
-					}
-
-					return service
-				}(),
-			), c.PortFilter) {
+			if strings.Contains(GetPortID(port), c.PortFilter) {
 				filteredPorts = append(filteredPorts, port)
 			}
+		}
+	}
+
+	// Get the selected port
+	selectedPort := providers.Port{}
+	for _, port := range filteredPorts {
+		if GetPortID(port) == c.SelectedPort {
+			selectedPort = port
+
+			break
 		}
 	}
 
@@ -85,8 +84,14 @@ func (c *Inspector) Render() app.UI {
 							app.Div().
 								Class("pf-c-drawer__head").
 								Body(
-									app.Span().
-										Text(fmt.Sprintf("Node %v", c.Node.MACAddress)),
+									app.If(
+										c.SelectedPort == "",
+										app.Span().
+											Text(fmt.Sprintf("Node %v", c.Node.MACAddress)),
+									).Else(
+										app.Span().
+											Text(fmt.Sprintf("Port %v", GetPortID(selectedPort))),
+									),
 									app.Div().
 										Class("pf-c-drawer__actions").
 										Body(
@@ -270,54 +275,51 @@ func (c *Inspector) Render() app.UI {
 									Class("pf-c-data-list pf-u-my-lg").
 									ID("ports-in-inspector").
 									Aria("role", "list").
-									Aria("label", "Ports").Body(
-									app.Range(filteredPorts).Slice(func(i int) app.UI {
-										return app.Li().
-											Class(func() string {
-												classes := "pf-c-data-list__item pf-m-selectable"
+									Aria("label", "Ports").
+									Body(
+										app.Range(filteredPorts).Slice(func(i int) app.UI {
+											// Find the selected port
+											port := providers.Port{}
+											for _, candidate := range filteredPorts {
+												if GetPortID(filteredPorts[i]) == GetPortID(candidate) {
+													port = candidate
 
-												if c.SelectedPort == filteredPorts[i].PortNumber {
-													classes += " pf-m-selected"
+													break
 												}
+											}
 
-												return classes
-											}()).
-											Aria("labelledby", "ports-in-inspector").
-											TabIndex(0).
-											OnClick(func(ctx app.Context, e app.Event) {
-												// Reset selected port
-												if c.SelectedPort == filteredPorts[i].PortNumber {
-													c.SetSelectedPort(-1)
+											return app.Li().
+												Class(func() string {
+													classes := "pf-c-data-list__item pf-m-selectable"
 
-													return
-												}
+													if c.SelectedPort == GetPortID(port) {
+														classes += " pf-m-selected"
+													}
 
-												// Set selected port
-												c.SetSelectedPort(filteredPorts[i].PortNumber)
-											}).
-											Body(
-												app.Div().Class("pf-c-data-list__item-row").Body(
-													app.Div().Class("pf-c-data-list__item-content").Body(
-														app.Div().Class("pf-c-data-list__cell").Text(
-															fmt.Sprintf(
-																"%v/%v (%v)",
-																filteredPorts[i].PortNumber,
-																filteredPorts[i].TransportProtocol,
-																func() string {
-																	service := filteredPorts[i].ServiceName
-																	if service == "" {
-																		service = "Unregistered"
-																	}
+													return classes
+												}()).
+												Aria("labelledby", "ports-in-inspector").
+												TabIndex(0).
+												OnClick(func(ctx app.Context, e app.Event) {
+													// Reset selected port
+													if c.SelectedPort == GetPortID(port) {
+														c.SetSelectedPort("")
 
-																	return service
-																}(),
-															),
+														return
+													}
+
+													// Set selected port
+													c.SetSelectedPort(GetPortID(port))
+												}).
+												Body(
+													app.Div().Class("pf-c-data-list__item-row").Body(
+														app.Div().Class("pf-c-data-list__item-content").Body(
+															app.Div().Class("pf-c-data-list__cell").Text(GetPortID(port)),
 														),
 													),
-												),
-											)
-									}),
-								),
+												)
+										}),
+									),
 							).
 								ElseIf(
 									c.PortFilter != "",
@@ -337,4 +339,20 @@ func (c *Inspector) Render() app.UI {
 				),
 			),
 		)
+}
+
+func GetPortID(port providers.Port) string {
+	return fmt.Sprintf(
+		"%v/%v (%v)",
+		port.PortNumber,
+		port.TransportProtocol,
+		func() string {
+			service := port.ServiceName
+			if service == "" {
+				service = "Unregistered"
+			}
+
+			return service
+		}(),
+	)
 }

@@ -29,7 +29,7 @@ type DataShell struct {
 	notificationsDrawerOpen bool
 	metadataDialogOpen      bool
 	portFilter              string
-	selectedPort            int64
+	selectedPort            string
 
 	Network  providers.Network
 	UserInfo oidc.UserInfo
@@ -76,7 +76,7 @@ func (c *DataShell) Render() app.UI {
 		if selectedNode.MACAddress == "" {
 			c.selectedMACAddress = ""
 			c.portFilter = ""
-			c.selectedPort = -1
+			c.selectedPort = ""
 		}
 	}
 
@@ -383,7 +383,7 @@ func (c *DataShell) Render() app.UI {
 																				c.dispatch(func() {
 																					c.selectedMACAddress = ""
 																					c.portFilter = ""
-																					c.selectedPort = -1
+																					c.selectedPort = ""
 																				})
 																			},
 																			StartNodeWake: func() {
@@ -682,7 +682,7 @@ func (c *DataShell) Render() app.UI {
 																											c.dispatch(func() {
 																												// Reset port filter and selected port
 																												c.portFilter = ""
-																												c.selectedPort = -1
+																												c.selectedPort = ""
 
 																												// Reset selected node
 																												if c.selectedMACAddress == c.Network.Nodes[i].MACAddress {
@@ -847,9 +847,9 @@ func (c *DataShell) Render() app.UI {
 																				})
 																			},
 																			SelectedPort: c.selectedPort,
-																			SetSelectedPort: func(i int64) {
+																			SetSelectedPort: func(s string) {
 																				c.dispatch(func() {
-																					c.selectedPort = i
+																					c.selectedPort = s
 																				})
 																			},
 																		},
