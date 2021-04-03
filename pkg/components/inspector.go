@@ -240,113 +240,79 @@ func (c *Inspector) Render() app.UI {
 											Value: c.Node.Vendor,
 										},
 									),
-								app.Div().
-									Class(func() string {
-										classes := "pf-c-expandable-section pf-u-my-lg"
+								&ExpandableSection{
+									Open: c.portsAndServicesOpen,
+									OnToggle: func() {
+										c.Defer(func(_ app.Context) {
+											c.portsAndServicesOpen = !c.portsAndServicesOpen
 
-										if c.portsAndServicesOpen {
-											classes += " pf-m-expanded"
-										}
+											c.Update()
+										})
+									},
+									Title:       "Ports and Services",
+									ClosedTitle: "Hide ports and services",
+									OpenTitle:   "Show ports and services",
+									Body: []app.UI{
+										&ProgressButton{
+											Loading:   c.Node.PortScanRunning,
+											Icon:      "fas fa-sync",
+											Text:      "Trigger Port Scan",
+											Secondary: true,
+											Classes:   "pf-u-w-100 pf-u-mt-lg",
 
-										return classes
-									}()).
-									Body(
-										app.Button().
-											Type("button").
-											Class("pf-c-expandable-section__toggle").
-											Aria("label", func() string {
-												message := "Show ports and services"
+											OnClick: func(ctx app.Context, e app.Event) {
+												e.Call("stopPropagation")
 
-												if c.portsAndServicesOpen {
-													message = "Hide ports and services"
-												}
-
-												return message
-											}()).
-											Aria("expanded", c.portsAndServicesOpen).
-											OnClick(func(ctx app.Context, e app.Event) {
-												c.Defer(func(_ app.Context) {
-													c.portsAndServicesOpen = !c.portsAndServicesOpen
-
-													c.Update()
-												})
-											}).
-											Body(
-												app.Span().
-													Class("pf-c-expandable-section__toggle-icon").
-													Body(
-														app.I().
-															Class("fas fa-angle-right").
-															Aria("hidden", true),
-													),
-												app.Span().
-													Class("pf-c-expandable-section__toggle-text").
-													Text("Ports and Services"),
-											),
+												c.TriggerNetworkScan()
+											},
+										},
 										app.Div().
-											Class("pf-c-expandable-section__content pf-u-mt-0").
-											Hidden(!c.portsAndServicesOpen).
+											Class("pf-c-input-group pf-u-mt-lg").
 											Body(
-												&ProgressButton{
-													Loading:   c.Node.PortScanRunning,
-													Icon:      "fas fa-sync",
-													Text:      "Trigger Port Scan",
-													Secondary: true,
-													Classes:   "pf-u-w-100 pf-u-mt-lg",
-
-													OnClick: func(ctx app.Context, e app.Event) {
-														e.Call("stopPropagation")
-
-														c.TriggerNetworkScan()
+												&Controlled{
+													Component: app.
+														Input().
+														Type("search").
+														Placeholder("Service name or port number").
+														Class("pf-c-form-control").
+														Aria("label", "Service name or port number").
+														OnInput(func(ctx app.Context, e app.Event) {
+															c.SetPortFilter(ctx.JSSrc.Get("value").String())
+														}),
+													Properties: map[string]interface{}{
+														"value": c.PortFilter,
 													},
 												},
-												app.Div().
-													Class("pf-c-input-group pf-u-mt-lg").
-													Body(
-														&Controlled{
-															Component: app.
-																Input().
-																Type("search").
-																Placeholder("Service name or port number").
-																Class("pf-c-form-control").
-																Aria("label", "Service name or port number").
-																OnInput(func(ctx app.Context, e app.Event) {
-																	c.SetPortFilter(ctx.JSSrc.Get("value").String())
-																}),
-															Properties: map[string]interface{}{
-																"value": c.PortFilter,
-															},
-														},
-														app.Button().
-															Class("pf-c-button pf-m-control").
-															Type("button").
-															Aria("label", "Search button for service name or port number").Body(
-															app.I().
-																Class("fas fa-search").
-																Aria("hidden", true),
-														),
-													),
-												app.If(
-													len(filteredPorts) > 0,
-													&PortSelectionList{
-														Ports:           filteredPorts,
-														SelectedPort:    c.SelectedPort,
-														SetSelectedPort: c.SetSelectedPort,
-													},
-												).
-													ElseIf(
-														c.PortFilter != "",
-														app.Div().Class("pf-u-mt-lg").Text("No open ports found for this filter."),
-													).
-													ElseIf(
-														c.Node.PortScanRunning,
-														app.Div().Class("pf-u-mt-lg").Text("No open ports found yet."),
-													).
-													Else(
-														app.Div().Class("pf-u-mt-lg").Text("No open ports found."),
-													),
+												app.Button().
+													Class("pf-c-button pf-m-control").
+													Type("button").
+													Aria("label", "Search button for service name or port number").Body(
+													app.I().
+														Class("fas fa-search").
+														Aria("hidden", true),
+												),
 											),
-									),
+										app.If(
+											len(filteredPorts) > 0,
+											&PortSelectionList{
+												Ports:           filteredPorts,
+												SelectedPort:    c.SelectedPort,
+												SetSelectedPort: c.SetSelectedPort,
+											},
+										).
+											ElseIf(
+												c.PortFilter != "",
+												app.Div().Class("pf-u-mt-lg").Text("No open ports found for this filter."),
+											).
+											ElseIf(
+												c.Node.PortScanRunning,
+												app.Div().Class("pf-u-mt-lg").Text("No open ports found yet."),
+											).
+											Else(
+												app.Div().Class("pf-u-mt-lg").Text("No open ports found."),
+											),
+									},
+								},
 								app.Dl().
 									Class("pf-c-description-list pf-m-2-col").
 									Body(
