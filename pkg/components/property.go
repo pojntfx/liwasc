@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 )
@@ -12,6 +13,7 @@ type Property struct {
 	Key   string
 	Icon  string
 	Value string
+	Link  bool
 }
 
 func (c *Property) Render() app.UI {
@@ -45,7 +47,20 @@ func (c *Property) Render() app.UI {
 								c.Value == "",
 								app.Text("Unregistered"),
 							).Else(
-								app.Text(c.Value),
+								app.If(
+									c.Link,
+									app.A().
+										Target("_blank").
+										Href(
+											fmt.Sprintf(
+												"https://duckduckgo.com/?q=%v",
+												url.QueryEscape(c.Value),
+											),
+										).
+										Text(c.Value),
+								).Else(
+									app.Text(c.Value),
+								),
 							),
 						),
 				),
