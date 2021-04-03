@@ -308,34 +308,34 @@ func (c *Inspector) Render() app.UI {
 												c.TriggerNetworkScan()
 											},
 										},
-										app.Div().
-											Class("pf-c-input-group pf-u-mt-lg").
-											Body(
-												&Controlled{
-													Component: app.
-														Input().
-														Type("search").
-														Placeholder("Service name or port number").
-														Class("pf-c-form-control").
-														Aria("label", "Service name or port number").
-														OnInput(func(ctx app.Context, e app.Event) {
-															c.SetPortFilter(ctx.JSSrc.Get("value").String())
-														}),
-													Properties: map[string]interface{}{
-														"value": c.PortFilter,
-													},
-												},
-												app.Button().
-													Class("pf-c-button pf-m-control").
-													Type("button").
-													Aria("label", "Search button for service name or port number").Body(
-													app.I().
-														Class("fas fa-search").
-														Aria("hidden", true),
-												),
-											),
 										app.If(
 											len(filteredPorts) > 0,
+											app.Div().
+												Class("pf-c-input-group pf-u-mt-lg").
+												Body(
+													&Controlled{
+														Component: app.
+															Input().
+															Type("search").
+															Placeholder("Service name or port number").
+															Class("pf-c-form-control").
+															Aria("label", "Service name or port number").
+															OnInput(func(ctx app.Context, e app.Event) {
+																c.SetPortFilter(ctx.JSSrc.Get("value").String())
+															}),
+														Properties: map[string]interface{}{
+															"value": c.PortFilter,
+														},
+													},
+													app.Button().
+														Class("pf-c-button pf-m-control").
+														Type("button").
+														Aria("label", "Search button for service name or port number").Body(
+														app.I().
+															Class("fas fa-search").
+															Aria("hidden", true),
+													),
+												),
 											&PortSelectionList{
 												Ports:           filteredPorts,
 												SelectedPort:    c.SelectedPort,
@@ -357,42 +357,51 @@ func (c *Inspector) Render() app.UI {
 								},
 							).Else(
 								app.Dl().
-									Class("pf-c-description-list pf-m-2-col").
+									Class("pf-c-description-list").
 									Body(
 										&Property{
 											Key:   "Description",
+											Icon:  "fas fa-file-alt",
 											Value: selectedPort.Description,
 										},
 										&Property{
 											Key:   "Assignee",
+											Icon:  "fas fa-user",
 											Value: selectedPort.Assignee,
 										},
 										&Property{
 											Key:   "Contact",
+											Icon:  "fas fa-envelope-open",
 											Value: selectedPort.Contact,
 										},
 										&Property{
 											Key:   "Registration Date",
+											Icon:  "fas fa-calendar-plus",
 											Value: selectedPort.RegistrationDate,
 										},
 										&Property{
 											Key:   "Modification Date",
+											Icon:  "fas fa-edit",
 											Value: selectedPort.ModificationDate,
 										},
 										&Property{
 											Key:   "Reference",
+											Icon:  "fas fa-info",
 											Value: selectedPort.Reference,
 										},
 										&Property{
 											Key:   "Service Code",
+											Icon:  "fas fa-code",
 											Value: selectedPort.ServiceCode,
 										},
 										&Property{
 											Key:   "Unauthorized Use Reported",
+											Icon:  "fas fa-exclamation-triangle",
 											Value: selectedPort.UnauthorizedUseReported,
 										},
 										&Property{
 											Key:   "Assignment Notes",
+											Icon:  "fas fa-sticky-note",
 											Value: selectedPort.AssignmentNotes,
 										},
 									),
