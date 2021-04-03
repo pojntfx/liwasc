@@ -16,7 +16,7 @@ type ExpandableSection struct {
 func (c *ExpandableSection) Render() app.UI {
 	return app.Div().
 		Class(func() string {
-			classes := "pf-c-expandable-section pf-u-mt-lg"
+			classes := "pf-c-expandable-section pf-u-mt-md"
 
 			if c.Open {
 				classes += " pf-m-expanded"

@@ -244,6 +244,45 @@ func (c *Inspector) Render() app.UI {
 										},
 									),
 								&ExpandableSection{
+									Open: c.detailsOpen,
+									OnToggle: func() {
+										c.Defer(func(_ app.Context) {
+											c.detailsOpen = !c.detailsOpen
+
+											c.Update()
+										})
+									},
+									Title:       "Details",
+									ClosedTitle: "Hide details",
+									OpenTitle:   "Show details",
+									Body: []app.UI{
+										app.Dl().
+											Class("pf-c-description-list pf-m-2-col").
+											Body(
+												&Property{
+													Key:   "Registry",
+													Icon:  "fas fa-clipboard-list",
+													Value: c.Node.Registry,
+												},
+												&Property{
+													Key:   "Organization",
+													Icon:  "fas fa-users",
+													Value: c.Node.Organization,
+												},
+												&Property{
+													Key:   "Address",
+													Icon:  "fas fa-map-marker-alt",
+													Value: c.Node.Address,
+												},
+												&Property{
+													Key:   "Visible",
+													Icon:  "fas fa-eye",
+													Value: fmt.Sprintf("%v", c.Node.Visible),
+												},
+											),
+									},
+								},
+								&ExpandableSection{
 									Open: c.portsAndServicesOpen,
 									OnToggle: func() {
 										c.Defer(func(_ app.Context) {
@@ -313,41 +352,6 @@ func (c *Inspector) Render() app.UI {
 											).
 											Else(
 												app.Div().Class("pf-u-mt-lg").Text("No open ports found."),
-											),
-									},
-								},
-								&ExpandableSection{
-									Open: c.detailsOpen,
-									OnToggle: func() {
-										c.Defer(func(_ app.Context) {
-											c.detailsOpen = !c.detailsOpen
-
-											c.Update()
-										})
-									},
-									Title:       "Details",
-									ClosedTitle: "Hide details",
-									OpenTitle:   "Show details",
-									Body: []app.UI{
-										app.Dl().
-											Class("pf-c-description-list pf-m-2-col").
-											Body(
-												&Property{
-													Key:   "Registry",
-													Value: c.Node.Registry,
-												},
-												&Property{
-													Key:   "Organization",
-													Value: c.Node.Organization,
-												},
-												&Property{
-													Key:   "Address",
-													Value: c.Node.Address,
-												},
-												&Property{
-													Key:   "Visible",
-													Value: fmt.Sprintf("%v", c.Node.Visible),
-												},
 											),
 									},
 								},
