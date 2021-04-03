@@ -234,10 +234,12 @@ func (c *Inspector) Render() app.UI {
 									Body(
 										&Property{
 											Key:   "IP Address",
+											Icon:  "fas fa-network-wired",
 											Value: c.Node.IPAddress,
 										},
 										&Property{
 											Key:   "Vendor",
+											Icon:  "fas fa-industry",
 											Value: c.Node.Vendor,
 										},
 									),

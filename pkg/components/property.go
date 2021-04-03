@@ -1,11 +1,16 @@
 package components
 
-import "github.com/maxence-charriere/go-app/v8/pkg/app"
+import (
+	"fmt"
+
+	"github.com/maxence-charriere/go-app/v8/pkg/app"
+)
 
 type Property struct {
 	app.Compo
 
 	Key   string
+	Icon  string
 	Value string
 }
 
@@ -16,9 +21,19 @@ func (c *Property) Render() app.UI {
 			app.Dt().
 				Class("pf-c-description-list__term").
 				Body(
-					app.Span().
-						Class("pf-c-description-list__text").
-						Text(c.Key),
+					app.If(
+						c.Icon == "",
+						app.Span().
+							Class("pf-c-description-list__text").
+							Text(c.Key),
+					).Else(
+						app.Span().
+							Class("pf-c-description-list__text").
+							Body(
+								app.I().Class(fmt.Sprintf("%v pf-u-mr-xs", c.Icon)).Aria("hidden", true),
+								app.Text(c.Key),
+							),
+					),
 				),
 			app.Dd().
 				Class("pf-c-description-list__description").
