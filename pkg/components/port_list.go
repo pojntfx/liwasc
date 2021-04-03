@@ -47,8 +47,8 @@ func (c *PortList) Render() app.UI {
 									)
 							}),
 							app.If(
-								// Only collapse if there are more than five ports
-								len(c.Ports) >= 3,
+								// Only collapse if there are more than three ports
+								len(c.Ports) > 3,
 								app.Li().
 									Class("pf-c-label-group__list-item").
 									Body(
