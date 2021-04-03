@@ -612,7 +612,7 @@ func (c *DataShell) Render() app.UI {
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("Services and Ports"),
+																										Text("Ports and Services"),
 																								),
 																						),
 																					app.TBody().
@@ -810,7 +810,7 @@ func (c *DataShell) Render() app.UI {
 																												}()),
 																											app.Td().
 																												Aria("role", "cell").
-																												DataSet("label", "Services and Ports").
+																												DataSet("label", "Ports and Services").
 																												Body(
 																													&components.ProgressButton{
 																														Loading: c.Network.Nodes[i].PortScanRunning,
