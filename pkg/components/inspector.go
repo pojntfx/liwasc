@@ -241,6 +241,7 @@ func (c *Inspector) Render() app.UI {
 											Key:   "Vendor",
 											Icon:  "fas fa-industry",
 											Value: c.Node.Vendor,
+											Link:  true,
 										},
 									),
 								&ExpandableSection{
@@ -263,16 +264,19 @@ func (c *Inspector) Render() app.UI {
 													Key:   "Registry",
 													Icon:  "fas fa-clipboard-list",
 													Value: c.Node.Registry,
+													Link:  true,
 												},
 												&Property{
 													Key:   "Organization",
 													Icon:  "fas fa-users",
 													Value: c.Node.Organization,
+													Link:  true,
 												},
 												&Property{
 													Key:   "Address",
 													Icon:  "fas fa-map-marker-alt",
 													Value: c.Node.Address,
+													Link:  true,
 												},
 												&Property{
 													Key:   "Visible",
@@ -368,11 +372,13 @@ func (c *Inspector) Render() app.UI {
 											Key:   "Assignee",
 											Icon:  "fas fa-user",
 											Value: selectedPort.Assignee,
+											Link:  true,
 										},
 										&Property{
 											Key:   "Contact",
 											Icon:  "fas fa-envelope-open",
 											Value: selectedPort.Contact,
+											Link:  true,
 										},
 										&Property{
 											Key:   "Registration Date",
@@ -387,6 +393,7 @@ func (c *Inspector) Render() app.UI {
 										&Property{
 											Key:   "Reference",
 											Icon:  "fas fa-info",
+											Link:  true,
 											Value: selectedPort.Reference,
 										},
 										&Property{
