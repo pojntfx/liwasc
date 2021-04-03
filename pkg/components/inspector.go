@@ -25,6 +25,7 @@ type Inspector struct {
 	SetSelectedPort func(string)
 
 	portsAndServicesOpen bool
+	detailsOpen          bool
 }
 
 func (c *Inspector) Render() app.UI {
@@ -258,7 +259,7 @@ func (c *Inspector) Render() app.UI {
 											Icon:      "fas fa-sync",
 											Text:      "Trigger Port Scan",
 											Secondary: true,
-											Classes:   "pf-u-w-100 pf-u-mt-lg",
+											Classes:   "pf-u-w-100",
 
 											OnClick: func(ctx app.Context, e app.Event) {
 												e.Call("stopPropagation")
@@ -313,26 +314,41 @@ func (c *Inspector) Render() app.UI {
 											),
 									},
 								},
-								app.Dl().
-									Class("pf-c-description-list pf-m-2-col").
-									Body(
-										&Property{
-											Key:   "Registry",
-											Value: c.Node.Registry,
-										},
-										&Property{
-											Key:   "Organization",
-											Value: c.Node.Organization,
-										},
-										&Property{
-											Key:   "Address",
-											Value: c.Node.Address,
-										},
-										&Property{
-											Key:   "Visible",
-											Value: fmt.Sprintf("%v", c.Node.Visible),
-										},
-									),
+								&ExpandableSection{
+									Open: c.detailsOpen,
+									OnToggle: func() {
+										c.Defer(func(_ app.Context) {
+											c.detailsOpen = !c.detailsOpen
+
+											c.Update()
+										})
+									},
+									Title:       "Details",
+									ClosedTitle: "Hide details",
+									OpenTitle:   "Show details",
+									Body: []app.UI{
+										app.Dl().
+											Class("pf-c-description-list pf-m-2-col").
+											Body(
+												&Property{
+													Key:   "Registry",
+													Value: c.Node.Registry,
+												},
+												&Property{
+													Key:   "Organization",
+													Value: c.Node.Organization,
+												},
+												&Property{
+													Key:   "Address",
+													Value: c.Node.Address,
+												},
+												&Property{
+													Key:   "Visible",
+													Value: fmt.Sprintf("%v", c.Node.Visible),
+												},
+											),
+									},
+								},
 							).Else(
 								app.Dl().
 									Class("pf-c-description-list pf-m-2-col").
