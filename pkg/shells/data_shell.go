@@ -596,23 +596,38 @@ func (c *DataShell) Render() app.UI {
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("Powered On"),
+																										Body(
+																											app.I().Class("fas fa-plug pf-u-mr-xs").Aria("hidden", true),
+																											app.Text("Powered On"),
+																										),
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("MAC Address"),
+																										Body(
+																											app.I().Class("fas fa-address-card pf-u-mr-xs").Aria("hidden", true),
+																											app.Text("MAC Address"),
+																										),
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("IP Address"),
+																										Body(
+																											app.I().Class("fas fa-network-wired pf-u-mr-xs").Aria("hidden", true),
+																											app.Text("IP Address"),
+																										),
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("Vendor"),
+																										Body(
+																											app.I().Class("fas fa-industry pf-u-mr-xs").Aria("hidden", true),
+																											app.Text("Vendor"),
+																										),
 																									app.Th().
 																										Aria("role", "columnheader").
 																										Scope("col").
-																										Text("Ports and Services"),
+																										Body(
+																											app.I().Class("fas fa-server pf-u-mr-xs").Aria("hidden", true),
+																											app.Text("Ports and Services"),
+																										),
 																								),
 																						),
 																					app.TBody().
