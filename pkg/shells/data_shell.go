@@ -40,6 +40,7 @@ type DataShell struct {
 
 	Error   error
 	Recover func()
+	Ignore  func()
 }
 
 const (
@@ -393,11 +394,6 @@ func (c *DataShell) Render() app.UI {
 																				go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, selectedNode.MACAddress)
 																			},
 																			Header: []app.UI{
-																				// Data status
-																				&components.Status{
-																					Error:   c.Error,
-																					Recover: c.Recover,
-																				},
 																				// Toolbar
 																				app.Div().
 																					Class("pf-c-toolbar pf-m-page-insets").
@@ -908,6 +904,24 @@ func (c *DataShell) Render() app.UI {
 										),
 								),
 						),
+				),
+			app.Ul().
+				Class("pf-c-alert-group pf-m-toast").
+				Body(
+					app.If(
+						c.Error != nil,
+						app.Li().
+							Class("pf-c-alert-group__item").
+							Body(
+								&components.Status{
+									Error:       c.Error,
+									ErrorText:   "Fatal Error",
+									Recover:     c.Recover,
+									RecoverText: "Reconnect",
+									Ignore:      c.Ignore,
+								},
+							),
+					),
 				),
 			app.Div().
 				Class(func() string {

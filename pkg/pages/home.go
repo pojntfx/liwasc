@@ -98,6 +98,7 @@ services that run on them and manage their power status.`,
 
 											Error:   dpcp.Error,
 											Recover: dpcp.Recover,
+											Ignore: dpcp.Ignore,
 										}
 									},
 								}

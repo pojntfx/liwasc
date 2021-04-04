@@ -90,6 +90,7 @@ type DataProviderChildrenProps struct {
 
 	Error   error
 	Recover func()
+	Ignore  func()
 }
 
 type DataProvider struct {
@@ -143,6 +144,7 @@ func (c *DataProvider) Render() app.UI {
 
 		Error:   c.err,
 		Recover: c.recover,
+		Ignore:  c.ignore,
 	})
 }
 
@@ -206,6 +208,13 @@ func (c *DataProvider) recover() {
 
 	// Resubscribe
 	c.OnMount(app.Context{})
+
+	c.Update()
+}
+
+func (c *DataProvider) ignore() {
+	// Only clear the error
+	c.err = nil
 
 	c.Update()
 }
