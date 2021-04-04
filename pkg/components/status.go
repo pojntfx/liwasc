@@ -5,8 +5,11 @@ import "github.com/maxence-charriere/go-app/v8/pkg/app"
 type Status struct {
 	app.Compo
 
-	Error   error
-	Recover func()
+	Error       error
+	ErrorText   string
+	Recover     func()
+	RecoverText string
+	Ignore      func()
 }
 
 func (c *Status) Render() app.UI {
@@ -17,8 +20,8 @@ func (c *Status) Render() app.UI {
 	}
 
 	return app.If(c.Error != nil, app.Div().
-		Class("pf-c-alert pf-m-danger pf-u-m-lg").
-		Aria("label", "Error").
+		Class("pf-c-alert pf-m-danger").
+		Aria("label", c.ErrorText).
 		Body(
 			app.Div().
 				Class("pf-c-alert__icon").
@@ -33,9 +36,24 @@ func (c *Status) Render() app.UI {
 					app.Strong().Body(
 						app.Span().
 							Class("pf-screen-reader").
-							Text("Error"),
+							Text(c.ErrorText),
 					),
-					app.Text("Error"),
+					app.Text(c.ErrorText),
+				),
+			app.Div().
+				Class("pf-c-alert__action").
+				Body(
+					app.Button().
+						Class("pf-c-button pf-m-plain").
+						Aria("label", "Ignore error").
+						OnClick(func(ctx app.Context, e app.Event) {
+							c.Ignore()
+						}).
+						Body(
+							app.I().
+								Class("fas fa-times").
+								Aria("hidden", true),
+						),
 				),
 			app.Div().
 				Class("pf-c-alert__description").
@@ -52,10 +70,10 @@ func (c *Status) Render() app.UI {
 						app.Button().
 							Class("pf-c-button pf-m-link pf-m-inline").
 							Type("button").
-							Text("Recover").
 							OnClick(func(ctx app.Context, e app.Event) {
 								c.Recover()
-							}),
+							}).
+							Text(c.RecoverText),
 					),
 			),
 		)).Else(app.Span())
