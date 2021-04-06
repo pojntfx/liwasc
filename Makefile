@@ -50,7 +50,7 @@ clean:
 	rm -rf pkg/databases/generated
 	rm -rf ~/.local/share/liwasc
 
-depend: clean
+depend:
 	# Setup working directories
 	mkdir -p out/tmp/etc/liwasc out/tmp/var/lib/liwasc
 	# Setup external databases
