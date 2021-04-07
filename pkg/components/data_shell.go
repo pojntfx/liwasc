@@ -93,259 +93,50 @@ func (c *DataShell) Render() app.UI {
 						Text(
 							"Skip to content",
 						),
-					app.Header().
-						Class("pf-c-page__header").
-						Body(
-							app.Div().
-								Class("pf-c-page__header-brand").
-								Body(
-									app.A().
-										Href("#").
-										Class("pf-c-page__header-brand-link").
-										Body(
-											app.Img().
-												Class("pf-c-brand pf-x-c-brand--nav").
-												Src("/web/logo.svg").
-												Alt("liwasc Logo"),
-										),
-								),
-							app.Div().
-								Class("pf-c-page__header-tools").
-								Body(
-									app.Div().
-										Class("pf-c-page__header-tools-group").
-										Body(
-											app.Div().
-												Class("pf-c-page__header-tools-group").
-												Body(
-													app.Div().
-														Class(func() string {
-															classes := "pf-c-page__header-tools-item"
+					&Navbar{
+						NotificationsDrawerOpen: c.notificationsDrawerOpen,
+						ToggleNotificationsDrawerOpen: func() {
+							c.dispatch(func() {
+								c.notificationsDrawerOpen = !c.notificationsDrawerOpen
+								c.settingsDialogOpen = false
+								c.overflowMenuExpanded = false
+							})
+						},
 
-															if c.notificationsDrawerOpen {
-																classes += " pf-m-selected"
-															}
+						ToggleSettings: func() {
+							c.dispatch(func() {
+								c.settingsDialogOpen = true
+								c.overflowMenuExpanded = false
+							})
+						},
+						ToggleAbout: func() {
+							c.dispatch(func() {
+								c.aboutDialogOpen = true
+								c.overflowMenuExpanded = false
+							})
+						},
 
-															return classes
-														}()).
-														Body(
-															app.Button().
-																Class("pf-c-button pf-m-plain").
-																Type("button").
-																Aria("label", "Unread notifications").
-																Aria("expanded", false).
-																OnClick(func(ctx app.Context, e app.Event) {
-																	c.dispatch(func() {
-																		c.notificationsDrawerOpen = !c.notificationsDrawerOpen
-																		c.settingsDialogOpen = false
-																		c.overflowMenuExpanded = false
-																	})
-																}).
-																Body(
-																	app.Span().
-																		Class("pf-c-notification-badge").
-																		Body(
-																			app.I().
-																				Class("pf-icon-bell").
-																				Aria("hidden", true),
-																		),
-																),
-														),
-													app.Div().
-														Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-lg").
-														Body(
-															app.Button().
-																Class("pf-c-button pf-m-plain").
-																Type("button").
-																Aria("label", "Settings").
-																OnClick(func(ctx app.Context, e app.Event) {
-																	c.dispatch(func() {
-																		c.settingsDialogOpen = true
-																		c.overflowMenuExpanded = false
-																	})
-																}).
-																Body(
-																	app.I().
-																		Class("fas fa-cog").
-																		Aria("hidden", true),
-																),
-														),
-													app.Div().Class("pf-c-page__header-tools-item").
-														Body(
-															app.Div().
-																Class(func() string {
-																	classes := "pf-c-dropdown"
+						OverflowMenuExpanded: c.overflowMenuExpanded,
+						ToggleOverflowMenuExpanded: func() {
+							c.dispatch(func() {
+								c.overflowMenuExpanded = !c.overflowMenuExpanded
+								c.userMenuExpanded = false
+							})
+						},
 
-																	if c.overflowMenuExpanded {
-																		classes += " pf-m-expanded"
-																	}
+						UserMenuExpanded: c.userMenuExpanded,
+						ToggleUserMenuExpanded: func() {
+							c.dispatch(func() {
+								c.userMenuExpanded = !c.userMenuExpanded
+								c.overflowMenuExpanded = false
+							})
+						},
 
-																	return classes
-																}()).
-																Body(
-																	app.Button().
-																		Class("pf-c-dropdown__toggle pf-m-plain").
-																		ID("page-default-nav-example-dropdown-kebab-1-button").
-																		Aria("expanded", c.overflowMenuExpanded).Type("button").
-																		Aria("label", "Actions").
-																		Body(
-																			app.I().
-																				Class("fas fa-ellipsis-v pf-u-display-none-on-lg").
-																				Aria("hidden", true),
-																			app.I().
-																				Class("fas fa-question-circle pf-u-display-none pf-u-display-inline-block-on-lg").
-																				Aria("hidden", true),
-																		).OnClick(func(ctx app.Context, e app.Event) {
-																		c.dispatch(func() {
-																			c.overflowMenuExpanded = !c.overflowMenuExpanded
-																			c.userMenuExpanded = false
-																		})
-																	}),
-																	app.Ul().
-																		Class("pf-c-dropdown__menu pf-m-align-right").
-																		Aria("aria-labelledby", "page-default-nav-example-dropdown-kebab-1-button").
-																		Hidden(!c.overflowMenuExpanded).
-																		Body(
-																			app.Li().
-																				Body(
-																					app.Button().
-																						Class("pf-c-button pf-c-dropdown__menu-item pf-u-display-none-on-lg").
-																						Type("button").
-																						OnClick(func(ctx app.Context, e app.Event) {
-																							c.dispatch(func() {
-																								c.settingsDialogOpen = true
-																								c.overflowMenuExpanded = false
-																							})
-																						}).
-																						Body(
-																							app.Span().
-																								Class("pf-c-button__icon pf-m-start").
-																								Body(
-																									app.I().
-																										Class("fas fa-cog").
-																										Aria("hidden", true),
-																								),
-																							app.Text("Settings"),
-																						),
-																				),
-																			app.Li().
-																				Class("pf-c-divider pf-u-display-none-on-lg").
-																				Aria("role", "separator"),
-																			app.Li().
-																				Body(
-																					app.A().
-																						Class("pf-c-dropdown__menu-item").
-																						Href("https://github.com/pojntfx/liwasc/wiki").
-																						Text("Documentation").
-																						Target("_blank"),
-																				),
-																			app.Li().
-																				Body(
-																					app.Button().
-																						Class("pf-c-button pf-c-dropdown__menu-item").
-																						Type("button").
-																						OnClick(func(ctx app.Context, e app.Event) {
-																							c.dispatch(func() {
-																								c.aboutDialogOpen = true
-																								c.overflowMenuExpanded = false
-																							})
-																						}).
-																						Text("About"),
-																				),
-																			app.Li().
-																				Class("pf-c-divider pf-u-display-none-on-md").
-																				Aria("role", "separator"),
-																			app.Li().
-																				Class("pf-u-display-none-on-md").
-																				Body(
-																					app.Button().
-																						Class("pf-c-button pf-c-dropdown__menu-item").
-																						Type("button").
-																						Body(
-																							app.Span().
-																								Class("pf-c-button__icon pf-m-start").
-																								Body(
-																									app.I().
-																										Class("fas fa-sign-out-alt").
-																										Aria("hidden", true),
-																								),
-																							app.Text("Logout"),
-																						).
-																						OnClick(func(ctx app.Context, e app.Event) {
-																							go c.Logout()
-																						}),
-																				),
-																		),
-																),
-														),
-													app.Div().
-														Class("pf-c-page__header-tools-item pf-m-hidden pf-m-visible-on-md").
-														Body(
-															app.Div().
-																Class(func() string {
-																	classes := "pf-c-dropdown"
-
-																	if c.userMenuExpanded {
-																		classes += " pf-m-expanded"
-																	}
-
-																	return classes
-																}()).
-																Body(
-																	app.Button().
-																		Class("pf-c-dropdown__toggle pf-m-plain").
-																		ID("page-layout-horizontal-nav-dropdown-kebab-2-button").
-																		Aria("expanded", c.userMenuExpanded).
-																		Type("button").
-																		Body(
-																			app.Span().
-																				Class("pf-c-dropdown__toggle-text").
-																				Text(c.UserInfo.Email),
-																			app.
-																				Span().
-																				Class("pf-c-dropdown__toggle-icon").
-																				Body(
-																					app.I().
-																						Class("fas fa-caret-down").
-																						Aria("hidden", true),
-																				),
-																		).OnClick(func(ctx app.Context, e app.Event) {
-																		c.dispatch(func() {
-																			c.userMenuExpanded = !c.userMenuExpanded
-																			c.overflowMenuExpanded = false
-																		})
-																	}),
-																	app.Ul().
-																		Class("pf-c-dropdown__menu").
-																		Aria("labelledby", "page-layout-horizontal-nav-dropdown-kebab-2-button").
-																		Hidden(!c.userMenuExpanded).
-																		Body(
-																			app.Li().Body(
-																				app.Button().
-																					Class("pf-c-button pf-c-dropdown__menu-item").
-																					Type("button").
-																					Body(
-																						app.Span().
-																							Class("pf-c-button__icon pf-m-start").
-																							Body(
-																								app.I().
-																									Class("fas fa-sign-out-alt").
-																									Aria("hidden", true),
-																							),
-																						app.Text("Logout"),
-																					).
-																					OnClick(func(ctx app.Context, e app.Event) {
-																						go c.Logout()
-																					}),
-																			),
-																		),
-																),
-														),
-												),
-											app.Img().Class("pf-c-avatar").Src("https://www.gravatar.com/avatar/db856df33fa4f4bce441819f604c90d5?s=150").Alt("Avatar image"),
-										),
-								),
-						),
+						UserEmail: c.UserInfo.Email,
+						Logout: func() {
+							go c.Logout()
+						},
+					},
 					app.Div().
 						Class("pf-c-page__drawer").
 						Body(
