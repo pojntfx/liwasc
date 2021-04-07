@@ -316,385 +316,312 @@ func (c *DataShell) Render() app.UI {
 					),
 				Footer: "Copyright © 2021 Felix Pojtinger and contributors (SPDX-License-Identifier: AGPL-3.0)",
 			},
-			app.Div().
-				Class(func() string {
-					classes := "pf-c-backdrop"
+			&Modal{
+				Open: c.settingsDialogOpen,
+				Close: func() {
+					c.dispatch(func() {
+						c.settingsDialogOpen = false
+					})
+				},
 
-					if !c.settingsDialogOpen {
-						classes += " pf-u-display-none"
-					}
+				ID: "settings-modal-title",
 
-					return classes
-				}()).
-				Body(
-					app.Div().
-						Class("pf-l-bullseye").
+				Title: "Settings",
+				Body: []app.UI{
+					app.Form().
+						Class("pf-c-form").
+						ID("settings").
+						Body(
+							// Node Scan Timeout Input
+							&FormGroup{
+								Label: app.
+									Label().
+									For(nodeScanTimeoutName).
+									Class("pf-c-form__label").
+									Body(
+										app.
+											Span().
+											Class("pf-c-form__label-text").
+											Text("Node Scan Timeout (in ms)"),
+									),
+								Input: &Controlled{
+									Component: app.
+										Input().
+										Name(nodeScanTimeoutName).
+										ID(nodeScanTimeoutName).
+										Type("number").
+										Required(true).
+										Min(1).
+										Step(1).
+										Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
+										Class("pf-c-form-control").
+										OnInput(func(ctx app.Context, e app.Event) {
+											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+											if err != nil || v == 0 {
+												c.Update()
+
+												return
+											}
+
+											c.nodeScanTimeout = int64(v)
+
+											c.Update()
+										}),
+									Properties: map[string]interface{}{
+										"value": c.nodeScanTimeout,
+									},
+								},
+								Required: true,
+							},
+							// Port Scan Timeout Input
+							&FormGroup{
+								Label: app.
+									Label().
+									For(portScanTimeoutName).
+									Class("pf-c-form__label").
+									Body(
+										app.
+											Span().
+											Class("pf-c-form__label-text").
+											Text("Port Scan Timeout (in ms)"),
+									),
+								Input: &Controlled{
+									Component: app.
+										Input().
+										Name(portScanTimeoutName).
+										ID(portScanTimeoutName).
+										Type("number").
+										Required(true).
+										Min(1).
+										Step(1).
+										Placeholder(strconv.Itoa(defaultPortScanTimeout)).
+										Class("pf-c-form-control").
+										OnInput(func(ctx app.Context, e app.Event) {
+											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+											if err != nil || v == 0 {
+												c.Update()
+
+												return
+											}
+
+											c.portScanTimeout = int64(v)
+
+											c.Update()
+										}),
+									Properties: map[string]interface{}{
+										"value": c.portScanTimeout,
+									},
+								},
+								Required: true,
+							},
+							// Node Wake Timeout Input
+							&FormGroup{
+								Label: app.
+									Label().
+									For(nodeWakeTimeoutName).
+									Class("pf-c-form__label").
+									Body(
+										app.
+											Span().
+											Class("pf-c-form__label-text").
+											Text("Node Wake Timeout (in ms)"),
+									),
+								Input: &Controlled{
+									Component: app.
+										Input().
+										Name(nodeWakeTimeoutName).
+										ID(nodeWakeTimeoutName).
+										Type("number").
+										Required(true).
+										Min(1).
+										Step(1).
+										Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
+										Class("pf-c-form-control").
+										OnInput(func(ctx app.Context, e app.Event) {
+											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
+											if err != nil || v == 0 {
+												c.Update()
+
+												return
+											}
+
+											c.nodeWakeTimeout = int64(v)
+
+											c.Update()
+										}),
+									Properties: map[string]interface{}{
+										"value": c.nodeWakeTimeout,
+									},
+								},
+								Required: true,
+							},
+						).OnSubmit(func(ctx app.Context, e app.Event) {
+						e.PreventDefault()
+
+						c.dispatch(func() {
+							c.settingsDialogOpen = false
+						})
+					}),
+				},
+				Footer: []app.UI{
+					app.Button().
+						Class("pf-c-button pf-m-primary").
+						Type("submit").
+						Form("settings").
+						Text("Save"),
+					app.Button().
+						Class("pf-c-button pf-m-link").
+						Type("button").
+						OnClick(func(ctx app.Context, e app.Event) {
+							c.dispatch(func() {
+								c.settingsDialogOpen = false
+							})
+						}).
+						Text("Cancel"),
+				},
+			},
+			&Modal{
+				Open: c.metadataDialogOpen,
+				Close: func() {
+					c.dispatch(func() {
+						c.metadataDialogOpen = false
+					})
+				},
+
+				ID: "metadata-modal-title",
+
+				Title: "Metadata",
+				Body: []app.UI{
+					app.Dl().
+						Class("pf-c-description-list").
 						Body(
 							app.Div().
-								Class("pf-c-modal-box pf-m-sm").
-								Aria("modal", true).
-								Aria("labelledby", "modal-scroll-title").
-								Aria("describedby", "modal-scroll-description").
+								Class("pf-c-description-list__group").
 								Body(
-									app.Button().
-										Class("pf-c-button pf-m-plain").
-										Type("button").
-										Aria("label", "Close dialog").
-										OnClick(func(ctx app.Context, e app.Event) {
-											c.dispatch(func() {
-												c.settingsDialogOpen = false
-											})
-										}).
+									app.Dt().
+										Class("pf-c-description-list__term").
 										Body(
-											app.I().
-												Class("fas fa-times").
-												Aria("hidden", true),
-										),
-									app.Header().
-										Class("pf-c-modal-box__header").
-										Body(
-											app.H1().
-												Class("pf-c-modal-box__title").
-												ID("modal-scroll-title").
-												Text("Settings"),
-										),
-									app.Div().
-										Class("pf-c-modal-box__body").
-										Body(
-											app.Form().
-												Class("pf-c-form").
-												ID("settings").
+											app.Span().
+												Class("pf-c-description-list__text").
+												ID("last-scan-mobile").
 												Body(
-													// Node Scan Timeout Input
-													&FormGroup{
-														Label: app.
-															Label().
-															For(nodeScanTimeoutName).
-															Class("pf-c-form__label").
-															Body(
-																app.
-																	Span().
-																	Class("pf-c-form__label-text").
-																	Text("Node Scan Timeout (in ms)"),
-															),
-														Input: &Controlled{
-															Component: app.
-																Input().
-																Name(nodeScanTimeoutName).
-																ID(nodeScanTimeoutName).
-																Type("number").
-																Required(true).
-																Min(1).
-																Step(1).
-																Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
-																Class("pf-c-form-control").
-																OnInput(func(ctx app.Context, e app.Event) {
-																	v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-																	if err != nil || v == 0 {
-																		c.Update()
-
-																		return
-																	}
-
-																	c.nodeScanTimeout = int64(v)
-
-																	c.Update()
-																}),
-															Properties: map[string]interface{}{
-																"value": c.nodeScanTimeout,
-															},
-														},
-														Required: true,
-													},
-													// Port Scan Timeout Input
-													&FormGroup{
-														Label: app.
-															Label().
-															For(portScanTimeoutName).
-															Class("pf-c-form__label").
-															Body(
-																app.
-																	Span().
-																	Class("pf-c-form__label-text").
-																	Text("Port Scan Timeout (in ms)"),
-															),
-														Input: &Controlled{
-															Component: app.
-																Input().
-																Name(portScanTimeoutName).
-																ID(portScanTimeoutName).
-																Type("number").
-																Required(true).
-																Min(1).
-																Step(1).
-																Placeholder(strconv.Itoa(defaultPortScanTimeout)).
-																Class("pf-c-form-control").
-																OnInput(func(ctx app.Context, e app.Event) {
-																	v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-																	if err != nil || v == 0 {
-																		c.Update()
-
-																		return
-																	}
-
-																	c.portScanTimeout = int64(v)
-
-																	c.Update()
-																}),
-															Properties: map[string]interface{}{
-																"value": c.portScanTimeout,
-															},
-														},
-														Required: true,
-													},
-													// Node Wake Timeout Input
-													&FormGroup{
-														Label: app.
-															Label().
-															For(nodeWakeTimeoutName).
-															Class("pf-c-form__label").
-															Body(
-																app.
-																	Span().
-																	Class("pf-c-form__label-text").
-																	Text("Node Wake Timeout (in ms)"),
-															),
-														Input: &Controlled{
-															Component: app.
-																Input().
-																Name(nodeWakeTimeoutName).
-																ID(nodeWakeTimeoutName).
-																Type("number").
-																Required(true).
-																Min(1).
-																Step(1).
-																Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
-																Class("pf-c-form-control").
-																OnInput(func(ctx app.Context, e app.Event) {
-																	v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-																	if err != nil || v == 0 {
-																		c.Update()
-
-																		return
-																	}
-
-																	c.nodeWakeTimeout = int64(v)
-
-																	c.Update()
-																}),
-															Properties: map[string]interface{}{
-																"value": c.nodeWakeTimeout,
-															},
-														},
-														Required: true,
-													},
-												).OnSubmit(func(ctx app.Context, e app.Event) {
-												e.PreventDefault()
-
-												c.dispatch(func() {
-													c.settingsDialogOpen = false
-												})
-											}),
+													app.I().
+														Class("fas fa-history pf-u-mr-xs").
+														Aria("hidden", true),
+													app.Text("Last Scan"),
+												),
 										),
-									app.Footer().
-										Class("pf-c-modal-box__footer").
+									app.Dd().
+										Class("pf-c-description-list__description").
 										Body(
-											app.Button().
-												Class("pf-c-button pf-m-primary").
-												Type("submit").
-												Form("settings").
-												Text("Save"),
-											app.Button().
-												Class("pf-c-button pf-m-link").
-												Type("button").
-												OnClick(func(ctx app.Context, e app.Event) {
-													c.dispatch(func() {
-														c.settingsDialogOpen = false
-													})
-												}).
-												Text("Cancel"),
+											app.Div().
+												Class("pf-c-description-list__text").
+												Body(
+													app.Ul().
+														Class("pf-c-label-group__list").
+														Aria("role", "list").
+														Aria("labelledby", "last-scan-mobile").
+														Body(
+															app.Li().
+																Class("pf-c-label-group__list-item").
+																Body(
+																	app.Span().
+																		Class("pf-c-label").
+																		Body(
+																			app.Span().
+																				Class("pf-c-label__content").
+																				Body(
+																					app.Text(c.Network.LastNodeScanDate),
+																				),
+																		),
+																),
+														),
+												),
 										),
 								),
-						),
-				),
-			app.Div().
-				Class(func() string {
-					classes := "pf-c-backdrop pf-u-display-none-on-lg"
-
-					if !c.metadataDialogOpen {
-						classes += " pf-u-display-none"
-					}
-
-					return classes
-				}()).
-				Body(
-					app.Div().
-						Class("pf-l-bullseye").
-						Body(
 							app.Div().
-								Class("pf-c-modal-box pf-m-sm").
-								Aria("modal", true).
-								Aria("labelledby", "modal-scroll-title").
-								Aria("describedby", "modal-scroll-description").
+								Class("pf-c-description-list__group").
 								Body(
-									app.Button().
-										Class("pf-c-button pf-m-plain").
-										Type("button").
-										Aria("label", "Close dialog").
-										OnClick(func(ctx app.Context, e app.Event) {
-											c.dispatch(func() {
-												c.metadataDialogOpen = false
-											})
-										}).
+									app.Dt().
+										Class("pf-c-description-list__term").
 										Body(
-											app.I().
-												Class("fas fa-times").
-												Aria("hidden", true),
-										),
-									app.Header().
-										Class("pf-c-modal-box__header").
-										Body(
-											app.H1().
-												Class("pf-c-modal-box__title").
-												ID("modal-scroll-title").
-												Text("Metadata"),
-										),
-									app.Div().
-										Class("pf-c-modal-box__body").
-										Body(
-											app.Dl().
-												Class("pf-c-description-list").
+											app.Span().
+												Class("pf-c-description-list__text").
+												ID("subnets-mobile").
 												Body(
-													app.Div().
-														Class("pf-c-description-list__group").
+													app.I().
+														Class("fas fa-network-wired pf-u-mr-xs").
+														Aria("hidden", true),
+													app.Text("Subnets"),
+												),
+										),
+									app.Dd().
+										Class("pf-c-description-list__description").
+										Body(
+											app.Div().
+												Class("pf-c-description-list__text").
+												Body(
+													app.Ul().
+														Class("pf-c-label-group__list").
+														Aria("role", "list").
+														Aria("labelledby", "subnets-mobile").
 														Body(
-															app.Dt().
-																Class("pf-c-description-list__term").
-																Body(
-																	app.Span().
-																		Class("pf-c-description-list__text").
-																		ID("last-scan-mobile").
-																		Body(
-																			app.I().
-																				Class("fas fa-history pf-u-mr-xs").
-																				Aria("hidden", true),
-																			app.Text("Last Scan"),
-																		),
-																),
-															app.Dd().
-																Class("pf-c-description-list__description").
-																Body(
-																	app.Div().
-																		Class("pf-c-description-list__text").
-																		Body(
-																			app.Ul().
-																				Class("pf-c-label-group__list").
-																				Aria("role", "list").
-																				Aria("labelledby", "last-scan-mobile").
-																				Body(
-																					app.Li().
-																						Class("pf-c-label-group__list-item").
-																						Body(
-																							app.Span().
-																								Class("pf-c-label").
-																								Body(
-																									app.Span().
-																										Class("pf-c-label__content").
-																										Body(
-																											app.Text(c.Network.LastNodeScanDate),
-																										),
-																								),
-																						),
-																				),
-																		),
-																),
+															app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
+																return app.Li().
+																	Class("pf-c-label-group__list-item").
+																	Body(
+																		app.Span().
+																			Class("pf-c-label").
+																			Body(
+																				app.Span().
+																					Class("pf-c-label__content").
+																					Body(
+																						app.Text(c.Network.ScannerMetadata.Subnets[i]),
+																					),
+																			),
+																	)
+															}),
 														),
-													app.Div().
-														Class("pf-c-description-list__group").
+												),
+										),
+								),
+							app.Div().
+								Class("pf-c-description-list__group").
+								Body(
+									app.Dt().
+										Class("pf-c-description-list__term").
+										Body(
+											app.Span().
+												Class("pf-c-description-list__text").
+												ID("device-mobile").
+												Body(
+													app.I().
+														Class("fas fa-microchip pf-u-mr-xs").
+														Aria("hidden", true),
+													app.Text("Device"),
+												),
+										),
+									app.Dd().
+										Class("pf-c-description-list__description").
+										Body(
+											app.Dd().
+												Class("pf-c-description-list__description").
+												Body(
+													app.Ul().
+														Class("pf-c-label-group__list").
+														Aria("role", "list").
+														Aria("labelledby", "device-mobile").
 														Body(
-															app.Dt().
-																Class("pf-c-description-list__term").
+															app.Li().
+																Class("pf-c-label-group__list-item").
 																Body(
 																	app.Span().
-																		Class("pf-c-description-list__text").
-																		ID("subnets-mobile").
+																		Class("pf-c-label").
 																		Body(
-																			app.I().
-																				Class("fas fa-network-wired pf-u-mr-xs").
-																				Aria("hidden", true),
-																			app.Text("Subnets"),
-																		),
-																),
-															app.Dd().
-																Class("pf-c-description-list__description").
-																Body(
-																	app.Div().
-																		Class("pf-c-description-list__text").
-																		Body(
-																			app.Ul().
-																				Class("pf-c-label-group__list").
-																				Aria("role", "list").
-																				Aria("labelledby", "subnets-mobile").
+																			app.Span().
+																				Class("pf-c-label__content").
 																				Body(
-																					app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
-																						return app.Li().
-																							Class("pf-c-label-group__list-item").
-																							Body(
-																								app.Span().
-																									Class("pf-c-label").
-																									Body(
-																										app.Span().
-																											Class("pf-c-label__content").
-																											Body(
-																												app.Text(c.Network.ScannerMetadata.Subnets[i]),
-																											),
-																									),
-																							)
-																					}),
-																				),
-																		),
-																),
-														),
-													app.Div().
-														Class("pf-c-description-list__group").
-														Body(
-															app.Dt().
-																Class("pf-c-description-list__term").
-																Body(
-																	app.Span().
-																		Class("pf-c-description-list__text").
-																		ID("device-mobile").
-																		Body(
-																			app.I().
-																				Class("fas fa-microchip pf-u-mr-xs").
-																				Aria("hidden", true),
-																			app.Text("Device"),
-																		),
-																),
-															app.Dd().
-																Class("pf-c-description-list__description").
-																Body(
-																	app.Dd().
-																		Class("pf-c-description-list__description").
-																		Body(
-																			app.Ul().
-																				Class("pf-c-label-group__list").
-																				Aria("role", "list").
-																				Aria("labelledby", "device-mobile").
-																				Body(
-																					app.Li().
-																						Class("pf-c-label-group__list-item").
-																						Body(
-																							app.Span().
-																								Class("pf-c-label").
-																								Body(
-																									app.Span().
-																										Class("pf-c-label__content").
-																										Body(
-																											app.Text(c.Network.ScannerMetadata.Device),
-																										),
-																								),
-																						),
+																					app.Text(c.Network.ScannerMetadata.Device),
 																				),
 																		),
 																),
@@ -703,7 +630,8 @@ func (c *DataShell) Render() app.UI {
 										),
 								),
 						),
-				),
+				},
+			},
 		)
 }
 
