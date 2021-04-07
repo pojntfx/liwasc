@@ -183,188 +183,23 @@ func (c *DataShell) Render() app.UI {
 																				go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, selectedNode.MACAddress)
 																			},
 																			Header: []app.UI{
-																				// Toolbar
-																				app.Div().
-																					Class("pf-c-toolbar pf-m-page-insets").
-																					Body(
-																						app.Div().
-																							Class("pf-c-toolbar__content").
-																							Body(
-																								app.Div().
-																									Class("pf-c-toolbar__content-section pf-m-nowrap pf-u-display-none pf-u-display-flex-on-lg").
-																									Body(
-																										app.Div().
-																											Class("pf-c-toolbar__item").
-																											Body(
-																												// Data actions
-																												&ProgressButton{
-																													Loading: c.Network.NodeScanRunning,
-																													Icon:    "fas fa-rocket",
-																													Text:    "Trigger Scan",
+																				&Toolbar{
+																					NodeScanRunning: c.Network.NodeScanRunning,
+																					TriggerFullNetworkScan: func() {
 
-																													OnClick: func(ctx app.Context, e app.Event) {
-																														go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
-																													},
-																												},
-																											),
-																										app.Div().
-																											Class("pf-c-toolbar__item").
-																											Body(
-																												app.Div().
-																													Class("pf-c-label-group pf-m-category").
-																													Body(
-																														app.Div().
-																															Class("pf-c-label-group__main").
-																															Body(
-																																app.Span().
-																																	Class("pf-c-label-group__label").
-																																	Aria("hidden", true).
-																																	ID("last-scan").
-																																	Body(
-																																		app.I().
-																																			Class("fas fa-history pf-u-mr-xs").
-																																			Aria("hidden", true),
-																																		app.Text("Last Scan"),
-																																	),
-																																app.Ul().
-																																	Class("pf-c-label-group__list").
-																																	Aria("role", "list").
-																																	Aria("labelledby", "last-scan").
-																																	Body(
-																																		app.Li().
-																																			Class("pf-c-label-group__list-item").
-																																			Body(
-																																				app.Span().
-																																					Class("pf-c-label").
-																																					Body(
-																																						app.Span().
-																																							Class("pf-c-label__content").
-																																							Body(
-																																								app.Text(c.Network.LastNodeScanDate),
-																																							),
-																																					),
-																																			),
-																																	),
-																															),
-																													),
-																											),
-																										app.Div().Class("pf-c-toolbar__item pf-m-pagination").Body(
-																											app.Div().
-																												Class("pf-c-label-group pf-m-category pf-u-mr-md").
-																												Body(
-																													app.Div().
-																														Class("pf-c-label-group__main").
-																														Body(
-																															app.Span().
-																																Class("pf-c-label-group__label").
-																																Aria("hidden", true).
-																																ID("subnets").
-																																Body(
-																																	app.I().
-																																		Class("fas fa-network-wired pf-u-mr-xs").
-																																		Aria("hidden", true),
-																																	app.Text("Subnets"),
-																																),
-																															app.Ul().
-																																Class("pf-c-label-group__list").
-																																Aria("role", "list").
-																																Aria("labelledby", "subnets").
-																																Body(
-																																	app.Range(c.Network.ScannerMetadata.Subnets).Slice(func(i int) app.UI {
-																																		return app.Li().
-																																			Class("pf-c-label-group__list-item").
-																																			Body(
-																																				app.Span().
-																																					Class("pf-c-label").
-																																					Body(
-																																						app.Span().
-																																							Class("pf-c-label__content").
-																																							Body(
-																																								app.Text(c.Network.ScannerMetadata.Subnets[i]),
-																																							),
-																																					),
-																																			)
-																																	}),
-																																),
-																														),
-																												),
-																											app.Div().
-																												Class("pf-c-label-group pf-m-category").
-																												Body(
-																													app.Div().
-																														Class("pf-c-label-group__main").
-																														Body(
-																															app.Span().
-																																Class("pf-c-label-group__label").
-																																Aria("hidden", true).
-																																ID("device").
-																																Body(
-																																	app.I().
-																																		Class("fas fa-microchip pf-u-mr-xs").
-																																		Aria("hidden", true),
-																																	app.Text("Device"),
-																																),
-																															app.Ul().
-																																Class("pf-c-label-group__list").
-																																Aria("role", "list").
-																																Aria("labelledby", "device").
-																																Body(
-																																	app.Li().
-																																		Class("pf-c-label-group__list-item").
-																																		Body(
-																																			app.Span().
-																																				Class("pf-c-label").
-																																				Body(
-																																					app.Span().
-																																						Class("pf-c-label__content").
-																																						Body(
-																																							app.Text(c.Network.ScannerMetadata.Device),
-																																						),
-																																				),
-																																		),
-																																),
-																														),
-																												),
-																										),
-																									),
-																								app.Div().
-																									Class("pf-c-toolbar__content-section pf-m-nowrap pf-u-display-flex pf-u-display-none-on-lg").
-																									Body(
-																										app.Div().
-																											Class("pf-c-toolbar__item").
-																											Body(
-																												// Data actions
-																												&ProgressButton{
-																													Loading: c.Network.NodeScanRunning,
-																													Icon:    "fas fa-rocket",
-																													Text:    "Trigger Scan",
+																						go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
+																					},
 
-																													OnClick: func(ctx app.Context, e app.Event) {
-																														go c.TriggerNetworkScan(c.nodeScanTimeout, c.portScanTimeout, "")
-																													},
-																												},
-																											),
-																										app.Div().
-																											Class("pf-c-toolbar__item pf-m-pagination").
-																											Body(
-																												app.Button().
-																													Class("pf-c-button pf-m-plain").
-																													Type("button").
-																													Aria("label", "Metadata").
-																													OnClick(func(ctx app.Context, e app.Event) {
-																														c.dispatch(func() {
-																															c.metadataDialogOpen = true
-																														})
-																													}).
-																													Body(
-																														app.I().
-																															Class("fas fa-info-circle").
-																															Aria("hidden", true),
-																													),
-																											),
-																									),
-																							),
-																					),
+																					LastNodeScanDate: c.Network.LastNodeScanDate.String(),
+																					Subnets:          c.Network.ScannerMetadata.Subnets,
+																					Device:           c.Network.ScannerMetadata.Device,
+
+																					ToggleMetadataDialogOpen: func() {
+																						c.dispatch(func() {
+																							c.metadataDialogOpen = true
+																						})
+																					},
+																				},
 																			},
 																			Body: &NodeTable{
 																				Nodes:              c.Network.Nodes,
