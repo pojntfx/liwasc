@@ -293,85 +293,29 @@ func (c *DataShell) Render() app.UI {
 							),
 					),
 				),
-			app.Div().
-				Class(func() string {
-					classes := "pf-c-backdrop"
+			&AboutModal{
+				Open: c.aboutDialogOpen,
+				Close: func() {
+					c.dispatch(func() {
+						c.aboutDialogOpen = false
+					})
+				},
 
-					if !c.aboutDialogOpen {
-						classes += " pf-u-display-none"
-					}
+				ID: "about-modal-title",
 
-					return classes
-				}()).
-				Body(
-					app.Div().
-						Class("pf-l-bullseye").
-						Body(
-							app.Div().
-								Class("pf-c-about-modal-box").
-								Aria("role", "dialog").
-								Aria("modal", true).
-								Aria("labelledby", "about-modal-title").
-								Body(
-									app.Div().
-										Class("pf-c-about-modal-box__brand").
-										Body(
-											app.Img().
-												Class("pf-c-about-modal-box__brand-image").
-												Src("/web/logo.svg").
-												Alt("liwasc Logo"),
-										),
-									app.Div().
-										Class("pf-c-about-modal-box__close").
-										Body(
-											app.Button().
-												Class("pf-c-button pf-m-plain").
-												Type("button").
-												Aria("label", "Close dialog").
-												OnClick(func(ctx app.Context, e app.Event) {
-													c.dispatch(func() {
-														c.aboutDialogOpen = false
-													})
-												}).
-												Body(
-													app.I().
-														Class("fas fa-times").
-														Aria("hidden", true),
-												),
-										),
-									app.Div().
-										Class("pf-c-about-modal-box__header").
-										Body(
-											app.H1().
-												Class("pf-c-title pf-m-4xl").
-												ID("about-modal-title").
-												Text("liwasc"),
-										),
-									app.Div().Class("pf-c-about-modal-box__hero"),
-									app.Div().
-										Class("pf-c-about-modal-box__content").
-										Body(
-											app.Div().
-												Class("pf-c-content").
-												Body(
-													app.Dl().
-														Class("pf-c-content").
-														Body(
-															app.Dl().Body(
-																app.Dt().Text("Frontend version"),
-																app.Dd().Text("main"),
-																app.Dt().Text("Backend version"),
-																app.Dd().Text("main"),
-															),
-														),
-												),
-											app.P().
-												Class("pf-c-about-modal-box__strapline").
-												Text("Copyright © 2021 Felicitas Pojtinger and contributors (SPDX-License-Identifier: AGPL-3.0)"),
-										),
-								),
-						),
-				),
+				LogoSrc: "/web/logo.svg",
+				LogoAlt: "liwasc Logo",
+				Title:   "liwasc",
+
+				Body: app.Dl().
+					Body(
+						app.Dt().Text("Frontend version"),
+						app.Dd().Text("main"),
+						app.Dt().Text("Backend version"),
+						app.Dd().Text("main"),
+					),
+				Footer: "Copyright © 2021 Felicitas Pojtinger and contributors (SPDX-License-Identifier: AGPL-3.0)",
+			},
 			app.Div().
 				Class(func() string {
 					classes := "pf-c-backdrop"
