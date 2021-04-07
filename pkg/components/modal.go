@@ -75,3 +75,11 @@ func (c *Modal) Render() app.UI {
 				),
 		)
 }
+
+func (c *Modal) OnMount(ctx app.Context) {
+	app.Window().AddEventListener("keyup", func(ctx app.Context, e app.Event) {
+		if e.Get("key").String() == "Escape" {
+			c.Close()
+		}
+	})
+}
