@@ -8,7 +8,7 @@ import (
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 )
 
-type ConfigurationProviderChildrenProps struct {
+type SetupProviderChildrenProps struct {
 	BackendURL      string
 	OIDCIssuer      string
 	OIDCClientID    string
@@ -30,7 +30,7 @@ type ConfigurationProvider struct {
 	StoragePrefix       string
 	StateQueryParameter string
 	CodeQueryParameter  string
-	Children            func(ConfigurationProviderChildrenProps) app.UI
+	Children            func(SetupProviderChildrenProps) app.UI
 
 	backendURL      string
 	oidcIssuer      string
@@ -49,7 +49,7 @@ const (
 )
 
 func (c *ConfigurationProvider) Render() app.UI {
-	return c.Children(ConfigurationProviderChildrenProps{
+	return c.Children(SetupProviderChildrenProps{
 		BackendURL:      c.backendURL,
 		OIDCIssuer:      c.oidcIssuer,
 		OIDCClientID:    c.oidcClientID,

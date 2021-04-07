@@ -2,7 +2,7 @@ package components
 
 import "github.com/maxence-charriere/go-app/v8/pkg/app"
 
-type ConfigForm struct {
+type SetupForm struct {
 	app.Compo
 
 	Error        error
@@ -36,7 +36,7 @@ const (
 	oidcRedirectURLPlaceholder = "http://localhost:15125/"
 )
 
-func (c *ConfigForm) Render() app.UI {
+func (c *SetupForm) Render() app.UI {
 	return app.Form().
 		Class("pf-c-form").
 		Body(

@@ -1,11 +1,10 @@
-package shells
+package components
 
 import (
 	"strconv"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
-	"github.com/pojntfx/liwasc/pkg/components"
 	"github.com/pojntfx/liwasc/pkg/providers"
 )
 
@@ -377,7 +376,7 @@ func (c *DataShell) Render() app.UI {
 																	Class("pf-c-page__main-section pf-m-no-padding").
 																	Body(
 																		// Primary-detail
-																		&components.Inspector{
+																		&Inspector{
 																			Open: c.selectedMACAddress != "",
 																			Close: func() {
 																				c.dispatch(func() {
@@ -407,7 +406,7 @@ func (c *DataShell) Render() app.UI {
 																											Class("pf-c-toolbar__item").
 																											Body(
 																												// Data actions
-																												&components.ProgressButton{
+																												&ProgressButton{
 																													Loading: c.Network.NodeScanRunning,
 																													Icon:    "fas fa-rocket",
 																													Text:    "Trigger Scan",
@@ -544,7 +543,7 @@ func (c *DataShell) Render() app.UI {
 																											Class("pf-c-toolbar__item").
 																											Body(
 																												// Data actions
-																												&components.ProgressButton{
+																												&ProgressButton{
 																													Loading: c.Network.NodeScanRunning,
 																													Icon:    "fas fa-rocket",
 																													Text:    "Trigger Scan",
@@ -576,7 +575,7 @@ func (c *DataShell) Render() app.UI {
 																							),
 																					),
 																			},
-																			Body: &components.NodeTable{
+																			Body: &NodeTable{
 																				Nodes:              c.Network.Nodes,
 																				NodeScanRunning:    c.Network.NodeScanRunning,
 																				SelectedMACAddress: c.selectedMACAddress,
@@ -671,7 +670,7 @@ func (c *DataShell) Render() app.UI {
 						app.Li().
 							Class("pf-c-alert-group__item").
 							Body(
-								&components.Status{
+								&Status{
 									Error:       c.Error,
 									ErrorText:   "Fatal Error",
 									Recover:     c.Recover,
@@ -810,7 +809,7 @@ func (c *DataShell) Render() app.UI {
 												ID("settings").
 												Body(
 													// Node Scan Timeout Input
-													&components.FormGroup{
+													&FormGroup{
 														Label: app.
 															Label().
 															For(nodeScanTimeoutName).
@@ -821,7 +820,7 @@ func (c *DataShell) Render() app.UI {
 																	Class("pf-c-form__label-text").
 																	Text("Node Scan Timeout (in ms)"),
 															),
-														Input: &components.Controlled{
+														Input: &Controlled{
 															Component: app.
 																Input().
 																Name(nodeScanTimeoutName).
@@ -851,7 +850,7 @@ func (c *DataShell) Render() app.UI {
 														Required: true,
 													},
 													// Port Scan Timeout Input
-													&components.FormGroup{
+													&FormGroup{
 														Label: app.
 															Label().
 															For(portScanTimeoutName).
@@ -862,7 +861,7 @@ func (c *DataShell) Render() app.UI {
 																	Class("pf-c-form__label-text").
 																	Text("Port Scan Timeout (in ms)"),
 															),
-														Input: &components.Controlled{
+														Input: &Controlled{
 															Component: app.
 																Input().
 																Name(portScanTimeoutName).
@@ -892,7 +891,7 @@ func (c *DataShell) Render() app.UI {
 														Required: true,
 													},
 													// Node Wake Timeout Input
-													&components.FormGroup{
+													&FormGroup{
 														Label: app.
 															Label().
 															For(nodeWakeTimeoutName).
@@ -903,7 +902,7 @@ func (c *DataShell) Render() app.UI {
 																	Class("pf-c-form__label-text").
 																	Text("Node Wake Timeout (in ms)"),
 															),
-														Input: &components.Controlled{
+														Input: &Controlled{
 															Component: app.
 																Input().
 																Name(nodeWakeTimeoutName).
