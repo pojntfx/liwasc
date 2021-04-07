@@ -1,11 +1,10 @@
-package shells
+package components
 
 import (
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
-	"github.com/pojntfx/liwasc/pkg/components"
 )
 
-type ConfigurationShell struct {
+type SetupShell struct {
 	app.Compo
 
 	LogoSrc          string
@@ -29,20 +28,7 @@ type ConfigurationShell struct {
 	Error error
 }
 
-const (
-	// Names and IDs
-	backendURLName      = "backendURLName"
-	oidcIssuerName      = "oidcIssuer"
-	oidcClientIDName    = "oidcClientID"
-	oidcRedirectURLName = "oidcRedirectURL"
-
-	// Placeholders
-	backendURLPlaceholder      = "ws://localhost:15124"
-	oidcIssuerPlaceholder      = "https://pojntfx.eu.auth0.com/"
-	oidcRedirectURLPlaceholder = "http://localhost:15125/"
-)
-
-func (c *ConfigurationShell) Render() app.UI {
+func (c *SetupShell) Render() app.UI {
 	// Display the error message if error != nil
 	errorMessage := ""
 	if c.Error != nil {
@@ -105,7 +91,7 @@ func (c *ConfigurationShell) Render() app.UI {
 							),
 						),
 						app.Div().Class("pf-c-login__main-body").Body(
-							&components.ConfigForm{
+							&SetupForm{
 								Error:        c.Error,
 								ErrorMessage: errorMessage,
 

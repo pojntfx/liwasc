@@ -7,14 +7,14 @@ import (
 
 	"github.com/kataras/compress"
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
-	"github.com/pojntfx/liwasc/pkg/pages"
+	"github.com/pojntfx/liwasc/pkg/components"
 )
 
 func main() {
 	// Client-side code
 	{
 		// Define the routes
-		app.Route("/", &pages.Home{})
+		app.Route("/", &components.Home{})
 
 		// Start the app
 		app.RunWhenOnBrowser()

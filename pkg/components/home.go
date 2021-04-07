@@ -1,4 +1,4 @@
-package pages
+package components
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
 	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/providers"
-	"github.com/pojntfx/liwasc/pkg/shells"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -22,7 +21,7 @@ func (c *Home) Render() app.UI {
 		StoragePrefix:       "liwasc.configuration",
 		StateQueryParameter: "state",
 		CodeQueryParameter:  "code",
-		Children: func(cpcp providers.ConfigurationProviderChildrenProps) app.UI {
+		Children: func(cpcp providers.SetupProviderChildrenProps) app.UI {
 			// This div is required so that there are no authorization loops
 			return app.Div().
 				TabIndex(-1).
@@ -40,7 +39,7 @@ func (c *Home) Render() app.UI {
 							Children: func(ipcp providers.IdentityProviderChildrenProps) app.UI {
 								// Configuration shell
 								if ipcp.Error != nil {
-									return &shells.ConfigurationShell{
+									return &SetupShell{
 										LogoSrc:          "/web/logo.svg",
 										Title:            "Log in to liwasc",
 										ShortDescription: "List, wake and scan nodes in a network.",
@@ -88,7 +87,7 @@ services that run on them and manage their power status.`,
 									NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
 									Children: func(dpcp providers.DataProviderChildrenProps) app.UI {
 										// Data shell
-										return &shells.DataShell{
+										return &DataShell{
 											Network:  dpcp.Network,
 											UserInfo: ipcp.UserInfo,
 
@@ -98,7 +97,7 @@ services that run on them and manage their power status.`,
 
 											Error:   dpcp.Error,
 											Recover: dpcp.Recover,
-											Ignore: dpcp.Ignore,
+											Ignore:  dpcp.Ignore,
 										}
 									},
 								}
@@ -106,7 +105,7 @@ services that run on them and manage their power status.`,
 						},
 					).Else(
 						// Configuration shell
-						&shells.ConfigurationShell{
+						&SetupShell{
 							LogoSrc:          "/web/logo.svg",
 							Title:            "Log in to liwasc",
 							ShortDescription: "List, wake and scan nodes in a network.",
