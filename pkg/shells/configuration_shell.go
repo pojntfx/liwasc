@@ -105,162 +105,24 @@ func (c *ConfigurationShell) Render() app.UI {
 							),
 						),
 						app.Div().Class("pf-c-login__main-body").Body(
-							app.Form().
-								Class("pf-c-form").
-								Body(
-									// Error display
-									app.If(c.Error != nil, app.P().
-										Class("pf-c-form__helper-text pf-m-error").
-										Aria("live", "polite").
-										Body(
-											app.Span().
-												Class("pf-c-form__helper-text-icon").
-												Body(
-													app.I().
-														Class("fas fa-exclamation-circle").
-														Aria("hidden", true),
-												),
-											app.Text(errorMessage),
-										),
-									),
-									// Backend URL Input
-									&components.FormGroup{
-										Label: app.
-											Label().
-											For(backendURLName).
-											Class("pf-c-form__label").
-											Body(
-												app.
-													Span().
-													Class("pf-c-form__label-text").
-													Text("Backend URL"),
-											),
-										Input: &components.Controlled{
-											Component: app.
-												Input().
-												Name(backendURLName).
-												ID(backendURLName).
-												Type("url").
-												Required(true).
-												Placeholder(backendURLPlaceholder).
-												Class("pf-c-form-control").
-												Aria("invalid", c.Error != nil).
-												OnInput(func(ctx app.Context, e app.Event) {
-													c.SetBackendURL(ctx.JSSrc.Get("value").String())
-												}),
-											Properties: map[string]interface{}{
-												"value": c.BackendURL,
-											},
-										},
-										Required: true,
-									},
-									// OIDC Issuer Input
-									&components.FormGroup{
-										Label: app.
-											Label().
-											For(oidcIssuerName).
-											Class("pf-c-form__label").
-											Body(
-												app.
-													Span().
-													Class("pf-c-form__label-text").
-													Text("OIDC Issuer"),
-											),
-										Input: &components.Controlled{
-											Component: app.
-												Input().
-												Name(oidcIssuerName).
-												ID(oidcIssuerName).
-												Type("url").
-												Required(true).
-												Placeholder(oidcIssuerPlaceholder).
-												Class("pf-c-form-control").
-												Aria("invalid", c.Error != nil).
-												OnInput(func(ctx app.Context, e app.Event) {
-													c.SetOIDCIssuer(ctx.JSSrc.Get("value").String())
-												}),
-											Properties: map[string]interface{}{
-												"value": c.OIDCIssuer,
-											},
-										},
-										Required: true,
-									},
-									// OIDC Client ID
-									&components.FormGroup{
-										Label: app.
-											Label().
-											For(oidcClientIDName).
-											Class("pf-c-form__label").
-											Body(
-												app.
-													Span().
-													Class("pf-c-form__label-text").
-													Text("OIDC Client ID"),
-											),
-										Input: &components.Controlled{
-											Component: app.
-												Input().
-												Name(oidcClientIDName).
-												ID(oidcClientIDName).
-												Type("text").
-												Required(true).
-												Class("pf-c-form-control").
-												Aria("invalid", c.Error != nil).
-												OnInput(func(ctx app.Context, e app.Event) {
-													c.SetOIDCClientID(ctx.JSSrc.Get("value").String())
-												}),
-											Properties: map[string]interface{}{
-												"value": c.OIDCClientID,
-											},
-										},
-										Required: true,
-									},
-									// OIDC Redirect URL
-									&components.FormGroup{
-										Label: app.
-											Label().
-											For(oidcRedirectURLName).
-											Class("pf-c-form__label").
-											Body(
-												app.
-													Span().
-													Class("pf-c-form__label-text").
-													Text("OIDC Redirect URL"),
-											),
-										Input: &components.Controlled{
-											Component: app.
-												Input().
-												Name(oidcRedirectURLName).
-												ID(oidcRedirectURLName).
-												Type("url").
-												Required(true).
-												Placeholder(oidcRedirectURLPlaceholder).
-												Class("pf-c-form-control").
-												Aria("invalid", c.Error != nil).
-												OnInput(func(ctx app.Context, e app.Event) {
-													c.SetOIDCRedirectURL(ctx.JSSrc.Get("value").String())
-												}),
-											Properties: map[string]interface{}{
-												"value": c.OIDCRedirectURL,
-											},
-										},
-										Required: true,
-									},
-									// Configuration Apply Trigger
-									app.Div().
-										Class("pf-c-form__group pf-m-action").
-										Body(
-											app.
-												Button().
-												Type("submit").
-												Class("pf-c-button pf-m-primary pf-m-block").
-												Text("Log in"),
-										),
-								).OnSubmit(func(ctx app.Context, e app.Event) {
-								e.PreventDefault()
+							&components.ConfigForm{
+								Error:        c.Error,
+								ErrorMessage: errorMessage,
 
-								go c.ApplyConfig()
-							}),
+								BackendURL:    c.BackendURL,
+								SetBackendURL: c.SetBackendURL,
+
+								OIDCIssuer:    c.OIDCIssuer,
+								SetOIDCIssuer: c.SetOIDCIssuer,
+
+								OIDCClientID:    c.OIDCClientID,
+								SetOIDCClientID: c.SetOIDCClientID,
+
+								OIDCRedirectURL:    c.OIDCRedirectURL,
+								SetOIDCRedirectURL: c.SetOIDCRedirectURL,
+
+								Submit: c.ApplyConfig,
+							},
 						),
 						app.Footer().Class("pf-c-login__main-footer").Body(
 							app.Div().Class("pf-c-login__main-footer-band").Body(
