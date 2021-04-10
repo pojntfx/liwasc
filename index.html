@@ -2,28 +2,28 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta httpequiv="Content-Type" content="text/html; charset=utf-8">
+<meta content="text/html; charset=utf-8" httpequiv="Content-Type">
 <meta name="author" content="Felicitas Pojtinger">
 <meta name="description" content="List, wake and scan nodes in a network.">
 <meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
 <meta name="theme-color" content="#151515">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
-<meta property="og:url" content="http://127.0.0.1:36429/">
-<meta property="og:title" content="liwasc">
-<meta content="List, wake and scan nodes in a network." property="og:description">
+<meta property="og:url" content="http://127.0.0.1:44113/">
+<meta content="liwasc" property="og:title">
+<meta property="og:description" content="List, wake and scan nodes in a network.">
 <meta property="og:type" content="website">
 <meta property="og:image" content>
 <title>
 liwasc
 </title>
-<link rel="icon" type="image/png" href="/liwasc/web/icon.png">
+<link href="/liwasc/web/icon.png" rel="icon" type="image/png">
 <link rel="apple-touch-icon" href="/liwasc/web/icon.png">
-<link href="/liwasc/manifest.webmanifest" rel="manifest">
+<link rel="manifest" href="/liwasc/manifest.webmanifest">
 <link type="text/css" rel="stylesheet" href="/liwasc/app.css">
 <script defer src="/liwasc/wasm_exec.js"></script>
 <script defer src="/liwasc/app.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css" type="text/css">
-<link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css">
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
+<link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css" type="text/css">
 <link rel="stylesheet" href="/liwasc/web/index.css" type="text/css">
 <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 <meta property="og:title" content="liwasc">
@@ -71,7 +71,7 @@ liwasc
 <div class="pf-c-login">
 <div class="pf-c-login__container">
 <header class="pf-c-login__header">
-<img alt="Logo" class="pf-c-brand pf-x-c-brand--main" src="/liwasc/web/logo.svg">
+<img class="pf-c-brand pf-x-c-brand--main" src="/liwasc/web/logo.svg" alt="Logo">
 </header>
 <main class="pf-c-login__main">
 <header class="pf-c-login__main-header">
@@ -96,12 +96,12 @@ Backend URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input name="backendURLName" id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false">
+<input aria-invalid="false" name="backendURLName" id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control">
 </div>
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label for="oidcIssuer" class="pf-c-form__label">
+<label class="pf-c-form__label" for="oidcIssuer">
 <span class="pf-c-form__label-text">
 OIDC Issuer
 </span>
@@ -126,7 +126,7 @@ OIDC Client ID
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input required class="pf-c-form-control" aria-invalid="false" name="oidcClientID" id="oidcClientID" type="text">
+<input name="oidcClientID" id="oidcClientID" type="text" required class="pf-c-form-control" aria-invalid="false">
 </div>
 </div>
 <div class="pf-c-form__group">
