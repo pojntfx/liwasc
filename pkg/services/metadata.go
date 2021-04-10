@@ -1,5 +1,7 @@
 package services
 
+//go:generate sh -c "mkdir -p ../api && protoc --go_out=paths=source_relative,plugins=grpc:../api -I=../../api ../../api/*.proto"
+
 import (
 	"context"
 	"fmt"
@@ -7,9 +9,9 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
-	"github.com/pojntfx/liwasc/pkg/databases"
+	"github.com/pojntfx/liwasc/pkg/api"
 	"github.com/pojntfx/liwasc/pkg/networking"
+	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,15 +22,15 @@ const (
 )
 
 type MetadataService struct {
-	proto.UnimplementedMetadataServiceServer
+	api.UnimplementedMetadataServiceServer
 
 	subnets []string
 	device  string
 
 	interfaceInspector *networking.InterfaceInspector
 
-	mac2vendorDatabase              *databases.MAC2VendorDatabase
-	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase
+	mac2vendorDatabase              *stores.MAC2VendorDatabase
+	serviceNamesPortNumbersDatabase *stores.ServiceNamesPortNumbersDatabase
 
 	contextValidator *validators.ContextValidator
 }
@@ -36,8 +38,8 @@ type MetadataService struct {
 func NewMetadataService(
 	interfaceInspector *networking.InterfaceInspector,
 
-	mac2vendorDatabase *databases.MAC2VendorDatabase,
-	serviceNamesPortNumbersDatabase *databases.ServiceNamesPortNumbersDatabase,
+	mac2vendorDatabase *stores.MAC2VendorDatabase,
+	serviceNamesPortNumbersDatabase *stores.ServiceNamesPortNumbersDatabase,
 
 	contextValidator *validators.ContextValidator,
 ) *MetadataService {
@@ -63,14 +65,14 @@ func (s *MetadataService) Open() error {
 	return nil
 }
 
-func (s *MetadataService) GetMetadataForScanner(ctx context.Context, _ *empty.Empty) (*proto.ScannerMetadataMessage, error) {
+func (s *MetadataService) GetMetadataForScanner(ctx context.Context, _ *empty.Empty) (*api.ScannerMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
-	protoScannerMetadataMessage := &proto.ScannerMetadataMessage{
+	protoScannerMetadataMessage := &api.ScannerMetadataMessage{
 		Subnets: s.subnets,
 		Device:  s.device,
 	}
@@ -78,7 +80,7 @@ func (s *MetadataService) GetMetadataForScanner(ctx context.Context, _ *empty.Em
 	return protoScannerMetadataMessage, nil
 }
 
-func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataReferenceMessage *proto.NodeMetadataReferenceMessage) (*proto.NodeMetadataMessage, error) {
+func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataReferenceMessage *api.NodeMetadataReferenceMessage) (*api.NodeMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -92,7 +94,7 @@ func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataRe
 		return nil, status.Errorf(codes.NotFound, "could not find node in DB")
 	}
 
-	protoNodeMetadataMessage := &proto.NodeMetadataMessage{
+	protoNodeMetadataMessage := &api.NodeMetadataMessage{
 		Address:      dbNodeMetadata.Address.String,
 		MACAddress:   nodeMetadataReferenceMessage.GetMACAddress(),
 		Organization: dbNodeMetadata.Organization.String,
@@ -110,7 +112,7 @@ func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataRe
 	return protoNodeMetadataMessage, nil
 }
 
-func (s *MetadataService) GetMetadataForPort(ctx context.Context, portMetadataReferenceMessage *proto.PortMetadataReferenceMessage) (*proto.PortMetadataMessage, error) {
+func (s *MetadataService) GetMetadataForPort(ctx context.Context, portMetadataReferenceMessage *api.PortMetadataReferenceMessage) (*api.PortMetadataMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -131,7 +133,7 @@ func (s *MetadataService) GetMetadataForPort(ctx context.Context, portMetadataRe
 		return nil, status.Errorf(codes.Unknown, "could not find valid port number in DB")
 	}
 
-	protoPortMetadataMessage := &proto.PortMetadataMessage{
+	protoPortMetadataMessage := &api.PortMetadataMessage{
 		Assignee:                dbPortMetadata[0].Assignee,
 		AssignmentNotes:         dbPortMetadata[0].AssignmentNotes,
 		Contact:                 dbPortMetadata[0].Contact,

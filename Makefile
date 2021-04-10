@@ -46,8 +46,8 @@ dev:
 
 clean:
 	rm -rf out
-	rm -rf pkg/api/generated
-	rm -rf pkg/databases/generated
+	rm -rf pkg/api
+	rm -rf pkg/db
 	rm -rf ~/.local/share/liwasc
 
 depend:

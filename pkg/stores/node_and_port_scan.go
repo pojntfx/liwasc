@@ -1,18 +1,18 @@
-package databases
+package stores
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/gobuffalo/packr/v2"
-	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_and_port_scan"
+	models "github.com/pojntfx/liwasc/pkg/db/node_and_port_scan"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sqlboiler sqlite3 -o generated/node_and_port_scan -c ../../configs/node_and_port_scan.toml
+//go:generate sqlboiler sqlite3 -o ../db/node_and_port_scan -c ../../configs/node_and_port_scan.toml
 
 type NodeAndPortScanDatabase struct {
 	*SQLiteDatabase
@@ -23,7 +23,7 @@ func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
 		&SQLiteDatabase{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../migrations/node_and_port_scan"),
+				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../../db/node_and_port_scan"),
 			},
 		},
 	}

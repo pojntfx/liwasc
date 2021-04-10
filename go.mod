@@ -21,7 +21,7 @@ require (
 	github.com/mdlayher/wol v0.0.0-20200423173749-bc23029f94e1
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
 	github.com/pojntfx/go-app-grpc-chat-backend v0.0.0-20200914214506-117c1d64fa06
-	github.com/pojntfx/go-app-grpc-chat-frontend-web v0.0.0-20200914214440-b28bb959fef9 // indirect
+	github.com/pojntfx/go-app-grpc-chat-frontend-web v0.0.0-20200914214440-b28bb959fef9
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rubenv/sql-migrate v0.0.0-20210408115534-a32ed26c37ea
 	github.com/ugjka/messenger v1.1.3
