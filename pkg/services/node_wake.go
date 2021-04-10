@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/pojntfx/liwasc/pkg/api"
+	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	models "github.com/pojntfx/liwasc/pkg/db/node_wake"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	"github.com/pojntfx/liwasc/pkg/stores"

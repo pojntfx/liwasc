@@ -46,7 +46,7 @@ dev:
 
 clean:
 	rm -rf out
-	rm -rf pkg/api
+	rm -rf pkg/api/proto/v1
 	rm -rf pkg/db
 	rm -rf ~/.local/share/liwasc
 

@@ -4,7 +4,7 @@ package com.pojtinger.felicitas.liwasc;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/pojntfx/liwasc/pkg/api";
+option go_package = "github.com/pojntfx/liwasc/pkg/api/proto/v1";
 
 service MetadataService {
   rpc GetMetadataForScanner(google.protobuf.Empty)
