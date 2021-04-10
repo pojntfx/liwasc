@@ -1,8 +1,6 @@
 package components
 
 import (
-	"strconv"
-
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/liwasc/pkg/providers"
@@ -42,20 +40,8 @@ type DataShell struct {
 }
 
 const (
-	// Names and IDs
-	nodeScanTimeoutName    = "nodeScanTimeout"
-	portScanTimeoutName    = "portScanTimeout"
-	nodeScanMACAddressName = "nodeScanMACAddressTimeout"
-
-	nodeWakeTimeoutName    = "nodeWakeTimeout"
-	nodeWakeMACAddressName = "nodeWakeMACAddressTimeout"
-
 	// Default values
-	defaultNodeScanTimeout = 500
-	defaultPortScanTimeout = 10
-	allMACAddresses        = "ff:ff:ff:ff"
-
-	defaultNodeWakeTimeout    = 600000
+	allMACAddresses           = "ff:ff:ff:ff"
 	defaultNodeWakeMACAddress = ""
 )
 
@@ -328,140 +314,34 @@ func (c *DataShell) Render() app.UI {
 
 				Title: "Settings",
 				Body: []app.UI{
-					app.Form().
-						Class("pf-c-form").
-						ID("settings").
-						Body(
-							// Node Scan Timeout Input
-							&FormGroup{
-								Label: app.
-									Label().
-									For(nodeScanTimeoutName).
-									Class("pf-c-form__label").
-									Body(
-										app.
-											Span().
-											Class("pf-c-form__label-text").
-											Text("Node Scan Timeout (in ms)"),
-									),
-								Input: &Controlled{
-									Component: app.
-										Input().
-										Name(nodeScanTimeoutName).
-										ID(nodeScanTimeoutName).
-										Type("number").
-										Required(true).
-										Min(1).
-										Step(1).
-										Placeholder(strconv.Itoa(defaultNodeScanTimeout)).
-										Class("pf-c-form-control").
-										OnInput(func(ctx app.Context, e app.Event) {
-											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-											if err != nil || v == 0 {
-												c.Update()
+					&SettingsForm{
+						NodeScanTimeout: c.nodeScanTimeout,
+						SetNodeScanTimeout: func(i int64) {
+							c.dispatch(func() {
+								c.nodeScanTimeout = i
+							})
+						},
 
-												return
-											}
+						PortScanTimeout: c.portScanTimeout,
+						SetPortScanTimeout: func(i int64) {
+							c.dispatch(func() {
+								c.portScanTimeout = i
+							})
+						},
 
-											c.nodeScanTimeout = int64(v)
+						NodeWakeTimeout: c.nodeWakeTimeout,
+						SetNodeWakeTimeout: func(i int64) {
+							c.dispatch(func() {
+								c.nodeWakeTimeout = i
+							})
+						},
 
-											c.Update()
-										}),
-									Properties: map[string]interface{}{
-										"value": c.nodeScanTimeout,
-									},
-								},
-								Required: true,
-							},
-							// Port Scan Timeout Input
-							&FormGroup{
-								Label: app.
-									Label().
-									For(portScanTimeoutName).
-									Class("pf-c-form__label").
-									Body(
-										app.
-											Span().
-											Class("pf-c-form__label-text").
-											Text("Port Scan Timeout (in ms)"),
-									),
-								Input: &Controlled{
-									Component: app.
-										Input().
-										Name(portScanTimeoutName).
-										ID(portScanTimeoutName).
-										Type("number").
-										Required(true).
-										Min(1).
-										Step(1).
-										Placeholder(strconv.Itoa(defaultPortScanTimeout)).
-										Class("pf-c-form-control").
-										OnInput(func(ctx app.Context, e app.Event) {
-											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-											if err != nil || v == 0 {
-												c.Update()
-
-												return
-											}
-
-											c.portScanTimeout = int64(v)
-
-											c.Update()
-										}),
-									Properties: map[string]interface{}{
-										"value": c.portScanTimeout,
-									},
-								},
-								Required: true,
-							},
-							// Node Wake Timeout Input
-							&FormGroup{
-								Label: app.
-									Label().
-									For(nodeWakeTimeoutName).
-									Class("pf-c-form__label").
-									Body(
-										app.
-											Span().
-											Class("pf-c-form__label-text").
-											Text("Node Wake Timeout (in ms)"),
-									),
-								Input: &Controlled{
-									Component: app.
-										Input().
-										Name(nodeWakeTimeoutName).
-										ID(nodeWakeTimeoutName).
-										Type("number").
-										Required(true).
-										Min(1).
-										Step(1).
-										Placeholder(strconv.Itoa(defaultNodeWakeTimeout)).
-										Class("pf-c-form-control").
-										OnInput(func(ctx app.Context, e app.Event) {
-											v, err := strconv.Atoi(ctx.JSSrc.Get("value").String())
-											if err != nil || v == 0 {
-												c.Update()
-
-												return
-											}
-
-											c.nodeWakeTimeout = int64(v)
-
-											c.Update()
-										}),
-									Properties: map[string]interface{}{
-										"value": c.nodeWakeTimeout,
-									},
-								},
-								Required: true,
-							},
-						).OnSubmit(func(ctx app.Context, e app.Event) {
-						e.PreventDefault()
-
-						c.dispatch(func() {
-							c.settingsDialogOpen = false
-						})
-					}),
+						Submit: func() {
+							c.dispatch(func() {
+								c.settingsDialogOpen = false
+							})
+						},
+					},
 				},
 				Footer: []app.UI{
 					app.Button().

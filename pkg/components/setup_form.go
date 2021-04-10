@@ -191,6 +191,6 @@ func (c *SetupForm) Render() app.UI {
 		).OnSubmit(func(ctx app.Context, e app.Event) {
 		e.PreventDefault()
 
-		go c.Submit()
+		c.Submit()
 	})
 }
