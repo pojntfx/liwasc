@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta httpequiv="Content-Type" content="text/html; charset=utf-8">
+<meta content="text/html; charset=utf-8" httpequiv="Content-Type">
 <meta name="author" content="Felicitas Pojtinger">
 <meta name="description" content="List, wake and scan nodes in a network.">
 <meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
 <meta name="theme-color" content="#151515">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
-<meta property="og:url" content="http://127.0.0.1:42139/">
+<meta property="og:url" content="http://127.0.0.1:33611/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
 <meta property="og:type" content="website">
@@ -17,14 +17,14 @@
 liwasc
 </title>
 <link rel="icon" type="image/png" href="/liwasc/web/icon.png">
-<link rel="apple-touch-icon" href="/liwasc/web/icon.png">
+<link href="/liwasc/web/icon.png" rel="apple-touch-icon">
 <link rel="manifest" href="/liwasc/manifest.webmanifest">
-<link href="/liwasc/app.css" type="text/css" rel="stylesheet">
+<link type="text/css" rel="stylesheet" href="/liwasc/app.css">
 <script defer src="/liwasc/wasm_exec.js"></script>
 <script defer src="/liwasc/app.js"></script>
-<link href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css" type="text/css" rel="stylesheet">
-<link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css">
-<link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css">
+<link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css" type="text/css">
+<link rel="stylesheet" href="/liwasc/web/index.css" type="text/css">
 <meta property="og:url" content="https://liwasc.alphahorizon.io/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
@@ -96,7 +96,7 @@ Backend URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input name="backendURLName" id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false">
+<input placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false" name="backendURLName" id="backendURLName" type="url" required>
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -111,27 +111,27 @@ OIDC Issuer
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input name="oidcIssuer" id="oidcIssuer" type="url" required placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false">
+<input required placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer" type="url">
 </div>
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label for="oidcClientID" class="pf-c-form__label">
+<label class="pf-c-form__label" for="oidcClientID">
 <span class="pf-c-form__label-text">
 OIDC Client ID
 </span>
 </label>
-<span aria-hidden="true" class="pf-c-form__label-required">
+<span class="pf-c-form__label-required" aria-hidden="true">
 *
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input required class="pf-c-form-control" aria-invalid="false" name="oidcClientID" id="oidcClientID" type="text">
+<input name="oidcClientID" id="oidcClientID" type="text" required class="pf-c-form-control" aria-invalid="false">
 </div>
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label for="oidcRedirectURL" class="pf-c-form__label">
+<label class="pf-c-form__label" for="oidcRedirectURL">
 <span class="pf-c-form__label-text">
 OIDC Redirect URL
 </span>
@@ -141,7 +141,7 @@ OIDC Redirect URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input name="oidcRedirectURL" id="oidcRedirectURL" type="url" required placeholder="http://localhost:15125/" class="pf-c-form-control" aria-invalid="false">
+<input placeholder="http://localhost:15125/" class="pf-c-form-control" aria-invalid="false" name="oidcRedirectURL" id="oidcRedirectURL" type="url" required>
 </div>
 </div>
 <div class="pf-c-form__group pf-m-action">
@@ -170,7 +170,7 @@ services that run on them and manage their power status.
 </p>
 <ul class="pf-c-list pf-m-inline">
 <li>
-<a target="_blank" href="https://github.com/pojntfx/liwasc/wiki">
+<a href="https://github.com/pojntfx/liwasc/wiki" target="_blank">
 Documentation
 </a>
 </li>
@@ -180,7 +180,7 @@ License
 </a>
 </li>
 <li>
-<a href="https://github.com/pojntfx/liwasc" target="_blank">
+<a target="_blank" href="https://github.com/pojntfx/liwasc">
 Source Code
 </a>
 </li>
