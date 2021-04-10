@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/pojntfx/go-app-grpc-chat-backend/pkg/websocketproxy"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
+	"github.com/pojntfx/liwasc/pkg/api"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -53,9 +53,9 @@ func (s *LiwascServer) ListenAndServe() error {
 	server := grpc.NewServer()
 
 	reflection.Register(server)
-	proto.RegisterNodeAndPortScanServiceServer(server, s.nodeAndPortScanService)
-	proto.RegisterMetadataServiceServer(server, s.metadataService)
-	proto.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
+	api.RegisterNodeAndPortScanServiceServer(server, s.nodeAndPortScanService)
+	api.RegisterMetadataServiceServer(server, s.metadataService)
+	api.RegisterNodeWakeServiceServer(server, s.nodeWakeService)
 
 	doneChan := make(chan struct{})
 	errChan := make(chan error)

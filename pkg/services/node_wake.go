@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
-	"github.com/pojntfx/liwasc/pkg/databases"
-	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_wake"
+	"github.com/pojntfx/liwasc/pkg/api"
+	models "github.com/pojntfx/liwasc/pkg/db/node_wake"
 	"github.com/pojntfx/liwasc/pkg/scanners"
+	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"
@@ -20,12 +20,12 @@ import (
 )
 
 type NodeWakeService struct {
-	proto.UnimplementedNodeWakeServiceServer
+	api.UnimplementedNodeWakeServiceServer
 
 	device         string
 	wakeOnLANWaker *wakers.WakeOnLANWaker
 
-	nodeWakeDatabase *databases.NodeWakeDatabase
+	nodeWakeDatabase *stores.NodeWakeDatabase
 	getIPAddress     func(macAddress string) (ipAddress string, err error)
 
 	nodeWakeMessenger *messenger.Messenger
@@ -37,7 +37,7 @@ func NewNodeWakeService(
 	device string,
 	wakeOnLANWaker *wakers.WakeOnLANWaker,
 
-	nodeWakeDatabase *databases.NodeWakeDatabase,
+	nodeWakeDatabase *stores.NodeWakeDatabase,
 	getIPAddress func(macAddress string) (ipAddress string, err error),
 
 	contextValidator *validators.ContextValidator,
@@ -55,7 +55,7 @@ func NewNodeWakeService(
 	}
 }
 
-func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessage *proto.NodeWakeStartMessage) (*proto.NodeWakeMessage, error) {
+func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessage *api.NodeWakeStartMessage) (*api.NodeWakeMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -167,7 +167,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 		return nil, status.Errorf(codes.Unknown, "could not wake node")
 	}
 
-	protoNodeWake := &proto.NodeWakeMessage{
+	protoNodeWake := &api.NodeWakeMessage{
 		CreatedAt: dbNodeWake.CreatedAt.Format(time.RFC3339),
 		Done: func() bool {
 			if dbNodeWake.Done == 1 {
@@ -190,7 +190,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 	return protoNodeWake, nil
 }
 
-func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.NodeWakeService_SubscribeToNodeWakesServer) error {
+func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream api.NodeWakeService_SubscribeToNodeWakesServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -212,7 +212,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 		defer s.nodeWakeMessenger.Unsub(dbNodeWakes)
 
 		for dbNodeWake := range dbNodeWakes {
-			protoNodeWake := &proto.NodeWakeMessage{
+			protoNodeWake := &api.NodeWakeMessage{
 				CreatedAt: dbNodeWake.(*models.NodeWake).CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeWake.(*models.NodeWake).Done == 1 {
@@ -253,7 +253,7 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream proto.Node
 		}
 
 		for _, dbNodeWake := range dbNodeWakes {
-			protoNodeWake := &proto.NodeWakeMessage{
+			protoNodeWake := &api.NodeWakeMessage{
 				CreatedAt: dbNodeWake.CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeWake.Done == 1 {

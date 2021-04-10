@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/networking"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
+	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"golang.org/x/sync/semaphore"
@@ -52,12 +52,12 @@ func main() {
 
 	flag.Parse()
 
-	// Create databases
-	mac2VendorDatabase := databases.NewMAC2VendorDatabase(*mac2vendorDatabasePath, *mac2vendorDatabaseURL)
-	serviceNamesPortNumbersDatabase := databases.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath, *serviceNamesPortNumbersDatabaseURL)
-	ports2PacketsDatabase := databases.NewPorts2PacketDatabase(*ports2PacketsDatabasePath, *ports2PacketsDatabaseURL)
-	nodeAndPortScanDatabase := databases.NewNodeAndPortScanDatabase(*nodeAndPortScanDatabasePath)
-	nodeWakeDatabase := databases.NewNodeWakeDatabase(*nodeWakeDatabasePath)
+	// Create stores
+	mac2VendorDatabase := stores.NewMAC2VendorDatabase(*mac2vendorDatabasePath, *mac2vendorDatabaseURL)
+	serviceNamesPortNumbersDatabase := stores.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath, *serviceNamesPortNumbersDatabaseURL)
+	ports2PacketsDatabase := stores.NewPorts2PacketDatabase(*ports2PacketsDatabasePath, *ports2PacketsDatabaseURL)
+	nodeAndPortScanDatabase := stores.NewNodeAndPortScanDatabase(*nodeAndPortScanDatabasePath)
+	nodeWakeDatabase := stores.NewNodeWakeDatabase(*nodeWakeDatabasePath)
 
 	// Create generic utilities
 	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
@@ -109,7 +109,7 @@ func main() {
 		nodeWakeService,
 	)
 
-	// Open databases
+	// Open stores
 	if err := mac2VendorDatabase.Open(); err != nil {
 		log.Fatal("could not open mac2VendorDatabase", err)
 	}

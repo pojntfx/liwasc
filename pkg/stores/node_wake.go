@@ -1,16 +1,16 @@
-package databases
+package stores
 
 import (
 	"context"
 
 	"github.com/gobuffalo/packr/v2"
-	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_wake"
+	models "github.com/pojntfx/liwasc/pkg/db/node_wake"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sqlboiler sqlite3 -o generated/node_wake -c ../../configs/node_wake.toml
+//go:generate sqlboiler sqlite3 -o ../db/node_wake -c ../../configs/node_wake.toml
 
 type NodeWakeDatabase struct {
 	*SQLiteDatabase
@@ -21,7 +21,7 @@ func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
 		&SQLiteDatabase{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeWakeDatabaseMigrations", "../migrations/node_wake"),
+				Box: packr.New("nodeWakeDatabaseMigrations", "../../db/node_wake"),
 			},
 		},
 	}

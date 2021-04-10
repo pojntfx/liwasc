@@ -21,7 +21,7 @@ import (
 var flagDebugMode = flag.Bool("test.sqldebug", false, "Turns on debug mode for SQL statements")
 var flagConfigFile = flag.String("test.config", "", "Overrides the default config")
 
-const outputDirDepth = 2
+const outputDirDepth = 3
 
 var (
 	dbMain tester

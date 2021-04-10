@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
+	"github.com/pojntfx/liwasc/pkg/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -97,9 +97,9 @@ type DataProvider struct {
 	app.Compo
 
 	AuthenticatedContext   context.Context
-	MetadataService        proto.MetadataServiceClient
-	NodeAndPortScanService proto.NodeAndPortScanServiceClient
-	NodeWakeService        proto.NodeWakeServiceClient
+	MetadataService        api.MetadataServiceClient
+	NodeAndPortScanService api.NodeAndPortScanServiceClient
+	NodeWakeService        api.NodeWakeServiceClient
 	Children               func(DataProviderChildrenProps) app.UI
 
 	network     Network
@@ -169,7 +169,7 @@ func (c *DataProvider) triggerNetworkScan(nodeScanTimeout int64, portScanTimeout
 	})
 
 	// Start the node scan
-	if _, err := c.NodeAndPortScanService.StartNodeScan(c.AuthenticatedContext, &proto.NodeScanStartMessage{
+	if _, err := c.NodeAndPortScanService.StartNodeScan(c.AuthenticatedContext, &api.NodeScanStartMessage{
 		NodeScanTimeout: nodeScanTimeout,
 		PortScanTimeout: portScanTimeout,
 		MACAddress:      macAddress,
@@ -192,7 +192,7 @@ func (c *DataProvider) startNodeWake(nodeWakeTimeout int64, macAddress string) {
 	})
 
 	// Start the node wake
-	if _, err := c.NodeWakeService.StartNodeWake(c.AuthenticatedContext, &proto.NodeWakeStartMessage{
+	if _, err := c.NodeWakeService.StartNodeWake(c.AuthenticatedContext, &api.NodeWakeStartMessage{
 		NodeWakeTimeout: nodeWakeTimeout,
 		MACAddress:      macAddress,
 	}); err != nil {
@@ -316,7 +316,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 				})
 
 				// Subscribe to nodes
-				go func(nsm *proto.NodeScanMessage) {
+				go func(nsm *api.NodeScanMessage) {
 					// Get stream from service
 					nodeStream, err := c.NodeAndPortScanService.SubscribeToNodes(c.AuthenticatedContext, nsm)
 					if err != nil {
@@ -348,12 +348,12 @@ func (c *DataProvider) OnMount(context app.Context) {
 						}
 
 						// Get the node's metadata
-						nodeMetadata, err := c.MetadataService.GetMetadataForNode(c.AuthenticatedContext, &proto.NodeMetadataReferenceMessage{
+						nodeMetadata, err := c.MetadataService.GetMetadataForNode(c.AuthenticatedContext, &api.NodeMetadataReferenceMessage{
 							MACAddress: node.GetMACAddress(),
 						})
 						if err != nil {
 							if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
-								nodeMetadata = &proto.NodeMetadataMessage{
+								nodeMetadata = &api.NodeMetadataMessage{
 									MACAddress:   node.GetMACAddress(),
 									Vendor:       "",
 									Registry:     "",
@@ -431,7 +431,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 						})
 
 						// Subscribe to port scans
-						go func(nm *proto.NodeMessage) {
+						go func(nm *api.NodeMessage) {
 							// Get stream from service
 							portScanStream, err := c.NodeAndPortScanService.SubscribeToPortScans(c.AuthenticatedContext, nm)
 							if err != nil {
@@ -495,7 +495,7 @@ func (c *DataProvider) OnMount(context app.Context) {
 									})
 
 									// Subscribe to ports
-									go func(ps *proto.PortScanMessage) {
+									go func(ps *api.PortScanMessage) {
 										// Get stream from service
 										portStream, err := c.NodeAndPortScanService.SubscribeToPorts(c.AuthenticatedContext, ps)
 										if err != nil {
@@ -527,13 +527,13 @@ func (c *DataProvider) OnMount(context app.Context) {
 											}
 
 											// Get the port's metadata
-											portMetadata, err := c.MetadataService.GetMetadataForPort(c.AuthenticatedContext, &proto.PortMetadataReferenceMessage{
+											portMetadata, err := c.MetadataService.GetMetadataForPort(c.AuthenticatedContext, &api.PortMetadataReferenceMessage{
 												PortNumber:        port.GetPortNumber(),
 												TransportProtocol: port.GetTransportProtocol(),
 											})
 											if err != nil {
 												if status, ok := status.FromError(err); ok && status.Code() == codes.NotFound {
-													portMetadata = &proto.PortMetadataMessage{
+													portMetadata = &api.PortMetadataMessage{
 														ServiceName:             "",
 														PortNumber:              port.GetPortNumber(),
 														TransportProtocol:       port.GetTransportProtocol(),

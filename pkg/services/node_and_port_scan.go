@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
-	"github.com/pojntfx/liwasc/pkg/databases"
-	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_and_port_scan"
+	"github.com/pojntfx/liwasc/pkg/api"
+	models "github.com/pojntfx/liwasc/pkg/db/node_and_port_scan"
 	"github.com/pojntfx/liwasc/pkg/scanners"
+	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
@@ -21,12 +21,12 @@ import (
 )
 
 type NodeAndPortScanPortService struct {
-	proto.UnimplementedNodeAndPortScanServiceServer
+	api.UnimplementedNodeAndPortScanServiceServer
 
 	device string
 
-	ports2packetsDatabase   *databases.Ports2PacketDatabase
-	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase
+	ports2packetsDatabase   *stores.Ports2PacketDatabase
+	nodeAndPortScanDatabase *stores.NodeAndPortScanDatabase
 
 	portScannerSemaphore *semaphore.Weighted
 
@@ -50,8 +50,8 @@ type NodeAndPortScanPortService struct {
 func NewNodeAndPortScanPortService(
 	device string,
 
-	ports2packetsDatabase *databases.Ports2PacketDatabase,
-	nodeAndPortScanDatabase *databases.NodeAndPortScanDatabase,
+	ports2packetsDatabase *stores.Ports2PacketDatabase,
+	nodeAndPortScanDatabase *stores.NodeAndPortScanDatabase,
 
 	portScannerSemaphore *semaphore.Weighted,
 
@@ -87,7 +87,7 @@ func NewNodeAndPortScanPortService(
 func (s *NodeAndPortScanPortService) Open() error {
 	if _, err := s.cron.AddFunc(s.periodicScanCronExpression, func() {
 		go func() {
-			protoNodeScanStartMessage := &proto.NodeScanStartMessage{
+			protoNodeScanStartMessage := &api.NodeScanStartMessage{
 				NodeScanTimeout: int64(s.periodicNodeScanTimeout),
 				PortScanTimeout: int64(s.periodicPortScanTimeout),
 			}
@@ -112,7 +112,7 @@ func (s *NodeAndPortScanPortService) Open() error {
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *proto.NodeScanStartMessage) (*proto.NodeScanMessage, error) {
+func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScanStartMessage *api.NodeScanStartMessage) (*api.NodeScanMessage, error) {
 	// Authorize
 	valid, err := s.contextValidator.Validate(ctx)
 	if err != nil || !valid {
@@ -132,7 +132,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 	return s.startInternalNodeScan(ctx, nodeScanStartMessage)
 }
 
-func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *proto.NodeScanStartMessage) (*proto.NodeScanMessage, error) {
+func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *api.NodeScanStartMessage) (*api.NodeScanMessage, error) {
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
 	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
@@ -401,7 +401,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 	}()
 
 	// Return reference to node scan
-	protoNodeScanMessage := &proto.NodeScanMessage{
+	protoNodeScanMessage := &api.NodeScanMessage{
 		ID:        dbNodeScan.ID,
 		CreatedAt: dbNodeScan.CreatedAt.Format(time.RFC3339),
 		Done: func() bool {
@@ -416,7 +416,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 	return protoNodeScanMessage, nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream proto.NodeAndPortScanService_SubscribeToNodeScansServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream api.NodeAndPortScanService_SubscribeToNodeScansServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -442,7 +442,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 		messengerReady <- true
 
 		for dbNodeScan := range dbNodeScans {
-			protoNodeScan := &proto.NodeScanMessage{
+			protoNodeScan := &api.NodeScanMessage{
 				CreatedAt: dbNodeScan.(*models.NodeScan).CreatedAt.Format(time.RFC3339),
 				Done: func() bool {
 					if dbNodeScan.(*models.NodeScan).Done == 1 {
@@ -487,7 +487,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.NodeScanMessage, stream proto.NodeAndPortScanService_SubscribeToNodesServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *api.NodeScanMessage, stream api.NodeAndPortScanService_SubscribeToNodesServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -527,7 +527,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 						break
 					}
 
-					protoNode := &proto.NodeMessage{
+					protoNode := &api.NodeMessage{
 						CreatedAt:  dbNode.(*models.Node).CreatedAt.Format(time.RFC3339),
 						ID:         dbNode.(*models.Node).ID,
 						IPAddress:  dbNode.(*models.Node).IPAddress,
@@ -559,7 +559,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 		}
 
 		for _, dbNode := range dbNodes {
-			protoNode := &proto.NodeMessage{
+			protoNode := &api.NodeMessage{
 				CreatedAt:  dbNode.CreatedAt.Format(time.RFC3339),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
@@ -589,7 +589,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 		}
 
 		for _, dbNode := range dbNodes {
-			protoNode := &proto.NodeMessage{
+			protoNode := &api.NodeMessage{
 				CreatedAt:  dbNode.CreatedAt.Format(time.RFC3339),
 				ID:         dbNode.ID,
 				IPAddress:  dbNode.IPAddress,
@@ -614,7 +614,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *proto.Nod
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.NodeMessage, stream proto.NodeAndPortScanService_SubscribeToPortScansServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *api.NodeMessage, stream api.NodeAndPortScanService_SubscribeToPortScansServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -642,7 +642,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 		newestPortScanDate := time.Unix(0, 0)
 		for dbPortScan := range dbPortScans {
 			if dbPortScan.(*models.PortScan).NodeID == nodeMessage.GetID() {
-				protoPortScan := &proto.PortScanMessage{
+				protoPortScan := &api.PortScanMessage{
 					CreatedAt: dbPortScan.(*models.PortScan).CreatedAt.Format(time.RFC3339),
 					Done: func() bool {
 						if dbPortScan.(*models.PortScan).Done == 1 {
@@ -701,7 +701,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *proto.Nod
 	return nil
 }
 
-func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.PortScanMessage, stream proto.NodeAndPortScanService_SubscribeToPortsServer) error {
+func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *api.PortScanMessage, stream api.NodeAndPortScanService_SubscribeToPortsServer) error {
 	// Authorize
 	valid, err := s.contextValidator.Validate(stream.Context())
 	if err != nil || !valid {
@@ -741,7 +741,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 						break
 					}
 
-					protoPort := &proto.PortMessage{
+					protoPort := &api.PortMessage{
 						CreatedAt:         dbPort.(*models.Port).CreatedAt.Format(time.RFC3339),
 						ID:                dbPort.(*models.Port).ID,
 						Priority:          2,
@@ -772,7 +772,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *proto.Por
 		}
 
 		for _, dbPort := range dbPorts {
-			protoPort := &proto.PortMessage{
+			protoPort := &api.PortMessage{
 				CreatedAt:         dbPort.CreatedAt.Format(time.RFC3339),
 				ID:                dbPort.ID,
 				Priority:          1,

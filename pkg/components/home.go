@@ -6,7 +6,7 @@ import (
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	proto "github.com/pojntfx/liwasc/pkg/api/generated"
+	"github.com/pojntfx/liwasc/pkg/api"
 	"github.com/pojntfx/liwasc/pkg/providers"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -82,9 +82,9 @@ services that run on them and manage their power status.`,
 								// Data provider
 								return &providers.DataProvider{
 									AuthenticatedContext:   metadata.AppendToOutgoingContext(context.Background(), "X-Liwasc-Authorization", ipcp.IDToken),
-									MetadataService:        proto.NewMetadataServiceClient(conn),
-									NodeAndPortScanService: proto.NewNodeAndPortScanServiceClient(conn),
-									NodeWakeService:        proto.NewNodeWakeServiceClient(conn),
+									MetadataService:        api.NewMetadataServiceClient(conn),
+									NodeAndPortScanService: api.NewNodeAndPortScanServiceClient(conn),
+									NodeWakeService:        api.NewNodeWakeServiceClient(conn),
 									Children: func(dpcp providers.DataProviderChildrenProps) app.UI {
 										// Data shell
 										return &DataShell{
