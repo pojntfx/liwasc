@@ -1,6 +1,6 @@
 package databases
 
-//go:generate sqlboiler sqlite3 -o generated/mac2vendor -c mac2vendor.toml
+//go:generate sqlboiler sqlite3 -o generated/mac2vendor -c ../../configs/mac2vendor.toml
 
 import (
 	"context"

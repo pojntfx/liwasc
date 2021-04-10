@@ -12,7 +12,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sqlboiler sqlite3 -o generated/node_and_port_scan -c node_and_port_scan.toml
+//go:generate sqlboiler sqlite3 -o generated/node_and_port_scan -c ../../configs/node_and_port_scan.toml
 
 type NodeAndPortScanDatabase struct {
 	*SQLiteDatabase

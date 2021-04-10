@@ -46,7 +46,7 @@ dev:
 
 clean:
 	rm -rf out
-	rm -rf pkg/proto/generated
+	rm -rf pkg/api/generated
 	rm -rf pkg/databases/generated
 	rm -rf ~/.local/share/liwasc
 
@@ -64,7 +64,7 @@ depend:
 	GO111MODULE=on go get github.com/rubenv/sql-migrate/...
 	GO111MODULE=on go get github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 	# Setup persistence databases
-	sql-migrate up -env="production" -config pkg/databases/node_and_port_scan.yaml
-	sql-migrate up -env="production" -config pkg/databases/node_wake.yaml
+	sql-migrate up -env="production" -config configs/node_and_port_scan.yaml
+	sql-migrate up -env="production" -config configs/node_wake.yaml
 	# Generate bindings
 	go generate ./...
