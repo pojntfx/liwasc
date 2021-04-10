@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	proto "github.com/pojntfx/liwasc/pkg/api/generated"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	"github.com/pojntfx/liwasc/pkg/networking"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

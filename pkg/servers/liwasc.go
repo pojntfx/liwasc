@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/pojntfx/go-app-grpc-chat-backend/pkg/websocketproxy"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
+	proto "github.com/pojntfx/liwasc/pkg/api/generated"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -16,8 +16,8 @@ type LiwascServer struct {
 	webSocketListenAddress string
 
 	nodeAndPortScanService *services.NodeAndPortScanPortService
-	metadataService     *services.MetadataService
-	nodeWakeService     *services.NodeWakeService
+	metadataService        *services.MetadataService
+	nodeWakeService        *services.NodeWakeService
 }
 
 func NewLiwascServer(
@@ -33,8 +33,8 @@ func NewLiwascServer(
 		webSocketListenAddress: webSocketListenAddress,
 
 		nodeAndPortScanService: nodeAndPortScanService,
-		metadataService:     metadataService,
-		nodeWakeService:     nodeWakeService,
+		metadataService:        metadataService,
+		nodeWakeService:        nodeWakeService,
 	}
 }
 

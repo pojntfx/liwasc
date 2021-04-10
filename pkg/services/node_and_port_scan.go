@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	proto "github.com/pojntfx/liwasc/pkg/api/generated"
 	"github.com/pojntfx/liwasc/pkg/databases"
 	models "github.com/pojntfx/liwasc/pkg/databases/generated/node_and_port_scan"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
