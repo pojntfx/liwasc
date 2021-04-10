@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/pojntfx/go-app-grpc-chat-backend/pkg/websocketproxy"
-	"github.com/pojntfx/liwasc/pkg/api"
+	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	"github.com/pojntfx/liwasc/pkg/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

@@ -4,7 +4,7 @@ package com.pojtinger.felix.liwasc;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/pojntfx/liwasc/pkg/api";
+option go_package = "github.com/pojntfx/liwasc/pkg/api/proto/v1";
 
 service NodeWakeService {
   rpc StartNodeWake(NodeWakeStartMessage) returns (NodeWakeMessage);

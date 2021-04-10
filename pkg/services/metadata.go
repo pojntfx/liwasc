@@ -1,6 +1,6 @@
 package services
 
-//go:generate sh -c "mkdir -p ../api && protoc --go_out=paths=source_relative,plugins=grpc:../api -I=../../api ../../api/*.proto"
+//go:generate sh -c "mkdir -p ../api/proto/v1 && protoc --go_out=paths=source_relative,plugins=grpc:../api/proto/v1 -I=../../api/proto/v1 ../../api/proto/v1/*.proto"
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/pojntfx/liwasc/pkg/api"
+	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	"github.com/pojntfx/liwasc/pkg/networking"
 	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"

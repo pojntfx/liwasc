@@ -21,7 +21,7 @@ func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
 		&SQLiteDatabase{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeWakeDatabaseMigrations", "../../db/node_wake"),
+				Box: packr.New("nodeWakeDatabaseMigrations", "../../db/sql/migrations/node_wake"),
 			},
 		},
 	}
