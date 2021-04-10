@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
+	proto "github.com/pojntfx/liwasc/pkg/api/generated"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"

@@ -3,9 +3,13 @@ module github.com/pojntfx/liwasc
 go 1.16
 
 require (
+	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/coreos/go-oidc/v3 v3.0.0
+	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/friendsofgo/errors v0.9.2
 	github.com/fullstorydev/grpcurl v1.8.0 // indirect
+	github.com/go-kit/kit v0.10.0 // indirect
+	github.com/gobuffalo/envy v1.7.1 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gopacket v1.1.19
@@ -19,12 +23,13 @@ require (
 	github.com/pojntfx/go-app-grpc-chat-backend v0.0.0-20200914214506-117c1d64fa06
 	github.com/pojntfx/go-app-grpc-chat-frontend-web v0.0.0-20200914214440-b28bb959fef9 // indirect
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rubenv/sql-migrate v0.0.0-20210215143335-f84234893558
+	github.com/rubenv/sql-migrate v0.0.0-20210408115534-a32ed26c37ea
 	github.com/ugjka/messenger v1.1.3
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
+	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/grpc v1.36.1

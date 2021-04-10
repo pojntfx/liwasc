@@ -6,7 +6,7 @@ import (
 
 	"github.com/maxence-charriere/go-app/v8/pkg/app"
 	"github.com/pojntfx/go-app-grpc-chat-frontend-web/pkg/websocketproxy"
-	proto "github.com/pojntfx/liwasc/pkg/proto/generated"
+	proto "github.com/pojntfx/liwasc/pkg/api/generated"
 	"github.com/pojntfx/liwasc/pkg/providers"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
