@@ -160,7 +160,7 @@ func (c *Navbar) Render() app.UI {
 																Body(
 																	app.A().
 																		Class("pf-c-dropdown__menu-item").
-																		Href("https://github.com/pojntfx/liwasc/wiki").
+																		Href("https://github.com/pojntfx/liwasc#Usage").
 																		Text("Documentation").
 																		Target("_blank"),
 																),
