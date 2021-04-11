@@ -29,8 +29,8 @@ release-frontend-github-pages: frontend
 
 release: release-backend release-frontend release-frontend-github-pages
 
-install: backend
-	sudo install out/liwasc-backend/liwasc-backend /usr/local/bin
+install: release-backend
+	sudo install out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) /usr/local/bin
 	sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend
 	
 dev:
@@ -40,7 +40,7 @@ dev:
 		kill -9 $$FRONTEND_PID 2>/dev/null 1>&2;\
 		wait $$BACKEND_PID $$FRONTEND_PID;\
 		sudo setcap cap_net_raw+ep out/liwasc-backend/liwasc-backend;\
-		out/liwasc-backend/liwasc-backend -oidcIssuer=${OIDCISSUER} -oidcClientID=${OIDCCLIENTID} -deviceName=${DEVICENAME} & export BACKEND_PID="$$!";\
+		out/liwasc-backend/liwasc-backend & export BACKEND_PID="$$!";\
 		/tmp/liwasc-frontend-build -serve & export FRONTEND_PID="$$!";\
 	done
 
