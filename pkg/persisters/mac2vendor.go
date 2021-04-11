@@ -1,6 +1,6 @@
 package persisters
 
-//go:generate sqlboiler sqlite3 -o ../db/mac2vendor -c ../../configs/mac2vendor.toml
+//go:generate sqlboiler sqlite3 -o ../db/sqlite/mac2vendor -c ../../configs/mac2vendor.toml
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	mac2vendorModels "github.com/pojntfx/liwasc/pkg/db/mac2vendor"
+	mac2vendorModels "github.com/pojntfx/liwasc/pkg/db/sqlite/mac2vendor"
 )
 
 type MAC2VendorPersister struct {
