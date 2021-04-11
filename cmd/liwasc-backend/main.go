@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,10 +11,155 @@ import (
 	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/semaphore"
 )
 
+const (
+	configFileKey                          = "configFile"
+	deviceNameKey                          = "deviceName"
+	nodeAndPortScanDatabasePathKey         = "nodeAndPortScanDatabasePath"
+	nodeWakeDatabasePathKey                = "nodeWakeDatabasePath"
+	mac2vendorDatabasePathKey              = "mac2vendorDatabasePath"
+	serviceNamesPortNumbersDatabasePathKey = "serviceNamesPortNumbersDatabasePath"
+	ports2PacketsDatabasePathKey           = "ports2PacketsDatabasePath"
+	mac2vendorDatabaseURLKey               = "mac2vendorDatabaseURL"
+	serviceNamesPortNumbersDatabaseURLKey  = "serviceNamesPortNumbersDatabaseURL"
+	ports2PacketsDatabaseURLKey            = "ports2PacketsDatabaseURL"
+	listenAddressKey                       = "listenAddress"
+	webSocketListenAddressKey              = "webSocketListenAddress"
+	maxConcurrentPortScansKey              = "maxConcurrentPortScans"
+	periodicScanCronExpressionKey          = "periodicScanCronExpression"
+	periodicNodeScanTimeoutKey             = "periodicNodeScanTimeout"
+	periodicPortScanTimeoutKey             = "periodicPortScanTimeout"
+	oidcIssuerKey                          = "oidcIssuer"
+	oidcClientIDKey                        = "oidcClientID"
+	prepareOnlyKey                         = "prepareOnly"
+)
+
 func main() {
+	// Create command
+	cmd := &cobra.Command{
+		Use:   "liwasc-backend",
+		Short: "List, wake and scan nodes in a network.",
+		Long: `liwasc is a high-performance network and port scanner. It can quickly give you a overview of the nodes in your network, the services that run on them and manage their power status.
+
+For more information, please visit https://github.com/pojntfx/liwasc.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Bind config file
+			if !(viper.GetString(configFileKey) == "") {
+				viper.SetConfigFile(viper.GetString(configFileKey))
+
+				if err := viper.ReadInConfig(); err != nil {
+					return err
+				}
+			}
+
+			// Create stores
+			mac2VendorDatabase := stores.NewMAC2VendorDatabase(viper.GetString(mac2vendorDatabasePathKey), viper.GetString(mac2vendorDatabaseURLKey))
+			serviceNamesPortNumbersDatabase := stores.NewServiceNamesPortNumbersDatabase(viper.GetString(serviceNamesPortNumbersDatabasePathKey), viper.GetString(serviceNamesPortNumbersDatabaseURLKey))
+			ports2PacketsDatabase := stores.NewPorts2PacketDatabase(viper.GetString(ports2PacketsDatabasePathKey), viper.GetString(ports2PacketsDatabaseURLKey))
+			nodeAndPortScanDatabase := stores.NewNodeAndPortScanDatabase(viper.GetString(nodeAndPortScanDatabasePathKey))
+			nodeWakeDatabase := stores.NewNodeWakeDatabase(viper.GetString(nodeWakeDatabasePathKey))
+
+			// Create generic utilities
+			wakeOnLANWaker := wakers.NewWakeOnLANWaker(viper.GetString(deviceNameKey))
+			interfaceInspector := networking.NewInterfaceInspector(viper.GetString(deviceNameKey))
+
+			// Create auth utilities
+			oidcValidator := validators.NewOIDCValidator(viper.GetString(oidcIssuerKey), viper.GetString(oidcClientIDKey))
+			contextValidator := validators.NewContextValidator(services.AUTHORIZATION_METADATA_KEY, oidcValidator)
+
+			// Create services
+			nodeAndPortScanService := services.NewNodeAndPortScanPortService(
+				viper.GetString(deviceNameKey),
+				ports2PacketsDatabase,
+				nodeAndPortScanDatabase,
+				semaphore.NewWeighted(viper.GetInt64(maxConcurrentPortScansKey)),
+				viper.GetString(periodicScanCronExpressionKey),
+				viper.GetInt(periodicNodeScanTimeoutKey),
+				viper.GetInt(periodicPortScanTimeoutKey),
+				contextValidator,
+			)
+			metadataService := services.NewMetadataService(
+				interfaceInspector,
+				mac2VendorDatabase,
+				serviceNamesPortNumbersDatabase,
+				contextValidator,
+			)
+			nodeWakeService := services.NewNodeWakeService(
+				viper.GetString(deviceNameKey),
+				wakeOnLANWaker,
+				nodeWakeDatabase,
+				func(macAddress string) (string, error) {
+					node, err := nodeAndPortScanDatabase.GetNodeByMACAddress(macAddress)
+					if err != nil {
+						return "", err
+					}
+
+					return node.IPAddress, nil
+				},
+				contextValidator,
+			)
+
+			// Create server
+			liwascServer := servers.NewLiwascServer(
+				viper.GetString(listenAddressKey),
+				viper.GetString(webSocketListenAddressKey),
+
+				nodeAndPortScanService,
+				metadataService,
+				nodeWakeService,
+			)
+
+			// Open stores
+			if err := mac2VendorDatabase.Open(); err != nil {
+				log.Fatal("could not open mac2VendorDatabase", err)
+			}
+			if err := serviceNamesPortNumbersDatabase.Open(); err != nil {
+				log.Fatal("could not open serviceNamesPortNumbersDatabase", err)
+			}
+			if err := ports2PacketsDatabase.Open(); err != nil {
+				log.Fatal("could not open ports2PacketsDatabase", err)
+			}
+			if err := nodeAndPortScanDatabase.Open(); err != nil {
+				log.Fatal("could not open networkAndNodeScanDatabase", err)
+			}
+			if err := nodeWakeDatabase.Open(); err != nil {
+				log.Fatal("could not open nodeWakeDatabase", err)
+			}
+
+			// Init is done, exit
+			if viper.GetBool(prepareOnlyKey) {
+				os.Exit(0)
+			}
+
+			// Open utilities
+			if err := wakeOnLANWaker.Open(); err != nil {
+				log.Fatal("could not open wakeOnLANWaker", err)
+			}
+			if err := oidcValidator.Open(); err != nil {
+				log.Fatal("could not open oidcValidator", err)
+			}
+
+			// Open services
+			if err := metadataService.Open(); err != nil {
+				log.Fatal("could not open metadataService", err)
+			}
+			go func() {
+				if err := nodeAndPortScanService.Open(); err != nil {
+					log.Fatal("could not open nodeAndPortScanService", err)
+				}
+			}()
+
+			// Start server
+			log.Printf("liwasc backend listening on %v (gRPC) and %v (gRPC-Web)\n", viper.GetString(listenAddressKey), viper.GetString(webSocketListenAddressKey))
+
+			return liwascServer.ListenAndServe()
+		},
+	}
+
 	// Get prefix
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -23,136 +167,43 @@ func main() {
 	}
 	prefix := filepath.Join(home, ".local", "share", "liwasc")
 
-	// Parse flags
-	deviceName := flag.String("deviceName", "eth0", "Network device name")
+	// Bind flags
+	cmd.PersistentFlags().StringP(configFileKey, "c", "", "Config file to use")
+	cmd.PersistentFlags().StringP(deviceNameKey, "d", "eth0", "Network device name")
 
-	nodeAndPortScanDatabasePath := flag.String("nodeAndPortScanDatabasePath", filepath.Join(prefix, "var", "lib", "liwasc", "node_and_port_scan.sqlite"), "Path to the node and port scan database")
-	nodeWakeDatabasePath := flag.String("nodeWakeDatabasePath", filepath.Join(prefix, "var", "lib", "liwasc", "node_wake.sqlite"), "Path to the node wake database")
+	cmd.PersistentFlags().String(nodeAndPortScanDatabasePathKey, filepath.Join(prefix, "var", "lib", "liwasc", "node_and_port_scan.sqlite"), "Path to the node and port scan database")
+	cmd.PersistentFlags().String(nodeWakeDatabasePathKey, filepath.Join(prefix, "var", "lib", "liwasc", "node_wake.sqlite"), "Path to the node wake database")
 
-	mac2vendorDatabasePath := flag.String("mac2vendorDatabasePath", filepath.Join(prefix, "etc", "liwasc", "oui-database.sqlite"), "Path to the mac2vendor database")
-	serviceNamesPortNumbersDatabasePath := flag.String("serviceNamesPortNumbersDatabasePath", filepath.Join(prefix, "etc", "liwasc", "service-names-port-numbers.csv"), "Path to the CSV input file containing the registered services")
-	ports2PacketsDatabasePath := flag.String("ports2PacketsDatabasePath", filepath.Join(prefix, "etc", "liwasc", "ports2packets.csv"), "Path to the ports2packets database")
+	cmd.PersistentFlags().String(mac2vendorDatabasePathKey, filepath.Join(prefix, "etc", "liwasc", "oui-database.sqlite"), "Path to the mac2vendor database")
+	cmd.PersistentFlags().String(serviceNamesPortNumbersDatabasePathKey, filepath.Join(prefix, "etc", "liwasc", "service-names-port-numbers.csv"), "Path to the CSV input file containing the registered services")
+	cmd.PersistentFlags().String(ports2PacketsDatabasePathKey, filepath.Join(prefix, "etc", "liwasc", "ports2packets.csv"), "Path to the ports2packets database")
 
-	mac2vendorDatabaseURL := flag.String("mac2vendorDatabaseURL", "https://mac2vendor.com/download/oui-database.sqlite", "URL to the mac2vendor database; will be downloaded on the first run if it doesn't exist")
-	serviceNamesPortNumbersDatabaseURL := flag.String("serviceNamesPortNumbersDatabaseURL", "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv", "URL to the CSV input file containing the registered services; will be downloaded on the first run if it doesn't exist")
-	ports2PacketsDatabaseURL := flag.String("ports2PacketsDatabaseURL", "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv", "URL to the ports2packets database; will be downloaded on the first run if it doesn't exist")
+	cmd.PersistentFlags().String(mac2vendorDatabaseURLKey, "https://mac2vendor.com/download/oui-database.sqlite", "URL to the mac2vendor database; will be downloaded on the first run if it doesn't exist")
+	cmd.PersistentFlags().String(serviceNamesPortNumbersDatabaseURLKey, "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv", "URL to the CSV input file containing the registered services; will be downloaded on the first run if it doesn't exist")
+	cmd.PersistentFlags().String(ports2PacketsDatabaseURLKey, "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv", "URL to the ports2packets database; will be downloaded on the first run if it doesn't exist")
 
-	listenAddress := flag.String("listenAddress", "localhost:15123", "Listen address")
-	webSocketListenAddress := flag.String("webSocketListenAddress", "localhost:15124", "Listen address (for the WebSocket proxy)")
-	maxConcurrentPortScans := flag.Int64("maxConcurrentPortScans", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter")
+	cmd.PersistentFlags().StringP(listenAddressKey, "l", "localhost:15123", "Listen address")
+	cmd.PersistentFlags().StringP(webSocketListenAddressKey, "w", "localhost:15124", "Listen address (for the WebSocket proxy)")
+	cmd.PersistentFlags().Int64P(maxConcurrentPortScansKey, "u", 100, "Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter")
 
-	periodicScanCronExpression := flag.String("periodicScanCronExpression", "*/10 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every ten minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
-	periodicNodeScanTimeout := flag.Int("periodicNodeScanTimeout", 500, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans")
-	periodicPortScanTimeout := flag.Int("periodicPortScanTimeout", 10, "Time in milliseconds to wait for a response per port in the periodic port scans")
+	cmd.PersistentFlags().StringP(periodicScanCronExpressionKey, "e", "*/10 * * * *", "Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every ten minutes. See https://pkg.go.dev/github.com/robfig/cron for more information")
+	cmd.PersistentFlags().IntP(periodicNodeScanTimeoutKey, "n", 500, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans")
+	cmd.PersistentFlags().IntP(periodicPortScanTimeoutKey, "p", 10, "Time in milliseconds to wait for a response per port in the periodic port scans")
 
-	oidcIssuer := flag.String("oidcIssuer", "https://accounts.google.com", "OIDC issuer")
-	oidcClientID := flag.String("oidcClientID", "myoidcclientid", "OIDC client ID")
+	cmd.PersistentFlags().StringP(oidcIssuerKey, "i", "https://accounts.google.com", "OIDC issuer")
+	cmd.PersistentFlags().StringP(oidcClientIDKey, "t", "myoidcclientid", "OIDC client ID")
 
-	prepareOnly := flag.Bool("prepareOnly", false, "Only download external databases & prepare them, then exit")
+	cmd.PersistentFlags().BoolP(prepareOnlyKey, "o", false, "Only download external databases & prepare them, then exit")
 
-	flag.Parse()
-
-	// Create stores
-	mac2VendorDatabase := stores.NewMAC2VendorDatabase(*mac2vendorDatabasePath, *mac2vendorDatabaseURL)
-	serviceNamesPortNumbersDatabase := stores.NewServiceNamesPortNumbersDatabase(*serviceNamesPortNumbersDatabasePath, *serviceNamesPortNumbersDatabaseURL)
-	ports2PacketsDatabase := stores.NewPorts2PacketDatabase(*ports2PacketsDatabasePath, *ports2PacketsDatabaseURL)
-	nodeAndPortScanDatabase := stores.NewNodeAndPortScanDatabase(*nodeAndPortScanDatabasePath)
-	nodeWakeDatabase := stores.NewNodeWakeDatabase(*nodeWakeDatabasePath)
-
-	// Create generic utilities
-	wakeOnLANWaker := wakers.NewWakeOnLANWaker(*deviceName)
-	interfaceInspector := networking.NewInterfaceInspector(*deviceName)
-
-	// Create auth utilities
-	oidcValidator := validators.NewOIDCValidator(*oidcIssuer, *oidcClientID)
-	contextValidator := validators.NewContextValidator(services.AUTHORIZATION_METADATA_KEY, oidcValidator)
-
-	// Create services
-	nodeAndPortScanService := services.NewNodeAndPortScanPortService(
-		*deviceName,
-		ports2PacketsDatabase,
-		nodeAndPortScanDatabase,
-		semaphore.NewWeighted(*maxConcurrentPortScans),
-		*periodicScanCronExpression,
-		*periodicNodeScanTimeout,
-		*periodicPortScanTimeout,
-		contextValidator,
-	)
-	metadataService := services.NewMetadataService(
-		interfaceInspector,
-		mac2VendorDatabase,
-		serviceNamesPortNumbersDatabase,
-		contextValidator,
-	)
-	nodeWakeService := services.NewNodeWakeService(
-		*deviceName,
-		wakeOnLANWaker,
-		nodeWakeDatabase,
-		func(macAddress string) (string, error) {
-			node, err := nodeAndPortScanDatabase.GetNodeByMACAddress(macAddress)
-			if err != nil {
-				return "", err
-			}
-
-			return node.IPAddress, nil
-		},
-		contextValidator,
-	)
-
-	// Create server
-	liwascServer := servers.NewLiwascServer(
-		*listenAddress,
-		*webSocketListenAddress,
-
-		nodeAndPortScanService,
-		metadataService,
-		nodeWakeService,
-	)
-
-	// Open stores
-	if err := mac2VendorDatabase.Open(); err != nil {
-		log.Fatal("could not open mac2VendorDatabase", err)
+	// Bind env variables
+	if err := viper.BindPFlags(cmd.PersistentFlags()); err != nil {
+		log.Fatal(err)
 	}
-	if err := serviceNamesPortNumbersDatabase.Open(); err != nil {
-		log.Fatal("could not open serviceNamesPortNumbersDatabase", err)
-	}
-	if err := ports2PacketsDatabase.Open(); err != nil {
-		log.Fatal("could not open ports2PacketsDatabase", err)
-	}
-	if err := nodeAndPortScanDatabase.Open(); err != nil {
-		log.Fatal("could not open networkAndNodeScanDatabase", err)
-	}
-	if err := nodeWakeDatabase.Open(); err != nil {
-		log.Fatal("could not open nodeWakeDatabase", err)
-	}
+	viper.SetEnvPrefix("liwasc_backend")
+	viper.AutomaticEnv()
 
-	// Init is done, exit
-	if *prepareOnly {
-		os.Exit(0)
-	}
-
-	// Open utilities
-	if err := wakeOnLANWaker.Open(); err != nil {
-		log.Fatal("could not open wakeOnLANWaker", err)
-	}
-	if err := oidcValidator.Open(); err != nil {
-		log.Fatal("could not open oidcValidator", err)
-	}
-
-	// Open services
-	if err := metadataService.Open(); err != nil {
-		log.Fatal("could not open metadataService", err)
-	}
-	go func() {
-		if err := nodeAndPortScanService.Open(); err != nil {
-			log.Fatal("could not open nodeAndPortScanService", err)
-		}
-	}()
-
-	// Start server
-	log.Printf("liwasc backend listening on %v (gRPC) and %v (gRPC-Web)\n", *listenAddress, *webSocketListenAddress)
-
-	if err := liwascServer.ListenAndServe(); err != nil {
-		log.Fatalf("could not open liwasc backend: %v\n", err)
+	// Run command
+	if err := cmd.Execute(); err != nil {
+		log.Fatal(err)
 	}
 }
