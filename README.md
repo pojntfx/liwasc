@@ -1,6 +1,6 @@
 # liwasc
 
-![Demo Video](./Demo.mp4)
+![Demo Video](./assets/demo.webp)
 
 List, wake and scan nodes in a network.
 
