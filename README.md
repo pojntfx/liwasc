@@ -23,7 +23,27 @@ It can ...
 
 ## Installation
 
-🚧 This project is a work-in-progress! Instructions will be added as soon as it is usable. 🚧
+### Containerized
+
+```shell
+$ docker pull pojntfx/liwasc-backend
+```
+
+### Natively
+
+Static binaries are available on [GitHub releases](https://github.com/pojntfx/liwasc/releases).
+
+You can install them like so:
+
+```shell
+$ curl -L -o /tmp/liwasc-backend https://github.com/pojntfx/liwasc/releases/download/latest/liwasc-backend.linux-$(uname -m)
+$ sudo install /tmp/liwasc-backend /usr/local/bin
+$ sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend # This allows rootless execution
+```
+
+### What about the frontend?
+
+The frontend is also available on [GitHub releases](https://github.com/pojntfx/liwasc/releases) in the form of a static `.tar.gz` archive; to deploy it, simply upload it to a CDN or copy it to a web server. For most users, this shouldn't be necessary though; thanks to [@maxence-charriere](https://github.com/maxence-charriere)'s [go-app package](https://go-app.dev/), liwasc is a progressive web app. By simply visiting the [public deployment](https://pojntfx.github.io/liwasc/) once, it will be available for offline use whenever you need it.
 
 ## License
 
