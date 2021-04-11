@@ -1,6 +1,6 @@
 package persisters
 
-//go:generate sqlboiler sqlite3 -o ../db/sqlite/mac2vendor -c ../../configs/mac2vendor.toml
+//go:generate sqlboiler sqlite3 -o ../db/sqlite/mac2vendor -c ../../configs/sqlboiler/mac2vendor.toml
 
 import (
 	"context"

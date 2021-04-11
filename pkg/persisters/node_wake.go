@@ -10,7 +10,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sqlboiler sqlite3 -o ../db/sqlite/node_wake -c ../../configs/node_wake.toml
+//go:generate sqlboiler sqlite3 -o ../db/sqlite/node_wake -c ../../configs/sqlboiler/node_wake.toml
 
 type NodeWakePersister struct {
 	*SQLite
