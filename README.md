@@ -1,6 +1,6 @@
 # liwasc
 
-![Demo Video](./assets/demo.webp)
+[![liwasc demo video](./assets/demo.webp)](https://pojntfx.github.io/liwasc/)
 
 List, wake and scan nodes in a network.
 
