@@ -46,11 +46,11 @@ func (c *Home) Render() app.UI {
 										LongDescription: `liwasc is a high-performance network and port scanner. It can
 quickly give you a overview of the nodes in your network, the
 services that run on them and manage their power status.`,
-										HelpLink: "https://github.com/pojntfx/liwasc/wiki",
+										HelpLink: "https://github.com/pojntfx/liwasc#Usage",
 										Links: map[string]string{
 											"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
 											"Source Code":   "https://github.com/pojntfx/liwasc",
-											"Documentation": "https://github.com/pojntfx/liwasc/wiki",
+											"Documentation": "https://github.com/pojntfx/liwasc#Usage",
 										},
 
 										BackendURL:      cpcp.BackendURL,
@@ -112,11 +112,11 @@ services that run on them and manage their power status.`,
 							LongDescription: `liwasc is a high-performance network and port scanner. It can
 quickly give you a overview of the nodes in your network, the
 services that run on them and manage their power status.`,
-							HelpLink: "https://github.com/pojntfx/liwasc/wiki",
+							HelpLink: "https://github.com/pojntfx/liwasc#Usage",
 							Links: map[string]string{
 								"License":       "https://github.com/pojntfx/liwasc/blob/main/LICENSE",
 								"Source Code":   "https://github.com/pojntfx/liwasc",
-								"Documentation": "https://github.com/pojntfx/liwasc/wiki",
+								"Documentation": "https://github.com/pojntfx/liwasc#Usage",
 							},
 
 							BackendURL:      cpcp.BackendURL,
