@@ -3,7 +3,8 @@
 List, wake and scan nodes in a network.
 
 ![hydrun CI](https://github.com/pojntfx/liwasc/workflows/hydrun%20CI/badge.svg)
-[![Deployment](https://img.shields.io/badge/Deployment-pojntfx.github.io/liwasc-blueviolet)](https://pojntfx.github.io/liwasc/)
+![Docker CI](https://github.com/pojntfx/liwasc/workflows/Docker%20CI/badge.svg)
+[![Public Deployment](https://img.shields.io/badge/Public%20Deployment-pojntfx.github.io/liwasc-blueviolet)](https://pojntfx.github.io/liwasc/)
 
 ## Installation
 
