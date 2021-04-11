@@ -10,8 +10,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	models "github.com/pojntfx/liwasc/pkg/db/node_wake"
+	"github.com/pojntfx/liwasc/pkg/persisters"
 	"github.com/pojntfx/liwasc/pkg/scanners"
-	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/ugjka/messenger"
@@ -25,8 +25,8 @@ type NodeWakeService struct {
 	device         string
 	wakeOnLANWaker *wakers.WakeOnLANWaker
 
-	nodeWakeDatabase *stores.NodeWakeDatabase
-	getIPAddress     func(macAddress string) (ipAddress string, err error)
+	nodeWakePersister *persisters.NodeWakePersister
+	getIPAddress      func(macAddress string) (ipAddress string, err error)
 
 	nodeWakeMessenger *messenger.Messenger
 
@@ -37,7 +37,7 @@ func NewNodeWakeService(
 	device string,
 	wakeOnLANWaker *wakers.WakeOnLANWaker,
 
-	nodeWakeDatabase *stores.NodeWakeDatabase,
+	nodeWakePersister *persisters.NodeWakePersister,
 	getIPAddress func(macAddress string) (ipAddress string, err error),
 
 	contextValidator *validators.ContextValidator,
@@ -46,8 +46,8 @@ func NewNodeWakeService(
 		device:         device,
 		wakeOnLANWaker: wakeOnLANWaker,
 
-		nodeWakeDatabase: nodeWakeDatabase,
-		getIPAddress:     getIPAddress,
+		nodeWakePersister: nodeWakePersister,
+		getIPAddress:      getIPAddress,
 
 		nodeWakeMessenger: messenger.New(0, true),
 
@@ -73,7 +73,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 		PoweredOn:  0,
 		MacAddress: nodeWakeStartMessage.GetMACAddress(),
 	}
-	if err := s.nodeWakeDatabase.CreateNodeWake(dbNodeWake); err != nil {
+	if err := s.nodeWakePersister.CreateNodeWake(dbNodeWake); err != nil {
 		log.Printf("could not create node wake in DB: %v\n", err)
 
 		return nil, status.Errorf(codes.Unknown, "could not create node wake in DB")
@@ -140,7 +140,7 @@ func (s *NodeWakeService) StartNodeWake(ctx context.Context, nodeWakeStartMessag
 						dbNodeWake.Done = 1
 					}
 				}
-				if err := s.nodeWakeDatabase.UpdateNodeWake(dbNodeWake); err != nil {
+				if err := s.nodeWakePersister.UpdateNodeWake(dbNodeWake); err != nil {
 					log.Printf("could not update node wake in DB: %v\n", err)
 
 					return
@@ -243,9 +243,9 @@ func (s *NodeWakeService) SubscribeToNodeWakes(_ *empty.Empty, stream api.NodeWa
 		wg.Done()
 	}()
 
-	// Get lookback node wakes from database (priority 1)
+	// Get lookback node wakes from persister (priority 1)
 	go func() {
-		dbNodeWakes, err := s.nodeWakeDatabase.GetNodeWakes()
+		dbNodeWakes, err := s.nodeWakePersister.GetNodeWakes()
 		if err != nil {
 			log.Printf("could not get node wakes from DB: %v\n", err)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	"github.com/pojntfx/liwasc/pkg/networking"
-	"github.com/pojntfx/liwasc/pkg/stores"
+	"github.com/pojntfx/liwasc/pkg/persisters"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,8 +29,8 @@ type MetadataService struct {
 
 	interfaceInspector *networking.InterfaceInspector
 
-	mac2vendorDatabase              *stores.MAC2VendorDatabase
-	serviceNamesPortNumbersDatabase *stores.ServiceNamesPortNumbersDatabase
+	mac2vendorPersister              *persisters.MAC2VendorPersister
+	serviceNamesPortNumbersPersister *persisters.ServiceNamesPortNumbersPersister
 
 	contextValidator *validators.ContextValidator
 }
@@ -38,16 +38,16 @@ type MetadataService struct {
 func NewMetadataService(
 	interfaceInspector *networking.InterfaceInspector,
 
-	mac2vendorDatabase *stores.MAC2VendorDatabase,
-	serviceNamesPortNumbersDatabase *stores.ServiceNamesPortNumbersDatabase,
+	mac2vendorPersister *persisters.MAC2VendorPersister,
+	serviceNamesPortNumbersPersister *persisters.ServiceNamesPortNumbersPersister,
 
 	contextValidator *validators.ContextValidator,
 ) *MetadataService {
 	return &MetadataService{
 		interfaceInspector: interfaceInspector,
 
-		mac2vendorDatabase:              mac2vendorDatabase,
-		serviceNamesPortNumbersDatabase: serviceNamesPortNumbersDatabase,
+		mac2vendorPersister:              mac2vendorPersister,
+		serviceNamesPortNumbersPersister: serviceNamesPortNumbersPersister,
 
 		contextValidator: contextValidator,
 	}
@@ -87,7 +87,7 @@ func (s *MetadataService) GetMetadataForNode(ctx context.Context, nodeMetadataRe
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
-	dbNodeMetadata, err := s.mac2vendorDatabase.GetVendor(nodeMetadataReferenceMessage.GetMACAddress())
+	dbNodeMetadata, err := s.mac2vendorPersister.GetVendor(nodeMetadataReferenceMessage.GetMACAddress())
 	if err != nil {
 		log.Printf("could not find node %v in DB: %v\n", nodeMetadataReferenceMessage.GetMACAddress(), err)
 
@@ -119,7 +119,7 @@ func (s *MetadataService) GetMetadataForPort(ctx context.Context, portMetadataRe
 		return nil, status.Errorf(codes.Unauthenticated, "could not authorize: %v", err)
 	}
 
-	dbPortMetadata, err := s.serviceNamesPortNumbersDatabase.GetService(int(portMetadataReferenceMessage.GetPortNumber()), portMetadataReferenceMessage.GetTransportProtocol())
+	dbPortMetadata, err := s.serviceNamesPortNumbersPersister.GetService(int(portMetadataReferenceMessage.GetPortNumber()), portMetadataReferenceMessage.GetTransportProtocol())
 	if err != nil || (dbPortMetadata != nil && len(dbPortMetadata) == 0) {
 		log.Printf("could not find port %v in DB: %v\n", fmt.Sprintf("%v/%v", portMetadataReferenceMessage.GetPortNumber(), portMetadataReferenceMessage.GetTransportProtocol()), err)
 

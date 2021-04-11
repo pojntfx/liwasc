@@ -3,13 +3,9 @@ module github.com/pojntfx/liwasc
 go 1.16
 
 require (
-	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/coreos/go-oidc/v3 v3.0.0
-	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/friendsofgo/errors v0.9.2
 	github.com/fullstorydev/grpcurl v1.8.0 // indirect
-	github.com/go-kit/kit v0.10.0 // indirect
-	github.com/gobuffalo/envy v1.7.1 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gopacket v1.1.19
@@ -20,14 +16,17 @@ require (
 	github.com/maxence-charriere/go-app/v8 v8.0.1
 	github.com/mdlayher/wol v0.0.0-20200423173749-bc23029f94e1
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
+	github.com/pkg/errors v0.9.1
 	github.com/pojntfx/go-app-grpc-chat-backend v0.0.0-20200914214506-117c1d64fa06
 	github.com/pojntfx/go-app-grpc-chat-frontend-web v0.0.0-20200914214440-b28bb959fef9
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rubenv/sql-migrate v0.0.0-20210408115534-a32ed26c37ea
+	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.0
 	github.com/ugjka/messenger v1.1.3
 	github.com/volatiletech/null/v8 v8.1.2
+	github.com/volatiletech/randomize v0.0.1
 	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1

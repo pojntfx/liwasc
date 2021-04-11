@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 import (
 	"fmt"
@@ -24,14 +24,14 @@ type Service struct {
 	AssignmentNotes         string `csv:"Assignment Notes"`
 }
 
-type ServiceNamesPortNumbersDatabase struct {
+type ServiceNamesPortNumbersPersister struct {
 	*ExternalSource
 	dbPath   string
 	services map[int][]Service
 }
 
-func NewServiceNamesPortNumbersDatabase(dbPath string, sourceURL string) *ServiceNamesPortNumbersDatabase {
-	return &ServiceNamesPortNumbersDatabase{
+func NewServiceNamesPortNumbersPersister(dbPath string, sourceURL string) *ServiceNamesPortNumbersPersister {
+	return &ServiceNamesPortNumbersPersister{
 		ExternalSource: &ExternalSource{
 			SourceURL:       sourceURL,
 			DestinationPath: dbPath,
@@ -41,7 +41,7 @@ func NewServiceNamesPortNumbersDatabase(dbPath string, sourceURL string) *Servic
 	}
 }
 
-func (d *ServiceNamesPortNumbersDatabase) Open() error {
+func (d *ServiceNamesPortNumbersPersister) Open() error {
 	// If CSV file does not exist, download & create it
 	if err := d.ExternalSource.PullIfNotExists(); err != nil {
 		return err
@@ -94,7 +94,7 @@ func (d *ServiceNamesPortNumbersDatabase) Open() error {
 
 // GetService returns the services that match the port and protocol given
 // Use "*" as the protocol to find all services on the port independent of protocol
-func (d *ServiceNamesPortNumbersDatabase) GetService(port int, protocol string) ([]Service, error) {
+func (d *ServiceNamesPortNumbersPersister) GetService(port int, protocol string) ([]Service, error) {
 	allServicesForProtocol := d.services[port]
 	if allServicesForProtocol == nil {
 		return nil, fmt.Errorf("could not find service(s) for port %v", port)

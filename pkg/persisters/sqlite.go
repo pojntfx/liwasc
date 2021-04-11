@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 import (
 	"database/sql"
@@ -8,14 +8,14 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-type SQLiteDatabase struct {
+type SQLite struct {
 	DBPath     string
 	Migrations migrate.MigrationSource
 
 	db *sql.DB
 }
 
-func (d *SQLiteDatabase) Open() error {
+func (d *SQLite) Open() error {
 	// Create leading directories for database
 	leadingDir, _ := filepath.Split(d.DBPath)
 	if err := os.MkdirAll(leadingDir, os.ModePerm); err != nil {

@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 //go:generate sqlboiler sqlite3 -o ../db/mac2vendor -c ../../configs/mac2vendor.toml
 
@@ -12,14 +12,14 @@ import (
 	mac2vendorModels "github.com/pojntfx/liwasc/pkg/db/mac2vendor"
 )
 
-type MAC2VendorDatabase struct {
-	*SQLiteDatabase
+type MAC2VendorPersister struct {
+	*SQLite
 	*ExternalSource
 }
 
-func NewMAC2VendorDatabase(dbPath string, sourceURL string) *MAC2VendorDatabase {
-	return &MAC2VendorDatabase{
-		&SQLiteDatabase{
+func NewMAC2VendorPersister(dbPath string, sourceURL string) *MAC2VendorPersister {
+	return &MAC2VendorPersister{
+		&SQLite{
 			DBPath: dbPath,
 		},
 		&ExternalSource{
@@ -29,16 +29,16 @@ func NewMAC2VendorDatabase(dbPath string, sourceURL string) *MAC2VendorDatabase 
 	}
 }
 
-func (d *MAC2VendorDatabase) Open() error {
+func (d *MAC2VendorPersister) Open() error {
 	// If database file does not exist, download & create it
 	if err := d.ExternalSource.PullIfNotExists(); err != nil {
 		return err
 	}
 
-	return d.SQLiteDatabase.Open()
+	return d.SQLite.Open()
 }
 
-func (d *MAC2VendorDatabase) GetVendor(mac string) (*mac2vendorModels.Vendordb, error) {
+func (d *MAC2VendorPersister) GetVendor(mac string) (*mac2vendorModels.Vendordb, error) {
 	oui, err := GetOUI(mac)
 	if err != nil {
 		return nil, err

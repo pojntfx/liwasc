@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 import (
 	"context"
@@ -14,13 +14,13 @@ import (
 
 //go:generate sqlboiler sqlite3 -o ../db/node_and_port_scan -c ../../configs/node_and_port_scan.toml
 
-type NodeAndPortScanDatabase struct {
-	*SQLiteDatabase
+type NodeAndPortScanPersister struct {
+	*SQLite
 }
 
-func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
-	return &NodeAndPortScanDatabase{
-		&SQLiteDatabase{
+func NewNodeAndPortScanPersister(dbPath string) *NodeAndPortScanPersister {
+	return &NodeAndPortScanPersister{
+		&SQLite{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
 				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../../db/sql/migrations/node_and_port_scan"),
@@ -29,39 +29,39 @@ func NewNodeAndPortScanDatabase(dbPath string) *NodeAndPortScanDatabase {
 	}
 }
 
-func (d *NodeAndPortScanDatabase) CreateNodeScan(nodeScan *models.NodeScan) error {
+func (d *NodeAndPortScanPersister) CreateNodeScan(nodeScan *models.NodeScan) error {
 	return nodeScan.Insert(context.Background(), d.db, boil.Infer())
 }
 
-func (d *NodeAndPortScanDatabase) CreateNode(node *models.Node) error {
+func (d *NodeAndPortScanPersister) CreateNode(node *models.Node) error {
 	return node.Insert(context.Background(), d.db, boil.Infer())
 }
 
-func (d *NodeAndPortScanDatabase) CreatePortScan(portScan *models.PortScan) error {
+func (d *NodeAndPortScanPersister) CreatePortScan(portScan *models.PortScan) error {
 	return portScan.Insert(context.Background(), d.db, boil.Infer())
 }
 
-func (d *NodeAndPortScanDatabase) CreatePort(port *models.Port) error {
+func (d *NodeAndPortScanPersister) CreatePort(port *models.Port) error {
 	return port.Insert(context.Background(), d.db, boil.Infer())
 }
 
-func (d *NodeAndPortScanDatabase) GetNodeScans() (models.NodeScanSlice, error) {
+func (d *NodeAndPortScanPersister) GetNodeScans() (models.NodeScanSlice, error) {
 	return models.NodeScans(qm.OrderBy(models.NodeScanColumns.CreatedAt+" DESC")).All(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) GetNodeScan(nodeScanID int64) (*models.NodeScan, error) {
+func (d *NodeAndPortScanPersister) GetNodeScan(nodeScanID int64) (*models.NodeScan, error) {
 	return models.FindNodeScan(context.Background(), d.db, nodeScanID)
 }
 
-func (d *NodeAndPortScanDatabase) GetNodes(nodeScanID int64) (models.NodeSlice, error) {
+func (d *NodeAndPortScanPersister) GetNodes(nodeScanID int64) (models.NodeSlice, error) {
 	return models.Nodes(models.NodeWhere.NodeScanID.EQ(nodeScanID), qm.OrderBy(models.NodeColumns.CreatedAt+" DESC")).All(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) GetNodeByMACAddress(macAddress string) (*models.Node, error) {
+func (d *NodeAndPortScanPersister) GetNodeByMACAddress(macAddress string) (*models.Node, error) {
 	return models.Nodes(models.NodeWhere.MacAddress.EQ(macAddress)).One(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
+func (d *NodeAndPortScanPersister) GetLookbackNodes() (models.NodeSlice, error) {
 	var uniqueNodes models.NodeSlice
 	if err := queries.Raw(
 		fmt.Sprintf(
@@ -77,15 +77,15 @@ func (d *NodeAndPortScanDatabase) GetLookbackNodes() (models.NodeSlice, error) {
 	return uniqueNodes, nil
 }
 
-func (d *NodeAndPortScanDatabase) GetPortScans(nodeID int64) (models.PortScanSlice, error) {
+func (d *NodeAndPortScanPersister) GetPortScans(nodeID int64) (models.PortScanSlice, error) {
 	return models.PortScans(models.PortScanWhere.NodeID.EQ(nodeID), qm.OrderBy(models.PortScanColumns.CreatedAt+" DESC")).All(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) GetPortScan(portScanID int64) (*models.PortScan, error) {
+func (d *NodeAndPortScanPersister) GetPortScan(portScanID int64) (*models.PortScan, error) {
 	return models.FindPortScan(context.Background(), d.db, portScanID)
 }
 
-func (d *NodeAndPortScanDatabase) GetLatestPortScanForNodeId(macAddress string) (*models.PortScan, error) {
+func (d *NodeAndPortScanPersister) GetLatestPortScanForNodeId(macAddress string) (*models.PortScan, error) {
 	var latestPortScan models.PortScan
 	if err := queries.Raw(
 		fmt.Sprintf(
@@ -107,17 +107,17 @@ func (d *NodeAndPortScanDatabase) GetLatestPortScanForNodeId(macAddress string) 
 	return &latestPortScan, nil
 }
 
-func (d *NodeAndPortScanDatabase) GetPorts(portScanID int64) (models.PortSlice, error) {
+func (d *NodeAndPortScanPersister) GetPorts(portScanID int64) (models.PortSlice, error) {
 	return models.Ports(models.PortWhere.PortScanID.EQ(portScanID), qm.OrderBy(models.PortColumns.CreatedAt+" DESC")).All(context.Background(), d.db)
 }
 
-func (d *NodeAndPortScanDatabase) UpdateNodeScan(nodeScan *models.NodeScan) error {
+func (d *NodeAndPortScanPersister) UpdateNodeScan(nodeScan *models.NodeScan) error {
 	_, err := nodeScan.Update(context.Background(), d.db, boil.Infer())
 
 	return err
 }
 
-func (d *NodeAndPortScanDatabase) UpdatePortScan(portScan *models.PortScan) error {
+func (d *NodeAndPortScanPersister) UpdatePortScan(portScan *models.PortScan) error {
 	_, err := portScan.Update(context.Background(), d.db, boil.Infer())
 
 	return err
