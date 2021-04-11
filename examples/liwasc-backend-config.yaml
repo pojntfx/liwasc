@@ -1,0 +1,17 @@
+deviceName: eth0
+listenAddress: localhost:15123
+mac2vendorDatabasePath: /home/pojntfx/.local/share/liwasc/etc/liwasc/oui-database.sqlite
+mac2vendorDatabaseURL: https://mac2vendor.com/download/oui-database.sqlite
+maxConcurrentPortScans: 100
+nodeAndPortScanDatabasePath: /home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_and_port_scan.sqlite
+nodeWakeDatabasePath: /home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_wake.sqlite
+oidcClientID: myoidcclientid
+oidcIssuer: https://accounts.google.com
+periodicNodeScanTimeout: 500
+periodicPortScanTimeout: 10
+periodicScanCronExpression: "*/10 * * * *"
+ports2PacketsDatabasePath: /home/pojntfx/.local/share/liwasc/etc/liwasc/ports2packets.csv
+ports2PacketsDatabaseURL: https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv
+serviceNamesPortNumbersDatabasePath: /home/pojntfx/.local/share/liwasc/etc/liwasc/service-names-port-numbers.csv
+serviceNamesPortNumbersDatabaseURL: https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
+webSocketListenAddress: localhost:15124
