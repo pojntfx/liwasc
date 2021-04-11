@@ -10,8 +10,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
 	models "github.com/pojntfx/liwasc/pkg/db/node_and_port_scan"
+	"github.com/pojntfx/liwasc/pkg/persisters"
 	"github.com/pojntfx/liwasc/pkg/scanners"
-	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	cron "github.com/robfig/cron/v3"
 	"github.com/ugjka/messenger"
@@ -25,8 +25,8 @@ type NodeAndPortScanPortService struct {
 
 	device string
 
-	ports2packetsDatabase   *stores.Ports2PacketDatabase
-	nodeAndPortScanDatabase *stores.NodeAndPortScanDatabase
+	ports2packetsPersister   *persisters.Ports2PacketPersister
+	nodeAndPortScanPersister *persisters.NodeAndPortScanPersister
 
 	portScannerSemaphore *semaphore.Weighted
 
@@ -50,8 +50,8 @@ type NodeAndPortScanPortService struct {
 func NewNodeAndPortScanPortService(
 	device string,
 
-	ports2packetsDatabase *stores.Ports2PacketDatabase,
-	nodeAndPortScanDatabase *stores.NodeAndPortScanDatabase,
+	ports2packetsPersister *persisters.Ports2PacketPersister,
+	nodeAndPortScanPersister *persisters.NodeAndPortScanPersister,
 
 	portScannerSemaphore *semaphore.Weighted,
 
@@ -64,8 +64,8 @@ func NewNodeAndPortScanPortService(
 	return &NodeAndPortScanPortService{
 		device: device,
 
-		ports2packetsDatabase:   ports2packetsDatabase,
-		nodeAndPortScanDatabase: nodeAndPortScanDatabase,
+		ports2packetsPersister:   ports2packetsPersister,
+		nodeAndPortScanPersister: nodeAndPortScanPersister,
 
 		portScannerSemaphore: portScannerSemaphore,
 
@@ -135,7 +135,7 @@ func (s *NodeAndPortScanPortService) StartNodeScan(ctx context.Context, nodeScan
 func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, nodeScanStartMessage *api.NodeScanStartMessage) (*api.NodeScanMessage, error) {
 	// Create and broadcast node scan in DB
 	dbNodeScan := &models.NodeScan{}
-	if err := s.nodeAndPortScanDatabase.CreateNodeScan(dbNodeScan); err != nil {
+	if err := s.nodeAndPortScanPersister.CreateNodeScan(dbNodeScan); err != nil {
 		log.Printf("could not create node scan in DB: %v\n", err)
 
 		return nil, status.Errorf(codes.Unknown, "could not create node scan in DB")
@@ -224,7 +224,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 					MacAddress: node.MACAddress.String(),
 					IPAddress:  node.IPAddress.String(),
 				}
-				if err := s.nodeAndPortScanDatabase.CreateNode(dbNode); err != nil {
+				if err := s.nodeAndPortScanPersister.CreateNode(dbNode); err != nil {
 					log.Printf("could not create node %v for node scan %v in DB: %v\n", dbNode.ID, dbNodeScan.ID, err)
 
 					return
@@ -235,7 +235,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 				dbPortScan := &models.PortScan{
 					NodeID: dbNode.ID,
 				}
-				if err := s.nodeAndPortScanDatabase.CreatePortScan(dbPortScan); err != nil {
+				if err := s.nodeAndPortScanPersister.CreatePortScan(dbPortScan); err != nil {
 					log.Printf("could not create node scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 
 					return
@@ -253,7 +253,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 						[]string{"tcp", "udp"},
 						s.portScannerSemaphore,
 						func(port int) ([]byte, error) {
-							packet, err := s.ports2packetsDatabase.GetPacket(port)
+							packet, err := s.ports2packetsPersister.GetPacket(port)
 							if err != nil {
 								return nil, err
 							}
@@ -319,7 +319,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 										PortNumber:        int64(port.Port),
 										TransportProtocol: port.Protocol,
 									}
-									if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
+									if err := s.nodeAndPortScanPersister.CreatePort(dbPort); err != nil {
 										log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 
 										return
@@ -331,7 +331,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 
 						// Set port scan to done
 						dbPortScan.Done = 1
-						if err := s.nodeAndPortScanDatabase.UpdatePortScan(dbPortScan); err != nil {
+						if err := s.nodeAndPortScanPersister.UpdatePortScan(dbPortScan); err != nil {
 							log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 						}
 						s.portScanMessenger.Broadcast(dbPortScan)
@@ -341,7 +341,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 					}()
 				} else {
 					// Get the latest port scan for this node
-					latestPortScan, err := s.nodeAndPortScanDatabase.GetLatestPortScanForNodeId(dbNode.MacAddress)
+					latestPortScan, err := s.nodeAndPortScanPersister.GetLatestPortScanForNodeId(dbNode.MacAddress)
 					if err != nil {
 						log.Printf("could not get last finished port scan for node %v from DB: %v\n", dbNode.ID, err)
 
@@ -349,7 +349,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 					}
 
 					// Get the ports for this last port scan
-					dbPorts, err := s.nodeAndPortScanDatabase.GetPorts(latestPortScan.ID)
+					dbPorts, err := s.nodeAndPortScanPersister.GetPorts(latestPortScan.ID)
 					if err != nil {
 						log.Printf("could not get ports for port scan %v from DB: %v\n", latestPortScan.ID, err)
 
@@ -364,7 +364,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 							PortNumber:        int64(port.PortNumber),
 							TransportProtocol: port.TransportProtocol,
 						}
-						if err := s.nodeAndPortScanDatabase.CreatePort(dbPort); err != nil {
+						if err := s.nodeAndPortScanPersister.CreatePort(dbPort); err != nil {
 							log.Printf("could not create port %v for port scan %v for node %v for node scan %v in DB: %v\n", dbPort.ID, dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 
 							return
@@ -381,7 +381,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 
 					// Set port scan to done
 					dbPortScan.Done = 1
-					if err := s.nodeAndPortScanDatabase.UpdatePortScan(dbPortScan); err != nil {
+					if err := s.nodeAndPortScanPersister.UpdatePortScan(dbPortScan); err != nil {
 						log.Printf("could not update port scan %v for node %v for node scan %v in DB: %v\n", dbPortScan.ID, dbNode.ID, dbNodeScan.ID, err)
 					}
 					s.portScanMessenger.Broadcast(dbPortScan)
@@ -391,7 +391,7 @@ func (s *NodeAndPortScanPortService) startInternalNodeScan(_ context.Context, no
 
 		// Set node scan to done
 		dbNodeScan.Done = 1
-		if err := s.nodeAndPortScanDatabase.UpdateNodeScan(dbNodeScan); err != nil {
+		if err := s.nodeAndPortScanPersister.UpdateNodeScan(dbNodeScan); err != nil {
 			log.Printf("could not update node scan %v in DB: %v\n", dbNodeScan.ID, err)
 		}
 		s.nodeScanMessenger.Broadcast(dbNodeScan)
@@ -464,11 +464,11 @@ func (s *NodeAndPortScanPortService) SubscribeToNodeScans(_ *empty.Empty, stream
 		wg.Done()
 	}()
 
-	// Get node scans from database
+	// Get node scans from persister
 	go func() {
 		<-messengerReady
 
-		dbNodeScans, err := s.nodeAndPortScanDatabase.GetNodeScans()
+		dbNodeScans, err := s.nodeAndPortScanPersister.GetNodeScans()
 		if err != nil {
 			log.Printf("could not get node scans from DB: %v\n", err)
 
@@ -501,7 +501,7 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *api.NodeS
 	// Get nodes from messenger (priority 3)
 	go func() {
 		// Get node scan from DB and check if it is done
-		dbNodeScan, err := s.nodeAndPortScanDatabase.GetNodeScan(nodeScanMessage.GetID())
+		dbNodeScan, err := s.nodeAndPortScanPersister.GetNodeScan(nodeScanMessage.GetID())
 		if err != nil {
 			log.Printf("could not get node scan %v from DB, continouing to messenger subscription: %v\n", nodeScanMessage.GetID(), err)
 
@@ -549,9 +549,9 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *api.NodeS
 		wg.Done()
 	}()
 
-	// Get nodes from database (priority 2)
+	// Get nodes from persister (priority 2)
 	go func() {
-		dbNodes, err := s.nodeAndPortScanDatabase.GetNodes(nodeScanMessage.GetID())
+		dbNodes, err := s.nodeAndPortScanPersister.GetNodes(nodeScanMessage.GetID())
 		if err != nil {
 			log.Printf("could not get nodes for node scan %v from DB: %v\n", nodeScanMessage.GetID(), err)
 
@@ -579,9 +579,9 @@ func (s *NodeAndPortScanPortService) SubscribeToNodes(nodeScanMessage *api.NodeS
 		wg.Done()
 	}()
 
-	// Get lookback nodes from database (priority 1)
+	// Get lookback nodes from persister (priority 1)
 	go func() {
-		dbNodes, err := s.nodeAndPortScanDatabase.GetLookbackNodes()
+		dbNodes, err := s.nodeAndPortScanPersister.GetLookbackNodes()
 		if err != nil {
 			log.Printf("could not get lookback nodes from DB: %v\n", err)
 
@@ -678,11 +678,11 @@ func (s *NodeAndPortScanPortService) SubscribeToPortScans(nodeMessage *api.NodeM
 		wg.Done()
 	}()
 
-	// Get port scans from database
+	// Get port scans from persister
 	go func() {
 		<-messengerReady
 
-		dbPortScans, err := s.nodeAndPortScanDatabase.GetPortScans(nodeMessage.GetID())
+		dbPortScans, err := s.nodeAndPortScanPersister.GetPortScans(nodeMessage.GetID())
 		if err != nil {
 			log.Printf("could not get port scans from DB: %v\n", err)
 
@@ -715,7 +715,7 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *api.PortS
 	// Get ports from messenger (priority 2)
 	go func() {
 		// Get port scan from DB and check if it is done
-		dbPortScan, err := s.nodeAndPortScanDatabase.GetPortScan(portScanMessage.GetID())
+		dbPortScan, err := s.nodeAndPortScanPersister.GetPortScan(portScanMessage.GetID())
 		if err != nil {
 			log.Printf("could not get port scan %v from DB, continouing to messenger subscription: %v\n", portScanMessage.GetID(), err)
 
@@ -762,9 +762,9 @@ func (s *NodeAndPortScanPortService) SubscribeToPorts(portScanMessage *api.PortS
 		wg.Done()
 	}()
 
-	// Get ports from database (priority 1)
+	// Get ports from persister (priority 1)
 	go func() {
-		dbPorts, err := s.nodeAndPortScanDatabase.GetPorts(portScanMessage.GetID())
+		dbPorts, err := s.nodeAndPortScanPersister.GetPorts(portScanMessage.GetID())
 		if err != nil {
 			log.Printf("could not get ports for port scan %v from DB: %v\n", portScanMessage.GetID(), err)
 

@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 import (
 	"encoding/base64"
@@ -18,14 +18,14 @@ type Packet struct {
 	Packet []byte
 }
 
-type Ports2PacketDatabase struct {
+type Ports2PacketPersister struct {
 	*ExternalSource
 	dbPath  string
 	packets map[int]*Packet
 }
 
-func NewPorts2PacketDatabase(dbPath string, sourceURL string) *Ports2PacketDatabase {
-	return &Ports2PacketDatabase{
+func NewPorts2PacketPersister(dbPath string, sourceURL string) *Ports2PacketPersister {
+	return &Ports2PacketPersister{
 		ExternalSource: &ExternalSource{
 			SourceURL:       sourceURL,
 			DestinationPath: dbPath,
@@ -35,7 +35,7 @@ func NewPorts2PacketDatabase(dbPath string, sourceURL string) *Ports2PacketDatab
 	}
 }
 
-func (d *Ports2PacketDatabase) Open() error {
+func (d *Ports2PacketPersister) Open() error {
 	// If CSV file does not exist, download & create it
 	if err := d.ExternalSource.PullIfNotExists(); err != nil {
 		return err
@@ -65,7 +65,7 @@ func (d *Ports2PacketDatabase) Open() error {
 	return nil
 }
 
-func (d *Ports2PacketDatabase) GetPacket(port int) (*Packet, error) {
+func (d *Ports2PacketPersister) GetPacket(port int) (*Packet, error) {
 	packet := d.packets[port]
 
 	if packet == nil {

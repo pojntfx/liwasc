@@ -1,4 +1,4 @@
-package stores
+package persisters
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 
 //go:generate sqlboiler sqlite3 -o ../db/node_wake -c ../../configs/node_wake.toml
 
-type NodeWakeDatabase struct {
-	*SQLiteDatabase
+type NodeWakePersister struct {
+	*SQLite
 }
 
-func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
-	return &NodeWakeDatabase{
-		&SQLiteDatabase{
+func NewNodeWakePersister(dbPath string) *NodeWakePersister {
+	return &NodeWakePersister{
+		&SQLite{
 			DBPath: dbPath,
 			Migrations: migrate.PackrMigrationSource{
 				Box: packr.New("nodeWakeDatabaseMigrations", "../../db/sql/migrations/node_wake"),
@@ -27,16 +27,16 @@ func NewNodeWakeDatabase(dbPath string) *NodeWakeDatabase {
 	}
 }
 
-func (d *NodeWakeDatabase) CreateNodeWake(nodeWake *models.NodeWake) error {
+func (d *NodeWakePersister) CreateNodeWake(nodeWake *models.NodeWake) error {
 	return nodeWake.Insert(context.Background(), d.db, boil.Infer())
 }
 
-func (d *NodeWakeDatabase) UpdateNodeWake(nodeWake *models.NodeWake) error {
+func (d *NodeWakePersister) UpdateNodeWake(nodeWake *models.NodeWake) error {
 	_, err := nodeWake.Update(context.Background(), d.db, boil.Infer())
 
 	return err
 }
 
-func (d *NodeWakeDatabase) GetNodeWakes() (models.NodeWakeSlice, error) {
+func (d *NodeWakePersister) GetNodeWakes() (models.NodeWakeSlice, error) {
 	return models.NodeWakes(qm.OrderBy(models.NodeWakeColumns.CreatedAt)).All(context.Background(), d.db)
 }

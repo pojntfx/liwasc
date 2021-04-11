@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/pojntfx/liwasc/pkg/networking"
+	"github.com/pojntfx/liwasc/pkg/persisters"
 	"github.com/pojntfx/liwasc/pkg/servers"
 	"github.com/pojntfx/liwasc/pkg/services"
-	"github.com/pojntfx/liwasc/pkg/stores"
 	"github.com/pojntfx/liwasc/pkg/validators"
 	"github.com/pojntfx/liwasc/pkg/wakers"
 	"github.com/spf13/cobra"
@@ -56,12 +56,12 @@ For more information, please visit https://github.com/pojntfx/liwasc.`,
 				}
 			}
 
-			// Create stores
-			mac2VendorDatabase := stores.NewMAC2VendorDatabase(viper.GetString(mac2vendorDatabasePathKey), viper.GetString(mac2vendorDatabaseURLKey))
-			serviceNamesPortNumbersDatabase := stores.NewServiceNamesPortNumbersDatabase(viper.GetString(serviceNamesPortNumbersDatabasePathKey), viper.GetString(serviceNamesPortNumbersDatabaseURLKey))
-			ports2PacketsDatabase := stores.NewPorts2PacketDatabase(viper.GetString(ports2PacketsDatabasePathKey), viper.GetString(ports2PacketsDatabaseURLKey))
-			nodeAndPortScanDatabase := stores.NewNodeAndPortScanDatabase(viper.GetString(nodeAndPortScanDatabasePathKey))
-			nodeWakeDatabase := stores.NewNodeWakeDatabase(viper.GetString(nodeWakeDatabasePathKey))
+			// Create persisters
+			mac2VendorPersister := persisters.NewMAC2VendorPersister(viper.GetString(mac2vendorDatabasePathKey), viper.GetString(mac2vendorDatabaseURLKey))
+			serviceNamesPortNumbersPersister := persisters.NewServiceNamesPortNumbersPersister(viper.GetString(serviceNamesPortNumbersDatabasePathKey), viper.GetString(serviceNamesPortNumbersDatabaseURLKey))
+			ports2PacketsPersister := persisters.NewPorts2PacketPersister(viper.GetString(ports2PacketsDatabasePathKey), viper.GetString(ports2PacketsDatabaseURLKey))
+			nodeAndPortScanPersister := persisters.NewNodeAndPortScanPersister(viper.GetString(nodeAndPortScanDatabasePathKey))
+			nodeWakePersister := persisters.NewNodeWakePersister(viper.GetString(nodeWakeDatabasePathKey))
 
 			// Create generic utilities
 			wakeOnLANWaker := wakers.NewWakeOnLANWaker(viper.GetString(deviceNameKey))
@@ -74,8 +74,8 @@ For more information, please visit https://github.com/pojntfx/liwasc.`,
 			// Create services
 			nodeAndPortScanService := services.NewNodeAndPortScanPortService(
 				viper.GetString(deviceNameKey),
-				ports2PacketsDatabase,
-				nodeAndPortScanDatabase,
+				ports2PacketsPersister,
+				nodeAndPortScanPersister,
 				semaphore.NewWeighted(viper.GetInt64(maxConcurrentPortScansKey)),
 				viper.GetString(periodicScanCronExpressionKey),
 				viper.GetInt(periodicNodeScanTimeoutKey),
@@ -84,16 +84,16 @@ For more information, please visit https://github.com/pojntfx/liwasc.`,
 			)
 			metadataService := services.NewMetadataService(
 				interfaceInspector,
-				mac2VendorDatabase,
-				serviceNamesPortNumbersDatabase,
+				mac2VendorPersister,
+				serviceNamesPortNumbersPersister,
 				contextValidator,
 			)
 			nodeWakeService := services.NewNodeWakeService(
 				viper.GetString(deviceNameKey),
 				wakeOnLANWaker,
-				nodeWakeDatabase,
+				nodeWakePersister,
 				func(macAddress string) (string, error) {
-					node, err := nodeAndPortScanDatabase.GetNodeByMACAddress(macAddress)
+					node, err := nodeAndPortScanPersister.GetNodeByMACAddress(macAddress)
 					if err != nil {
 						return "", err
 					}
@@ -113,20 +113,20 @@ For more information, please visit https://github.com/pojntfx/liwasc.`,
 				nodeWakeService,
 			)
 
-			// Open stores
-			if err := mac2VendorDatabase.Open(); err != nil {
+			// Open persisters
+			if err := mac2VendorPersister.Open(); err != nil {
 				log.Fatal("could not open mac2VendorDatabase", err)
 			}
-			if err := serviceNamesPortNumbersDatabase.Open(); err != nil {
+			if err := serviceNamesPortNumbersPersister.Open(); err != nil {
 				log.Fatal("could not open serviceNamesPortNumbersDatabase", err)
 			}
-			if err := ports2PacketsDatabase.Open(); err != nil {
+			if err := ports2PacketsPersister.Open(); err != nil {
 				log.Fatal("could not open ports2PacketsDatabase", err)
 			}
-			if err := nodeAndPortScanDatabase.Open(); err != nil {
+			if err := nodeAndPortScanPersister.Open(); err != nil {
 				log.Fatal("could not open networkAndNodeScanDatabase", err)
 			}
-			if err := nodeWakeDatabase.Open(); err != nil {
+			if err := nodeWakePersister.Open(); err != nil {
 				log.Fatal("could not open nodeWakeDatabase", err)
 			}
 
