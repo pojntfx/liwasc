@@ -125,6 +125,20 @@ You can get the logs like so:
 $ journalctl --user -u liwasc-backend
 ```
 
+### Connecting the Frontend
+
+Now that the backend is running, head over to [https://pojntfx.github.io/liwasc/](https://pojntfx.github.io/liwasc/). Alternatively, as described in [About the Frontend](#about-the-frontend), you can also choose to self-host. Once you're on the page, you should be presented with the following setup page:
+
+![Setup page](./assets/setup.png)
+
+You'll have to enter your own information here; the `Backend URL` is the URL on which the backend runs, the `OIDC Issuer`, `Client ID` and `Redirect URL` are the same values that you've set the backend up with above.
+
+Finally, click on `Login`, and if everything worked out fine you should be presented with the initial launch screen:
+
+![Initial page](./assets/initial.png)
+
+🚀 **That's it**! We hope you enjoy using liwasc.
+
 ## License
 
 liwasc (c) 2021 Felicitas Pojtinger and contributors
