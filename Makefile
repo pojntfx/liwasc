@@ -14,7 +14,7 @@ frontend:
 build: backend frontend
 
 release-backend:
-	CGO_ENABLED=1 go build -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension -o out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) cmd/liwasc-backend/main.go
+	CGO_ENABLED=1 go build -ldflags="-extldflags=-static" -tags sqlite_omit_load_extension,netgo -o out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) cmd/liwasc-backend/main.go
 
 release-frontend: frontend
 	rm -rf out/release/liwasc-frontend
