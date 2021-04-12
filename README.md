@@ -66,6 +66,7 @@ $ docker run \
     --restart always \
     --net host \
     --cap-add NET_RAW \
+    --ulimit nofile=16384:16384 \
     -v ${HOME}/.local/share/liwasc:/root/.local/share/liwasc:z \
     -e LIWASC_BACKEND_OIDCISSUER=https://pojntfx.eu.auth0.com/ \
     -e LIWASC_BACKEND_OIDCCLIENTID=myoidcclientid \
@@ -104,6 +105,7 @@ Description=liwasc
 
 [Service]
 ExecStart=/usr/local/bin/liwasc-backend -c \${HOME}/.local/share/liwasc/etc/liwasc/liwasc-backend-config.yaml
+LimitNOFILE=16384:16384
 
 [Install]
 WantedBy=multi-user.target
