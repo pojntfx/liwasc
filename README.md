@@ -195,6 +195,23 @@ liwasc exposes a full-featured streaming gRPC and gRPC-Web API, which is also us
 - UDP packets for status checks have been extracted from [nmap](https://nmap.org/) using [ports2packets](https://github.com/pojntfx/ports2packets), which allows liwasc to provide it's UDP port scans.
 - All the rest of the authors who worked on the dependencies used! Thanks a lot!
 
+## Contributing
+
+To contribute, please use the [GitHub flow](https://guides.github.com/introduction/flow/) and follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+To build and start a development version of liwasc locally, run the following:
+
+```shell
+$ git clone https://github.com/pojntfx/liwasc.git
+$ cd liwasc
+$ make depend
+$ LIWASC_BACKEND_OIDCISSUER=https://pojntfx.eu.auth0.com/ LIWASC_BACKEND_OIDCCLIENTID=myoidcclientid LIWASC_BACKEND_DEVICENAME=eth0 make dev
+```
+
+The backend should now be started and the frontend be available on [http://localhost:15125/](http://localhost:15125/). Whenever you change a source file, the back- and frontend will automatically be re-compiled.
+
+Have any questions or need help? Chat with us [on Matrix](https://matrix.to/#/#liwasc:matrix.org?via=matrix.org)!
+
 ## License
 
 liwasc (c) 2021 Felicitas Pojtinger and contributors
