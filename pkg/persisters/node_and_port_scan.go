@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gobuffalo/packr/v2"
+	"github.com/pojntfx/liwasc/pkg/db/sqlite/migrations/node_and_port_scan"
 	models "github.com/pojntfx/liwasc/pkg/db/sqlite/node_and_port_scan"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -13,6 +13,7 @@ import (
 )
 
 //go:generate sqlboiler sqlite3 -o ../db/sqlite/node_and_port_scan -c ../../configs/sqlboiler/node_and_port_scan.toml
+//go:generate go-bindata -pkg node_and_port_scan -o ../db/sqlite/migrations/node_and_port_scan/migrations.go ../../db/sqlite/migrations/node_and_port_scan
 
 type NodeAndPortScanPersister struct {
 	*SQLite
@@ -22,8 +23,10 @@ func NewNodeAndPortScanPersister(dbPath string) *NodeAndPortScanPersister {
 	return &NodeAndPortScanPersister{
 		&SQLite{
 			DBPath: dbPath,
-			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeAndPortScanDatabaseMigrations", "../../db/sqlite/migrations/node_and_port_scan"),
+			Migrations: migrate.AssetMigrationSource{
+				Asset:    node_and_port_scan.Asset,
+				AssetDir: node_and_port_scan.AssetDir,
+				Dir:      "../../db/sqlite/migrations/node_and_port_scan",
 			},
 		},
 	}
