@@ -25,13 +25,15 @@ It can ...
 
 ### Containerized
 
+You can get the Docker container like so:
+
 ```shell
 $ docker pull pojntfx/liwasc-backend
 ```
 
 ### Natively
 
-Static binaries are available on [GitHub releases](https://github.com/pojntfx/liwasc/releases).
+If you prefer a native installation, static binaries are also available on [GitHub releases](https://github.com/pojntfx/liwasc/releases).
 
 You can install them like so:
 
@@ -41,9 +43,35 @@ $ sudo install /tmp/liwasc-backend /usr/local/bin
 $ sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend # This allows rootless execution
 ```
 
-### What about the frontend?
+### About the Frontend
 
 The frontend is also available on [GitHub releases](https://github.com/pojntfx/liwasc/releases) in the form of a static `.tar.gz` archive; to deploy it, simply upload it to a CDN or copy it to a web server. For most users, this shouldn't be necessary though; thanks to [@maxence-charriere](https://github.com/maxence-charriere)'s [go-app package](https://go-app.dev/), liwasc is a progressive web app. By simply visiting the [public deployment](https://pojntfx.github.io/liwasc/) once, it will be available for offline use whenever you need it.
+
+## Usage
+
+### Setting up Authentication
+
+liwasc uses [OpenID Connect](https://en.wikipedia.org/wiki/OpenID_Connect) for authentication, which means you can use almost any authentication provider, both self-hosted and as a service, that you want to. We've created a short tutorial video which shows how to set up [Auth0](https://auth0.com/) for this purpose, but feel free to use something like [Ory](https://github.com/ory/hydra) if you prefer a self-hosted solution:
+
+[<img src="https://img.youtube.com/vi/N3cocCOsrGw/0.jpg" width="512" alt="Setting up OpenID Connect for Internal Apps YouTube Video" title="Setting up OpenID Connect for Internal Apps YouTube Video">](https://www.youtube.com/watch?v=N3cocCOsrGw)
+
+### Starting the Backend (Containerized)
+
+Using Docker (or an alternative like Podman), you can easily start & configure the backend; see the [Reference](#reference) for more configuration parameters:
+
+```shell
+$ docker run \
+    --name liwasc-backend \
+    -d \
+    --restart always \
+    --net host \
+    --cap-add NET_RAW \
+    -v ${HOME}/.local/share/liwasc:/root/.local/share/liwasc:z \
+    -e LIWASC_BACKEND_OIDCISSUER=https://pojntfx.eu.auth0.com/ \
+    -e LIWASC_BACKEND_OIDCCLIENTID=q31IUpAg5Qu18eBMiBsbIvH9hhRq7WgE \
+    -e LIWASC_BACKEND_DEVICENAME=eth0 \
+    pojntfx/liwasc-backend
+```
 
 ## License
 
