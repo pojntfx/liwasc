@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	api "github.com/pojntfx/liwasc/pkg/api/proto/v1"
-	models "github.com/pojntfx/liwasc/pkg/db/sqlite/node_and_port_scan"
+	models "github.com/pojntfx/liwasc/pkg/db/sqlite/models/node_and_port_scan"
 	"github.com/pojntfx/liwasc/pkg/persisters"
 	"github.com/pojntfx/liwasc/pkg/scanners"
 	"github.com/pojntfx/liwasc/pkg/validators"
