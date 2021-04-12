@@ -187,6 +187,14 @@ Just like with the environment variables, liwasc can also be configured using a 
 
 liwasc exposes a full-featured streaming gRPC and gRPC-Web API, which is also used internally to connect the front- and backend. You can find the relevant `.proto` files in [api/proto/v1](./api/proto/v1); send the OpenID Connect token with the `X-Liwasc-Authorization` metadata key.
 
+## Acknowledgements
+
+- This project would not have been possible were it not for [@maxence-charriere](https://github.com/maxence-charriere)'s [go-app package](https://go-app.dev/); if you enjoy using liwasc, please donate to him!
+- The open source [PatternFly design system](https://www.patternfly.org/v4/) provides a professional design and reduced the need for custom CSS to a minimium (less than 50 SLOC!).
+- The [mac2vendor database](https://mac2vendor.com/) is an awesome resource for OUI database lookups and is used to provide node metadata in liwasc.
+- UDP packets for status checks have been extracted from [nmap](https://nmap.org/) using [ports2packets](https://github.com/pojntfx/ports2packets), which allows liwasc to provide it's UDP port scans.
+- All the rest of the authors who worked on the dependencies used! Thanks a lot!
+
 ## License
 
 liwasc (c) 2021 Felix Pojtinger and contributors
