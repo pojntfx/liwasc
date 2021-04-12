@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/pojntfx/liwasc/pkg/db/sqlite/migrations/node_wake"
-	models "github.com/pojntfx/liwasc/pkg/db/sqlite/node_wake"
+	models "github.com/pojntfx/liwasc/pkg/db/sqlite/models/node_wake"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-//go:generate sqlboiler sqlite3 -o ../db/sqlite/node_wake -c ../../configs/sqlboiler/node_wake.toml
+//go:generate sqlboiler sqlite3 -o ../db/sqlite/models/node_wake -c ../../configs/sqlboiler/node_wake.toml
 //go:generate go-bindata -pkg node_wake -o ../db/sqlite/migrations/node_wake/migrations.go ../../db/sqlite/migrations/node_wake
 
 type NodeWakePersister struct {
