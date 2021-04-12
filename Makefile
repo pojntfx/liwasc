@@ -63,6 +63,7 @@ depend:
 	GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@latest
 	GO111MODULE=on go get github.com/rubenv/sql-migrate/...
 	GO111MODULE=on go get github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+	GO111MODULE=on go get github.com/shuLhan/go-bindata/...
 	# Setup persistence databases
 	sql-migrate up -env="production" -config configs/sql-migrate/node_and_port_scan.yaml
 	sql-migrate up -env="production" -config configs/sql-migrate/node_wake.yaml

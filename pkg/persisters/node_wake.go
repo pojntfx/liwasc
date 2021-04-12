@@ -3,7 +3,7 @@ package persisters
 import (
 	"context"
 
-	"github.com/gobuffalo/packr/v2"
+	"github.com/pojntfx/liwasc/pkg/db/sqlite/migrations/node_wake"
 	models "github.com/pojntfx/liwasc/pkg/db/sqlite/node_wake"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -11,6 +11,7 @@ import (
 )
 
 //go:generate sqlboiler sqlite3 -o ../db/sqlite/node_wake -c ../../configs/sqlboiler/node_wake.toml
+//go:generate go-bindata -pkg node_wake -o ../db/sqlite/migrations/node_wake/migrations.go ../../db/sqlite/migrations/node_wake
 
 type NodeWakePersister struct {
 	*SQLite
@@ -20,8 +21,10 @@ func NewNodeWakePersister(dbPath string) *NodeWakePersister {
 	return &NodeWakePersister{
 		&SQLite{
 			DBPath: dbPath,
-			Migrations: migrate.PackrMigrationSource{
-				Box: packr.New("nodeWakeDatabaseMigrations", "../../db/sqlite/migrations/node_wake"),
+			Migrations: migrate.AssetMigrationSource{
+				Asset:    node_wake.Asset,
+				AssetDir: node_wake.AssetDir,
+				Dir:      "../../db/sqlite/migrations/node_wake",
 			},
 		},
 	}
