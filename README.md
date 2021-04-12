@@ -139,6 +139,54 @@ Finally, click on `Login`, and if everything worked out fine you should be prese
 
 🚀 **That's it**! We hope you enjoy using liwasc.
 
+## Reference
+
+### Command Line Arguments
+
+```shell
+$ liwasc-backend --help
+liwasc is a high-performance network and port scanner. It can quickly give you a overview of the nodes in your network, the services that run on them and manage their power status.
+
+For more information, please visit https://github.com/pojntfx/liwasc.
+
+Usage:
+  liwasc-backend [flags]
+
+Flags:
+  -c, --configFile string                            Config file to use
+  -d, --deviceName string                            Network device name (default "eth0")
+  -h, --help                                         help for liwasc-backend
+  -l, --listenAddress string                         Listen address (default "localhost:15123")
+      --mac2vendorDatabasePath string                Path to the mac2vendor database (default "/home/pojntfx/.local/share/liwasc/etc/liwasc/oui-database.sqlite")
+      --mac2vendorDatabaseURL string                 URL to the mac2vendor database; will be downloaded on the first run if it doesn't exist (default "https://mac2vendor.com/download/oui-database.sqlite")
+  -u, --maxConcurrentPortScans int                   Maximum concurrent port scans. Be sure to set this value to something lower than the systems ulimit or increase the latter (default 100)
+      --nodeAndPortScanDatabasePath string           Path to the node and port scan database (default "/home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_and_port_scan.sqlite")
+      --nodeWakeDatabasePath string                  Path to the node wake database (default "/home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_wake.sqlite")
+  -t, --oidcClientID string                          OIDC client ID (default "myoidcclientid")
+  -i, --oidcIssuer string                            OIDC issuer (default "https://pojntfx.eu.auth0.com/")
+  -n, --periodicNodeScanTimeout int                  Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans (default 500)
+  -p, --periodicPortScanTimeout int                  Time in milliseconds to wait for a response per port in the periodic port scans (default 10)
+  -e, --periodicScanCronExpression string            Cron expression for the periodic network scans & node scans. The default value will run a network & node scan every ten minutes. See https://pkg.go.dev/github.com/robfig/cron for more information (default "*/10 * * * *")
+      --ports2PacketsDatabasePath string             Path to the ports2packets database (default "/home/pojntfx/.local/share/liwasc/etc/liwasc/ports2packets.csv")
+      --ports2PacketsDatabaseURL string              URL to the ports2packets database; will be downloaded on the first run if it doesn't exist (default "https://github.com/pojntfx/ports2packets/releases/download/weekly-csv/ports2packets.csv")
+  -o, --prepareOnly                                  Only download external databases & prepare them, then exit
+      --serviceNamesPortNumbersDatabasePath string   Path to the CSV input file containing the registered services (default "/home/pojntfx/.local/share/liwasc/etc/liwasc/service-names-port-numbers.csv")
+      --serviceNamesPortNumbersDatabaseURL string    URL to the CSV input file containing the registered services; will be downloaded on the first run if it doesn't exist (default "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv")
+  -w, --webSocketListenAddress string                Listen address (for the WebSocket proxy) (default "localhost:15124")
+```
+
+### Environment Variables
+
+All command line arguments described above can also be set using environment variables; for example, to set `--deviceName` to `tap0` with an environment variable, use `LIWASC_BACKEND_DEVICENAME=tap0`.
+
+### Configuration File
+
+Just like with the environment variables, liwasc can also be configured using a configuration file; see [examples/liwasc-backend-config.yaml](./examples/liwasc-backend-config.yaml) for an example configuration file.
+
+### gRPC API
+
+liwasc exposes a full-featured streaming gRPC and gRPC-Web API, which is also used internally to connect the front- and backend. You can find the relevant `.proto` files in [api/proto/v1](./api/proto/v1); send the OpenID Connect token with the `X-Liwasc-Authorization` metadata key.
+
 ## License
 
 liwasc (c) 2021 Felix Pojtinger and contributors
