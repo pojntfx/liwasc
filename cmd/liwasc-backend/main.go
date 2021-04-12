@@ -190,7 +190,7 @@ For more information, please visit https://github.com/pojntfx/liwasc.`,
 	cmd.PersistentFlags().IntP(periodicNodeScanTimeoutKey, "n", 500, "Time in milliseconds to wait for all nodes in a network to respond in the periodic node scans")
 	cmd.PersistentFlags().IntP(periodicPortScanTimeoutKey, "p", 10, "Time in milliseconds to wait for a response per port in the periodic port scans")
 
-	cmd.PersistentFlags().StringP(oidcIssuerKey, "i", "https://accounts.google.com", "OIDC issuer")
+	cmd.PersistentFlags().StringP(oidcIssuerKey, "i", "https://pojntfx.eu.auth0.com/", "OIDC issuer")
 	cmd.PersistentFlags().StringP(oidcClientIDKey, "t", "myoidcclientid", "OIDC client ID")
 
 	cmd.PersistentFlags().BoolP(prepareOnlyKey, "o", false, "Only download external databases & prepare them, then exit")

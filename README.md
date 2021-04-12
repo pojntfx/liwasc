@@ -68,9 +68,59 @@ $ docker run \
     --cap-add NET_RAW \
     -v ${HOME}/.local/share/liwasc:/root/.local/share/liwasc:z \
     -e LIWASC_BACKEND_OIDCISSUER=https://pojntfx.eu.auth0.com/ \
-    -e LIWASC_BACKEND_OIDCCLIENTID=q31IUpAg5Qu18eBMiBsbIvH9hhRq7WgE \
+    -e LIWASC_BACKEND_OIDCCLIENTID=myoidcclientid \
     -e LIWASC_BACKEND_DEVICENAME=eth0 \
     pojntfx/liwasc-backend
+```
+
+You can get the logs like so:
+
+```shell
+$ docker logs liwasc-backend
+```
+
+### Starting the Backend (Natively)
+
+If you prefer a native setup, you can also do a more traditional setup.
+
+First, set up a config file at `~/.local/share/liwasc/etc/liwasc/liwasc-backend-config.yaml`; see the [Reference](#reference) for more configuration parameters:
+
+```shell
+$ mkdir -p ~/.local/share/liwasc/etc/liwasc/
+$ cat <<EOT >~/.local/share/liwasc/etc/liwasc/liwasc-backend-config.yaml
+oidcIssuer: https://pojntfx.eu.auth0.com/
+oidcClientID: myoidcclientid
+deviceName: eth0
+EOT
+```
+
+Now, create a systemd service for it:
+
+```shell
+$ mkdir -p ~/.config/systemd/user/
+$ cat <<EOT >~/.config/systemd/user/liwasc-backend.service
+[Unit]
+Description=liwasc
+
+[Service]
+ExecStart=/usr/local/bin/liwasc-backend -c \${HOME}/.local/share/liwasc/etc/liwasc/liwasc-backend-config.yaml
+
+[Install]
+WantedBy=multi-user.target
+EOT
+```
+
+Finally, reload systemd and enable the service:
+
+```shell
+$ systemctl --user daemon-reload
+$ systemctl --user enable --now liwasc-backend
+```
+
+You can get the logs like so:
+
+```shell
+$ journalctl --user -u liwasc-backend
 ```
 
 ## License

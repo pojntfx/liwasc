@@ -6,7 +6,7 @@ maxConcurrentPortScans: 100
 nodeAndPortScanDatabasePath: /home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_and_port_scan.sqlite
 nodeWakeDatabasePath: /home/pojntfx/.local/share/liwasc/var/lib/liwasc/node_wake.sqlite
 oidcClientID: myoidcclientid
-oidcIssuer: https://accounts.google.com
+oidcIssuer: https://pojntfx.eu.auth0.com/
 periodicNodeScanTimeout: 500
 periodicPortScanTimeout: 10
 periodicScanCronExpression: "*/10 * * * *"
