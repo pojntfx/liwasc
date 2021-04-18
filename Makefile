@@ -30,7 +30,7 @@ release-frontend-github-pages: frontend
 release: release-backend release-frontend release-frontend-github-pages
 
 install: release-backend
-	sudo install out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) /usr/local/bin
+	sudo install out/release/liwasc-backend/liwasc-backend.linux-$$(uname -m) /usr/local/bin/liwasc-backend
 	sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend
 	
 dev:
