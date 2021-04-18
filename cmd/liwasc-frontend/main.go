@@ -57,14 +57,14 @@ func main() {
 			LoadingLabel: "List, wake and scan nodes in a network.",
 			Name:         "liwasc",
 			RawHeaders: []string{
-				`<meta property="og:url" content="https://liwasc.alphahorizon.io/">`,
+				`<meta property="og:url" content="https://pojntfx.github.io/liwasc/">`,
 				`<meta property="og:title" content="liwasc">`,
 				`<meta property="og:description" content="List, wake and scan nodes in a network.">`,
-				`<meta property="og:image" content="https://liwasc.alphahorizon.io/web/icon.png">`,
+				`<meta property="og:image" content="https://pojntfx.github.io/liwasc/web/icon.png">`,
 			},
 			Styles: []string{
-				`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly.css`,
-				`https://unpkg.com/@patternfly/patternfly@4.90.5/patternfly-addons.css`,
+				`https://unpkg.com/@patternfly/patternfly@4.96.2/patternfly.css`,
+				`https://unpkg.com/@patternfly/patternfly@4.96.2/patternfly-addons.css`,
 				`/web/index.css`,
 			},
 			ThemeColor: "#151515",
