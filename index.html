@@ -8,9 +8,9 @@
 <meta name="keywords" content="network, network-scanner, port-scanner, ip-scanner, arp-scanner, arp, iana, ports2packets, liwasc, vendor2mac, wake-on-lan, wol, service-name">
 <meta name="theme-color" content="#151515">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
-<meta property="og:url" content="http://127.0.0.1:45783/">
+<meta property="og:url" content="http://127.0.0.1:40659/">
 <meta property="og:title" content="liwasc">
-<meta content="List, wake and scan nodes in a network." property="og:description">
+<meta property="og:description" content="List, wake and scan nodes in a network.">
 <meta property="og:type" content="website">
 <meta property="og:image" content>
 <title>
@@ -20,11 +20,11 @@ liwasc
 <link rel="apple-touch-icon" href="/liwasc/web/icon.png">
 <link rel="manifest" href="/liwasc/manifest.webmanifest">
 <link type="text/css" rel="stylesheet" href="/liwasc/app.css">
-<script src="/liwasc/wasm_exec.js" defer></script>
+<script defer src="/liwasc/wasm_exec.js"></script>
 <script defer src="/liwasc/app.js"></script>
-<link href="https://unpkg.com/@patternfly/patternfly@4.96.2/patternfly.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.96.2/patternfly.css" type="text/css">
 <link type="text/css" rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@4.96.2/patternfly-addons.css">
-<link href="/liwasc/web/index.css" type="text/css" rel="stylesheet">
+<link type="text/css" rel="stylesheet" href="/liwasc/web/index.css">
 <meta property="og:url" content="https://pojntfx.github.io/liwasc/">
 <meta property="og:title" content="liwasc">
 <meta property="og:description" content="List, wake and scan nodes in a network.">
@@ -96,7 +96,7 @@ Backend URL
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input aria-invalid="false" name="backendURLName" id="backendURLName" type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control">
+<input type="url" required placeholder="ws://localhost:15124" class="pf-c-form-control" aria-invalid="false" name="backendURLName" id="backendURLName">
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -111,12 +111,12 @@ OIDC Issuer
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input required placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false" name="oidcIssuer" id="oidcIssuer" type="url">
+<input id="oidcIssuer" type="url" required placeholder="https://pojntfx.eu.auth0.com/" class="pf-c-form-control" aria-invalid="false" name="oidcIssuer">
 </div>
 </div>
 <div class="pf-c-form__group">
 <div class="pf-c-form__group-label">
-<label class="pf-c-form__label" for="oidcClientID">
+<label for="oidcClientID" class="pf-c-form__label">
 <span class="pf-c-form__label-text">
 OIDC Client ID
 </span>
@@ -126,7 +126,7 @@ OIDC Client ID
 </span>
 </div>
 <div class="pf-c-form__group-control">
-<input required class="pf-c-form-control" aria-invalid="false" name="oidcClientID" id="oidcClientID" type="text">
+<input type="text" required class="pf-c-form-control" aria-invalid="false" name="oidcClientID" id="oidcClientID">
 </div>
 </div>
 <div class="pf-c-form__group">
@@ -145,7 +145,7 @@ OIDC Redirect URL
 </div>
 </div>
 <div class="pf-c-form__group pf-m-action">
-<button class="pf-c-button pf-m-primary pf-m-block" type="submit">
+<button type="submit" class="pf-c-button pf-m-primary pf-m-block">
 Log in
 </button>
 </div>
