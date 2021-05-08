@@ -218,6 +218,10 @@ The backend should now be started and the frontend be available on [http://local
 
 Have any questions or need help? Chat with us [on Matrix](https://matrix.to/#/#liwasc:matrix.org?via=matrix.org)!
 
+## Related Projects
+
+If you want to have a modern network boot server to provision the nodes managed by liwasc, check out [bofied](https://github.com/pojntfx/bofied)!
+
 ## License
 
 liwasc (c) 2021 Felicitas Pojtinger and contributors
