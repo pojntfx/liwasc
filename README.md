@@ -47,15 +47,17 @@ $ sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend # This allows rootles
 
 The frontend is also available on [GitHub releases](https://github.com/pojntfx/liwasc/releases) in the form of a static `.tar.gz` archive; to deploy it, simply upload it to a CDN or copy it to a web server. For most users, this shouldn't be necessary though; thanks to [@maxence-charriere](https://github.com/maxence-charriere)'s [go-app package](https://go-app.dev/), liwasc is a progressive web app. By simply visiting the [public deployment](https://pojntfx.github.io/liwasc/) once, it will be available for offline use whenever you need it.
 
+[<img src="https://github.com/alphahorizonio/webnetesctl/raw/main/img/launch.png" width="240">](https://pojntfx.github.io/liwasc/)
+
 ## Usage
 
-### Setting up Authentication
+### 1. Setting up Authentication
 
 liwasc uses [OpenID Connect](https://en.wikipedia.org/wiki/OpenID_Connect) for authentication, which means you can use almost any authentication provider, both self-hosted and as a service, that you want to. We've created a short tutorial video which shows how to set up [Auth0](https://auth0.com/) for this purpose, but feel free to use something like [Ory](https://github.com/ory/hydra) if you prefer a self-hosted solution:
 
-[<img src="https://img.youtube.com/vi/N3cocCOsrGw/0.jpg" width="512" alt="Setting up OpenID Connect for Internal Apps YouTube Video" title="Setting up OpenID Connect for Internal Apps YouTube Video">](https://www.youtube.com/watch?v=N3cocCOsrGw)
+[<img src="https://img.youtube.com/vi/N3cocCOsrGw/0.jpg" width="256" alt="Setting up OpenID Connect for Internal Apps YouTube Video" title="Setting up OpenID Connect for Internal Apps YouTube Video">](https://www.youtube.com/watch?v=N3cocCOsrGw)
 
-### Starting the Backend (Containerized)
+### 2. (Option 1): Starting the Backend (Containerized)
 
 Using Docker (or an alternative like Podman), you can easily start & configure the backend; see the [Reference](#reference) for more configuration parameters:
 
@@ -80,7 +82,7 @@ You can get the logs like so:
 $ docker logs liwasc-backend
 ```
 
-### Starting the Backend (Natively)
+### 2. (Option 2): Starting the Backend (Natively)
 
 If you prefer a native setup, you can also do a more traditional setup.
 
@@ -125,9 +127,13 @@ You can get the logs like so:
 $ journalctl --user -u liwasc-backend
 ```
 
-### Connecting the Frontend
+### 3. Connecting the Frontend
 
-Now that the backend is running, head over to [https://pojntfx.github.io/liwasc/](https://pojntfx.github.io/liwasc/). Alternatively, as described in [About the Frontend](#about-the-frontend), you can also choose to self-host. Once you're on the page, you should be presented with the following setup page:
+Now that the backend is running, head over to [https://pojntfx.github.io/liwasc/](https://pojntfx.github.io/liwasc/):
+
+[<img src="https://github.com/alphahorizonio/webnetesctl/raw/main/img/launch.png" width="240">](https://pojntfx.github.io/liwasc/)
+
+Alternatively, as described in [About the Frontend](#about-the-frontend), you can also choose to self-host. Once you're on the page, you should be presented with the following setup page:
 
 ![Setup page](./assets/setup.png)
 
