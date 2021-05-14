@@ -5,10 +5,12 @@ apt update
 apt install -y curl make sudo build-essential sqlite3 libprotobuf-dev protobuf-compiler libpcap-dev
 
 # Install Go
-VERSION=1.16
+VERSION=1.16.4
 FILE=/tmp/go.tar.gz
 if [ "$(uname -m)" = 'x86_64' ]; then
     curl -L -o ${FILE} https://golang.org/dl/go${VERSION}.linux-amd64.tar.gz
+elif [ "$(uname -m)" = 'armv7l' ]; then
+    curl -L -o ${FILE} https://golang.org/dl/go${VERSION}.linux-armv6l.tar.gz
 else
     curl -L -o ${FILE} https://golang.org/dl/go${VERSION}.linux-arm64.tar.gz
 fi
