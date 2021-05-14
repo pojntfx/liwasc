@@ -3,6 +3,7 @@
 # Install native dependencies
 apt update
 apt install -y curl make sudo build-essential sqlite3 libprotobuf-dev protobuf-compiler libpcap-dev
+export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 # Install Go
 VERSION=1.16.4

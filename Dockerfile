@@ -1,10 +1,6 @@
 # Build container
 FROM debian AS build
 
-# Add certificates
-RUN apt update
-RUN apt install -y ca-certificates
-
 # Setup environment
 RUN mkdir -p /data
 WORKDIR /data
