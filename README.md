@@ -8,6 +8,8 @@ List, wake and scan nodes in a network.
 [![Docker CI](https://github.com/pojntfx/liwasc/actions/workflows/docker.yaml/badge.svg)](https://github.com/pojntfx/liwasc/actions/workflows/docker.yaml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/pojntfx/liwasc.svg)](https://pkg.go.dev/github.com/pojntfx/liwasc)
 [![Matrix](https://img.shields.io/matrix/liwasc:matrix.org)](https://matrix.to/#/#liwasc:matrix.org?via=matrix.org)
+[![Docker Pulls](https://img.shields.io/docker/pulls/pojntfx/liwasc-backend?label=docker%20pulls)](https://hub.docker.com/r/pojntfx/liwasc-backend)
+[![Binary Downloads](https://img.shields.io/github/downloads/pojntfx/liwasc/total?label=binary%20downloads)](https://github.com/pojntfx/liwasc/releases)
 
 ## Overview
 
@@ -38,7 +40,7 @@ If you prefer a native installation, static binaries are also available on [GitH
 You can install them like so:
 
 ```shell
-$ curl -L -o /tmp/liwasc-backend https://github.com/pojntfx/liwasc/releases/download/latest/liwasc-backend.linux-$(uname -m)
+$ curl -L -o /tmp/liwasc-backend https://github.com/pojntfx/liwasc/releases/latest/download/liwasc-backend.linux-$(uname -m)
 $ sudo install /tmp/liwasc-backend /usr/local/bin
 $ sudo setcap cap_net_raw+ep /usr/local/bin/liwasc-backend # This allows rootless execution
 ```
