@@ -2,7 +2,7 @@
 
 # Install native dependencies
 apt update
-apt install -y curl make sudo build-essential sqlite3 libprotobuf-dev protobuf-compiler libpcap-dev
+apt install -y curl make sudo build-essential sqlite3 protobuf-compiler libpcap-dev
 
 # Fix certificate authorities on armv7
 export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
